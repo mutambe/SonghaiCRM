@@ -7,6 +7,9 @@ import { z } from "zod";
  */
 export const createChannelSchema = z.object({
   display_name: z.string().trim().min(1).max(80).optional(),
+  // Default "waha" preserva o comportamento de quem já chama esta rota sem o
+  // campo — nenhum cliente existente quebra.
+  provider: z.enum(["waha", "evolution"]).optional().default("waha"),
 });
 
 export type CreateChannelInput = z.infer<typeof createChannelSchema>;

@@ -24,6 +24,7 @@ import { NextResponse } from "next/server";
 
 import { loadAuthUser, resolveActiveOrg } from "@/lib/auth/server";
 import { ARCHIVED_AT, queryTolerantToMissingArchived } from "@/lib/channels/archived";
+import { fetchQrImage } from "@/lib/channels/qr";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -51,54 +52,26 @@ export async function GET(
   // arquivado, e exigir a coluna aqui apagaria o QR de quem está pareando agora
   // — o passo mais frágil da primeira instalação.
   const { data: sessionRaw } = await queryTolerantToMissingArchived(
-    () => buscar(`waha_session_name, ${ARCHIVED_AT}`),
-    () => buscar("waha_session_name"),
+    () => buscar(`provider, waha_session_name, evolution_instance_name, ${ARCHIVED_AT}`),
+    () => buscar("provider, waha_session_name, evolution_instance_name"),
   );
   const session = sessionRaw as {
+    provider: string;
     waha_session_name: string | null;
+    evolution_instance_name: string | null;
     archived_at?: string | null;
   } | null;
   if (!session) return new NextResponse(null, { status: 404 });
   // 409, não 404: o canal ESTÁ na organização — foi excluído. O corpo é vazio
   // porque quem consome isto é um <img>; o cabeçalho é para quem depura.
   if (session.archived_at) {
-    return new NextResponse(null, {
-      status: 409,
-      headers: { "x-channel-state": "archived" },
-    });
-  }
-  // Canal oficial não pareia por QR: `waha_session_name` é NULL nele por CHECK.
-  // Afirmar `string` aqui (era um cast) só adiava a mentira até a URL, que virava
-  // `/api/null/auth/qr` — 404 do transporte, indistinguível de "o QR ainda não
-  // ficou pronto", que é exatamente o estado em que a tela fica insistindo.
-  if (!session.waha_session_name) {
-    return new NextResponse(null, {
-      status: 409,
-      headers: { "x-channel-state": "no-session" },
-    });
+    return new NextResponse(null, { status: 409, headers: { "x-channel-state": "archived" } });
   }
 
-  const baseUrl = process.env.WAHA_API_BASE_URL;
-  const apiKey = process.env.WAHA_API_KEY;
-  if (!baseUrl || !apiKey || apiKey === "dev_plaintext_change_me") {
-    return new NextResponse(null, { status: 503 });
-  }
-
-  const upstream = await fetch(
-    `${baseUrl}/api/${encodeURIComponent(session.waha_session_name)}/auth/qr?format=image`,
-    { headers: { "X-Api-Key": apiKey }, cache: "no-store" },
-  );
-  if (!upstream.ok) {
-    return new NextResponse(null, {
-      status: upstream.status,
-      headers: { "x-waha-status": String(upstream.status) },
-    });
-  }
-
-  const ct = upstream.headers.get("content-type") ?? "image/png";
-  const buf = await upstream.arrayBuffer();
-  return new NextResponse(buf, {
+  const qr = await fetchQrImage(session);
+  if (!qr.ok) return new NextResponse(null, { status: qr.status });
+  return new NextResponse(qr.body, {
     status: 200,
-    headers: { "content-type": ct, "cache-control": "no-store, max-age=0" },
+    headers: { "content-type": qr.contentType, "cache-control": "no-store, max-age=0" },
   });
 }
