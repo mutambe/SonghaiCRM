@@ -18,7 +18,10 @@
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-import { CHANNEL_PROVIDER_ZERNIO } from "./capabilities";
+import { ingestEvolutionInbound } from "@/lib/evolution/ingest";
+import { parseEvolutionConnectionUpdate } from "@/lib/evolution/webhook";
+
+import { CHANNEL_PROVIDER_EVOLUTION, CHANNEL_PROVIDER_ZERNIO } from "./capabilities";
 import { sincronizarSaudeDaConexao } from "./health";
 import {
   atualizarEspelhoDoTemplate,
@@ -59,7 +62,7 @@ export type InboundWebhookOutcome =
  * trabalho — e respondido sem nomear provider do lado de fora.
  */
 export function acceptsInboundWebhook(provider: string): boolean {
-  return provider === CHANNEL_PROVIDER_ZERNIO;
+  return provider === CHANNEL_PROVIDER_ZERNIO || provider === CHANNEL_PROVIDER_EVOLUTION;
 }
 
 export async function handleInboundWebhook(
@@ -71,6 +74,8 @@ export async function handleInboundWebhook(
   switch (provider) {
     case CHANNEL_PROVIDER_ZERNIO:
       return zernioInbound(admin, input);
+    case CHANNEL_PROVIDER_EVOLUTION:
+      return evolutionInbound(admin, input);
     default:
       // Token de um canal que não entra por aqui. É configuração trocada, não
       // ataque — mas processar seria ler o payload com o parser errado.
@@ -161,6 +166,42 @@ async function zernioInbound(
   }
 
   const r = await ingestZernioInbound(admin, {
+    organizationId: input.session.organization_id,
+    channelSessionId: input.session.id,
+    payload,
+  });
+  return { ok: true, body: { ...r } };
+}
+
+async function evolutionInbound(
+  admin: SupabaseClient,
+  input: InboundWebhookInput,
+): Promise<InboundWebhookOutcome> {
+  let payload: unknown;
+  try {
+    payload = JSON.parse(input.rawBody);
+  } catch {
+    return { ok: false, code: "invalid_json", message: "invalid_json" };
+  }
+
+  // Evento de CONEXÃO passa pelo vigia de saúde, não pela ingestão de mensagem.
+  const conexao = parseEvolutionConnectionUpdate(payload);
+  if (conexao) {
+    const desfecho = await sincronizarSaudeDaConexao(
+      admin,
+      { id: input.session.id, organization_id: input.session.organization_id, status: conexao.state },
+      // `reachable: true` porque o evento chegou — o provedor conseguiu falar
+      // conosco e nos disse o estado atual. `SaudeObservada` distingue "não deu
+      // para perguntar" (reachable: false) de "perguntei e o estado é X", e este
+      // é sempre o segundo caso: é um empurrão, não uma tentativa que falhou.
+      { reachable: true, status: conexao.state, detail: null },
+      input.session.display_name ?? input.session.phone_number ?? "sem nome",
+      "empurrao",
+    );
+    return { ok: true, body: { status: "saude", state: conexao.state, desfecho } };
+  }
+
+  const r = await ingestEvolutionInbound(admin, {
     organizationId: input.session.organization_id,
     channelSessionId: input.session.id,
     payload,
