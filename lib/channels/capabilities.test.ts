@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { CHANNEL_CAPABILITIES, CHANNEL_PROVIDER_EVOLUTION, capabilitiesOf } from "./capabilities";
+import {
+  CHANNEL_CAPABILITIES,
+  CHANNEL_LABELS,
+  CHANNEL_PROVIDER_EVOLUTION,
+  capabilitiesOf,
+} from "./capabilities";
 
 describe("capabilities do Evolution API", () => {
   it("tem o mesmo perfil de auto-restrição do WAHA (QR, sem WABA)", () => {
@@ -17,5 +22,17 @@ describe("capabilities do Evolution API", () => {
     expect(Object.keys(CHANNEL_CAPABILITIES).sort()).toEqual(
       ["evolution", "meta_cloud", "waha", "zernio"].sort(),
     );
+  });
+});
+
+describe("CHANNEL_LABELS", () => {
+  it("tem rótulo para todo ChannelProvider, mesma chave da matriz de capabilities", () => {
+    expect(Object.keys(CHANNEL_LABELS).sort()).toEqual(
+      ["evolution", "meta_cloud", "waha", "zernio"].sort(),
+    );
+  });
+
+  it("nomeia o Evolution API pelo nome comercial", () => {
+    expect(CHANNEL_LABELS.evolution).toBe("Evolution API");
   });
 });

@@ -51,6 +51,7 @@ function canal(over: Partial<ChannelSession> = {}): ChannelSession {
   return {
     id: "canal-1",
     waha_session_name: "org_1111_aaa",
+    evolution_instance_name: null,
     display_name: "Vendas",
     phone_number: "5511999999999",
     status: "WORKING",

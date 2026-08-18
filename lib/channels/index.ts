@@ -25,7 +25,16 @@ export function getAdapter(provider: ChannelProvider): ChannelAdapter {
   return adapter;
 }
 
-export { capabilitiesOf, CHANNEL_CAPABILITIES, DEFAULT_CHANNEL_PROVIDER } from "./capabilities";
+export {
+  capabilitiesOf,
+  CHANNEL_CAPABILITIES,
+  CHANNEL_LABELS,
+  CHANNEL_PROVIDER_EVOLUTION,
+  CHANNEL_PROVIDER_META,
+  CHANNEL_PROVIDER_WAHA,
+  CHANNEL_PROVIDER_ZERNIO,
+  DEFAULT_CHANNEL_PROVIDER,
+} from "./capabilities";
 export { CHANNEL_SESSION_REF_COLUMNS, resolveSessionRef } from "./session-ref";
 export type { ChannelSessionRef } from "./session-ref";
 export type {

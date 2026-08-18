@@ -60,6 +60,7 @@ function canal(over: Partial<ChannelSession> = {}): ChannelSession {
   return {
     id: "canal-1",
     waha_session_name: "org_1111_aaa",
+    evolution_instance_name: null,
     display_name: "Vendas",
     phone_number: "5511999999999",
     status: "WORKING",
@@ -169,6 +170,25 @@ describe("Reconectar não é oferecido a quem não vive no transporte", () => {
   });
 
   it("número pareado por QR continua recebendo o botão", () => {
+    render(wrap(<ConnectionsClient wahaConfigured />));
+
+    expect(screen.getByRole("button", { name: /Reconectar/ })).toBeEnabled();
+  });
+
+  /**
+   * Achado do revisor da Task 10: `dependeDoTransporte` só olhava
+   * `waha_session_name`. Uma sessão pareada via Evolution API (Task 4/6) tem
+   * `waha_session_name: null` e `evolution_instance_name` preenchido — a
+   * versão antiga da função classificava esse canal como o oficial (sem
+   * transporte), escondendo o Reconectar dele. Sabotagem confirmada: com a
+   * função revertida para `Boolean(c.waha_session_name)`, este teste (e só
+   * ele, dos três desta suíte) vira vermelho.
+   */
+  it("canal pareado via Evolution API também recebe o botão (não é confundido com o oficial)", () => {
+    listagem.data = [
+      canal({ waha_session_name: null, evolution_instance_name: "org_1111_evo", display_name: "Evolution" }),
+    ];
+
     render(wrap(<ConnectionsClient wahaConfigured />));
 
     expect(screen.getByRole("button", { name: /Reconectar/ })).toBeEnabled();

@@ -97,6 +97,19 @@ export const CHANNEL_CAPABILITIES: Record<ChannelProvider, ChannelCapabilities> 
 export const DEFAULT_CHANNEL_PROVIDER: ChannelProvider = "waha";
 
 /**
+ * Nome comercial do canal, para o usuário. Mora aqui pelo mesmo motivo de
+ * `PARTNER_CHANNEL_LABEL` (lib/channels/connect.ts) para o Zernio: copy de
+ * provider é nome dado, e nome dado mora onde nomear é permitido —
+ * `lib/channels/` — nunca dentro de um componente.
+ */
+export const CHANNEL_LABELS: Record<ChannelProvider, string> = {
+  waha: "WhatsApp (QR)",
+  meta_cloud: "WhatsApp Oficial (Meta)",
+  zernio: "Zernio",
+  evolution: "Evolution API",
+};
+
+/**
  * Constantes nomeadas dos providers. Existem para que nenhum arquivo fora deste
  * módulo precise escrever a string — é o que o `scripts/lint-channels.ts` cobra.
  */

@@ -12,6 +12,12 @@ export interface ChannelSession {
    * canal oficial rendia rótulo vazio onde a tela concatenava esse campo.
    */
   waha_session_name: string | null;
+  /**
+   * Mesmo papel de `waha_session_name`, para a sessão pareada via Evolution
+   * API: nome da instância no transporte. NULL em toda sessão que não é
+   * Evolution — incluindo o canal oficial, que não tem nenhum dos dois.
+   */
+  evolution_instance_name: string | null;
   display_name: string | null;
   phone_number: string | null;
   status: string;

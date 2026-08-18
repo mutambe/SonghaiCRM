@@ -24,6 +24,13 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   ArrowsClockwise,
   CheckCircle,
   CircleNotch,
@@ -34,6 +41,8 @@ import {
   Warning,
 } from "@/lib/ui/icons";
 import { lerEstadoDoCanal } from "@/lib/channels/estado";
+import { CHANNEL_LABELS, CHANNEL_PROVIDER_EVOLUTION, CHANNEL_PROVIDER_WAHA } from "@/lib/channels";
+import type { ChannelProvider } from "@/lib/channels";
 
 type Variant = "success" | "warning" | "error" | "neutral";
 
@@ -70,9 +79,17 @@ function errMsg(err: unknown, fallback: string): string {
  * é revogado por credencial, sem tocar no transporte. Se algum dia uma linha
  * oficial guardar nome de sessão, o efeito é o botão exigir o serviço à toa:
  * restringe demais, nunca promete de menos.
+ *
+ * Dois providers pareiam por QR hoje, cada um com sua própria coluna de nome de
+ * sessão (`waha_session_name` / `evolution_instance_name`) — a mesma pergunta
+ * ("este canal vive num transporte que pode ser parado/deslogado/reparado?")
+ * responde `true` para os dois. Checar só a coluna do WAHA classificava uma
+ * sessão Evolution conectada como se fosse o canal oficial (sem transporte):
+ * ícone errado, sem botão de Reconectar, Excluir liberado mesmo sem o serviço
+ * no ar.
  */
 function dependeDoTransporte(c: ChannelSession): boolean {
-  return Boolean(c.waha_session_name);
+  return Boolean(c.waha_session_name || c.evolution_instance_name);
 }
 
 /** "3 conversas" / "1 conversa" — ou nada, quando não há o que contar. */
@@ -98,6 +115,7 @@ export function ConnectionsClient({ wahaConfigured }: { wahaConfigured: boolean 
   } = useChannelSessions({ refetchInterval: 10_000 });
   const [busyId, setBusyId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
+  const [newProvider, setNewProvider] = useState<ChannelProvider>(CHANNEL_PROVIDER_WAHA);
   const [checking, setChecking] = useState(false);
   const [qr, setQr] = useState<{ sessionId: string; title: string } | null>(null);
   const [antiBanId, setAntiBanId] = useState<string | null>(null);
@@ -140,7 +158,7 @@ export function ConnectionsClient({ wahaConfigured }: { wahaConfigured: boolean 
     try {
       const res = await apiClient.post<{ data: ChannelSession }>(
         "/api/v1/channel-sessions",
-        {},
+        { provider: newProvider },
       );
       invalidate();
       setQr({ sessionId: res.data.id, title: "Conectar novo WhatsApp" });
@@ -149,7 +167,7 @@ export function ConnectionsClient({ wahaConfigured }: { wahaConfigured: boolean 
     } finally {
       setCreating(false);
     }
-  }, [invalidate]);
+  }, [invalidate, newProvider]);
 
   // Reconexão suave: a maioria das quedas é passageira (rede, container
   // reiniciado) e a credencial pareada continua boa, então o número volta sem
@@ -203,7 +221,7 @@ export function ConnectionsClient({ wahaConfigured }: { wahaConfigured: boolean 
               ? "Nenhum número conectado ainda."
               : `${list.length} ${list.length === 1 ? "número conectado" : "números conectados"}.`}
         </p>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {list.length > 0 && (
             <Button
               variant="outline"
@@ -219,7 +237,27 @@ export function ConnectionsClient({ wahaConfigured }: { wahaConfigured: boolean 
               Atualizar saúde
             </Button>
           )}
-          <Button size="sm" disabled={creating || !wahaConfigured} onClick={handleConnectNew}>
+          {/* Escolha do provider de QR: hoje são dois transportes possíveis
+              (`CHANNEL_LABELS`), e a tela pergunta qual antes de criar a sessão
+              — só o WAHA exige o serviço configurado nesta instalação, então o
+              botão só depende de `wahaConfigured` quando é ele o escolhido. */}
+          <Select
+            value={newProvider}
+            onValueChange={(v) => setNewProvider(v as ChannelProvider)}
+          >
+            <SelectTrigger className="h-9 w-[11rem]" aria-label="Provider do novo WhatsApp">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={CHANNEL_PROVIDER_WAHA}>{CHANNEL_LABELS.waha}</SelectItem>
+              <SelectItem value={CHANNEL_PROVIDER_EVOLUTION}>{CHANNEL_LABELS.evolution}</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button
+            size="sm"
+            disabled={creating || (newProvider === CHANNEL_PROVIDER_WAHA && !wahaConfigured)}
+            onClick={handleConnectNew}
+          >
             {creating ? (
               <CircleNotch size={14} className="animate-spin" aria-hidden />
             ) : (
