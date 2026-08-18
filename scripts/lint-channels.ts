@@ -40,6 +40,8 @@ const ALLOWED = [
   /^lib\/channels\//,
   // O transporte que o adapter embrulha; some quando a Fase 3 o absorver.
   /^lib\/waha\//,
+  // Mesma natureza: transporte puro do Evolution API, embrulhado pelo adapter.
+  /^lib\/evolution\//,
   // Saída de `supabase gen types`: os nomes são COLUNAS. Editar à mão é o defeito.
   /^lib\/database\.types\.ts$/,
 ];
