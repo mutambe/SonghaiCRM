@@ -69,6 +69,19 @@ export const CHANNEL_CAPABILITIES: Record<ChannelProvider, ChannelCapabilities> 
     groups: "limited",
     costPerMessage: true,
   },
+  // Mesma natureza do WAHA: engine Baileys não-oficial, QR code, sem WABA por
+  // trás. A instância é externa (não gerenciada por este repo), mas o
+  // vocabulário de risco é idêntico — auto-restrição, não hetero-restrição.
+  evolution: {
+    freeformOutsideWindow: true,
+    requiresTemplates: false,
+    canManageTemplates: false,
+    banRisk: true,
+    minIntervalMs: null,
+    voiceNote: "server-convert",
+    groups: "full",
+    costPerMessage: false,
+  },
 };
 
 /**
@@ -90,6 +103,7 @@ export const DEFAULT_CHANNEL_PROVIDER: ChannelProvider = "waha";
 export const CHANNEL_PROVIDER_WAHA: ChannelProvider = "waha";
 export const CHANNEL_PROVIDER_META: ChannelProvider = "meta_cloud";
 export const CHANNEL_PROVIDER_ZERNIO: ChannelProvider = "zernio";
+export const CHANNEL_PROVIDER_EVOLUTION: ChannelProvider = "evolution";
 
 export function capabilitiesOf(provider: ChannelProvider): ChannelCapabilities {
   const caps = CHANNEL_CAPABILITIES[provider];
