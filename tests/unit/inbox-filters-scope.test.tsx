@@ -50,6 +50,7 @@ function setOrg(role: ActiveOrg["role"], visibility_mode: ActiveOrg["visibility_
 function canal(over: Partial<ChannelSession> = {}): ChannelSession {
   return {
     id: "canal-1",
+    provider: "waha",
     waha_session_name: "org_1111_aaa",
     evolution_instance_name: null,
     display_name: "Vendas",

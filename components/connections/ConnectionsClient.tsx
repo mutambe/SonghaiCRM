@@ -117,7 +117,9 @@ export function ConnectionsClient({ wahaConfigured }: { wahaConfigured: boolean 
   const [creating, setCreating] = useState(false);
   const [newProvider, setNewProvider] = useState<ChannelProvider>(CHANNEL_PROVIDER_WAHA);
   const [checking, setChecking] = useState(false);
-  const [qr, setQr] = useState<{ sessionId: string; title: string } | null>(null);
+  const [qr, setQr] = useState<{ sessionId: string; title: string; provider: string } | null>(
+    null,
+  );
   const [antiBanId, setAntiBanId] = useState<string | null>(null);
   const [toDelete, setToDelete] = useState<ChannelSession | null>(null);
   const pacingItems = usePacingKnobs().data?.items ?? [];
@@ -132,7 +134,12 @@ export function ConnectionsClient({ wahaConfigured }: { wahaConfigured: boolean 
   // pode estar velho se o WAHA caiu sem emitir evento).
   const runHealthCheck = useCallback(
     async (list: ChannelSession[]) => {
-      if (!wahaConfigured || list.length === 0) return;
+      // NÃO gated por `wahaConfigured`: a lista pode ter canais Evolution, e a
+      // rota `GET /channel-sessions/[id]` já lida com "não há transporte a
+      // perguntar" por sessão (só consulta o WAHA quando `provider === waha`
+      // e o client existe). Gatear pelo flag global apagava a checagem
+      // inteira numa instalação só-Evolution.
+      if (list.length === 0) return;
       setChecking(true);
       try {
         await Promise.allSettled(
@@ -143,7 +150,7 @@ export function ConnectionsClient({ wahaConfigured }: { wahaConfigured: boolean 
         setChecking(false);
       }
     },
-    [wahaConfigured, invalidate],
+    [invalidate],
   );
 
   const didInitialCheck = useRef(false);
@@ -161,7 +168,7 @@ export function ConnectionsClient({ wahaConfigured }: { wahaConfigured: boolean 
         { provider: newProvider },
       );
       invalidate();
-      setQr({ sessionId: res.data.id, title: "Conectar novo WhatsApp" });
+      setQr({ sessionId: res.data.id, title: "Conectar novo WhatsApp", provider: res.data.provider });
     } catch (err) {
       toast.error(errMsg(err, "Não foi possível iniciar a conexão."));
     } finally {
@@ -180,7 +187,7 @@ export function ConnectionsClient({ wahaConfigured }: { wahaConfigured: boolean 
       try {
         await apiClient.post(`/api/v1/channel-sessions/${c.id}/reconnect`, {});
         invalidate();
-        setQr({ sessionId: c.id, title: `Reconectar ${channelLabel(c)}` });
+        setQr({ sessionId: c.id, title: `Reconectar ${channelLabel(c)}`, provider: c.provider });
       } catch (err) {
         toast.error(errMsg(err, "Não foi possível reconectar."));
       } finally {
@@ -226,7 +233,7 @@ export function ConnectionsClient({ wahaConfigured }: { wahaConfigured: boolean 
             <Button
               variant="outline"
               size="sm"
-              disabled={checking || !wahaConfigured}
+              disabled={checking}
               onClick={() => void runHealthCheck(list)}
             >
               <ArrowsClockwise
@@ -413,6 +420,7 @@ export function ConnectionsClient({ wahaConfigured }: { wahaConfigured: boolean 
         <QrDialog
           sessionId={qr.sessionId}
           title={qr.title}
+          provider={qr.provider}
           wahaConfigured={wahaConfigured}
           onClose={() => setQr(null)}
           onConnected={handleConnected}
@@ -574,6 +582,7 @@ function ExcluirCanalDialog({
 function QrDialog({
   sessionId,
   title,
+  provider,
   wahaConfigured,
   onClose,
   onConnected,
@@ -581,6 +590,9 @@ function QrDialog({
 }: {
   sessionId: string;
   title: string;
+  /** Provider DESTA sessão — decide qual gate de "transporte configurado"
+   *  perguntar, não o flag global. */
+  provider: string;
   wahaConfigured: boolean;
   onClose: () => void;
   onConnected: () => void;
@@ -592,7 +604,17 @@ function QrDialog({
   const done = useRef(false);
 
   useEffect(() => {
-    if (!wahaConfigured) return;
+    // Gate por PROVIDER DA SESSÃO, não pelo flag global `wahaConfigured`: numa
+    // instalação só-Evolution (WAHA_API_BASE_URL/WAHA_API_KEY em branco, um
+    // arranjo que o `.env.example` documenta como suportado), `wahaConfigured`
+    // é `false` mesmo com o Evolution funcionando — e o `if (!wahaConfigured)
+    // return` fazia este diálogo nunca chamar a rota de status para uma
+    // sessão Evolution, então o QR nunca tinha chance de aparecer. Para
+    // Evolution não há sinal client-visible equivalente hoje — a rota de
+    // status já devolve o que sabe (e trataria "não configurado" a seu modo,
+    // como o resto do módulo já faz); só o WAHA depende deste flag porque é o
+    // único caso em que já existe o sinal.
+    if (provider === CHANNEL_PROVIDER_WAHA && !wahaConfigured) return;
     let cancelled = false;
     const poll = async () => {
       try {
@@ -616,7 +638,7 @@ function QrDialog({
       cancelled = true;
       clearInterval(iv);
     };
-  }, [sessionId, wahaConfigured, onConnected]);
+  }, [sessionId, provider, wahaConfigured, onConnected]);
 
   // O QR do WhatsApp EXPIRA — medido no WAHA, a imagem muda a cada ~20s. Carregar
   // uma vez só (o que esta tela fazia) deixava um código morto na tela: quem

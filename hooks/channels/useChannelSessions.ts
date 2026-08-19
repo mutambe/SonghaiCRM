@@ -6,6 +6,15 @@ import { apiClient } from "@/lib/api/client";
 export interface ChannelSession {
   id: string;
   /**
+   * Qual transporte pareou este canal (`"waha"` / `"evolution"` / etc). A API
+   * já seleciona esta coluna (`CHANNEL_COLUMNS` em
+   * `app/api/v1/channel-sessions/route.ts`) — faltava só chegar até aqui, e
+   * sem ela a tela não tinha como distinguir, por sessão, qual gate de
+   * "transporte configurado" perguntar (WAHA vs Evolution têm env vars
+   * diferentes).
+   */
+  provider: string;
+  /**
    * Nome da sessão no transporte. NULL no canal oficial, que não tem sessão a
    * iniciar, deslogar ou apagar — é o que distingue, na tela, quem depende do
    * serviço de WhatsApp para ser excluído. O tipo dizia `string` e mentia: um
