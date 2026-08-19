@@ -38,6 +38,7 @@ import { audit } from "@/lib/audit";
 import { ok, fail } from "@/lib/api/wrappers";
 import { requireRole } from "@/lib/auth/require-role";
 import { ARCHIVED_AT, queryTolerantToMissingArchived } from "@/lib/channels/archived";
+import { CHANNEL_PROVIDER_EVOLUTION } from "@/lib/channels/capabilities";
 import { createClient } from "@/lib/supabase/server";
 import { getWahaClient, wahaFriendlyError } from "@/lib/waha/client";
 
@@ -109,7 +110,7 @@ export async function POST(
   // — sem stop/logout, reconectar de verdade exigiria escopo que esta task não
   // cobre. Devolve 501 com mensagem que nomeia o canal certo, em vez de mentir
   // sobre ele ser o oficial.
-  if (session.provider === "evolution") {
+  if (session.provider === CHANNEL_PROVIDER_EVOLUTION) {
     return fail(
       "evolution_reconnect_not_implemented",
       "Este canal usa o Evolution API: reconectar automaticamente ainda não está disponível para este provider. Se o número caiu, exclua este canal e conecte-o de novo.",
