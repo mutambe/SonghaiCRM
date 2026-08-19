@@ -24,7 +24,8 @@ import { audit } from "@/lib/audit";
 import { ok, fail } from "@/lib/api/wrappers";
 import { loadAuthUser, resolveActiveOrg } from "@/lib/auth/server";
 import { requireRole } from "@/lib/auth/require-role";
-import { CHANNEL_PROVIDER_WAHA } from "@/lib/channels/capabilities";
+import { CHANNEL_PROVIDER_EVOLUTION, CHANNEL_PROVIDER_WAHA } from "@/lib/channels/capabilities";
+import { getEvolutionClient } from "@/lib/evolution/client";
 import { isChannelStatus } from "@/lib/schemas/channels";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -251,11 +252,15 @@ export async function GET(
  * A revogação no provider acontece ANTES de mexer no DB (se falhar, a linha
  * continua íntegra e dá para tentar de novo) e é diferente por canal:
  *
- *  - Canal pareado por QR: logout + delete da sessão no WAHA. **Sem WAHA
- *    configurado a rota falha fechado (503)**, como as rotas irmãs deste módulo:
- *    devolver 200 sem revogar era prometer uma desconexão que não aconteceu e
- *    deixar a sessão órfã ativa, recebendo webhook de um canal que a UI já não
- *    mostra.
+ *  - Canal WAHA: logout + delete da sessão no WAHA. **Sem WAHA configurado a
+ *    rota falha fechado (503)**, como as rotas irmãs deste módulo: devolver
+ *    200 sem revogar era prometer uma desconexão que não aconteceu e deixar
+ *    a sessão órfã ativa, recebendo webhook de um canal que a UI já não mostra.
+ *  - Canal Evolution: delete da instância na Evolution API
+ *    (`EvolutionClient.deleteInstance`, idempotente — 404 conta como
+ *    sucesso). Diferente do WAHA, sem Evolution configurado a rota NÃO falha
+ *    fechado: não há credencial nenhuma para revogar contra, e bloquear a
+ *    exclusão prenderia o operador a uma linha que ele só quer tirar da tela.
  *  - Canal oficial: não há sessão a deslogar — o que dá acesso é a CREDENCIAL
  *    gravada e a URL de webhook. As duas são invalidadas no mesmo patch do
  *    arquivamento (token apagado, `webhook_path_token` rotacionado). Sem isso a
@@ -284,7 +289,7 @@ export async function DELETE(
   const supabase = await createClient();
   const { data: session } = await supabase
     .from("channel_sessions")
-    .select("id, provider, waha_session_name, display_name, phone_number")
+    .select("id, provider, waha_session_name, evolution_instance_name, display_name, phone_number")
     .eq("organization_id", activeOrg.orgId)
     .eq("id", id)
     .maybeSingle();
@@ -315,6 +320,30 @@ export async function DELETE(
       await waha.deleteSession(session.waha_session_name as string);
     } catch (err) {
       return fail("waha_error", wahaFriendlyError(err), 502, { requestId });
+    }
+  } else if (session.provider === CHANNEL_PROVIDER_EVOLUTION) {
+    // Revoga a instância na Evolution API antes de mexer no DB — mesmo
+    // desenho do ramo WAHA (revoga primeiro; se falhar, a linha continua
+    // íntegra e dá para tentar de novo). `EvolutionClient.deleteInstance` já
+    // existia (idempotente: 404 conta como sucesso) mas não tinha um único
+    // chamador em todo o repo — sem isto, excluir um canal Evolution deixava
+    // o aparelho pareado e a instância órfã continuava recebendo webhook de
+    // um canal que a UI já não mostra.
+    //
+    // Diferente do WAHA, `getEvolutionClient() === null` (não configurado)
+    // NÃO falha fechado aqui: não há como revogar o que não está configurado,
+    // e bloquear a exclusão prenderia o operador a uma linha que ele só quer
+    // que suma da tela. O lado do DB (arquivar/apagar) segue de qualquer
+    // forma — mesmo padrão de "provider inalcançável" já usado em outros
+    // pontos deste módulo (ex.: health check ao vivo).
+    const evolution = getEvolutionClient();
+    if (evolution && session.evolution_instance_name) {
+      try {
+        await evolution.deleteInstance(session.evolution_instance_name);
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : "erro_desconhecido";
+        return fail("evolution_error", msg, 502, { requestId });
+      }
     }
   } else {
     // Revogação do canal oficial: a credencial some e a URL do webhook muda, então
