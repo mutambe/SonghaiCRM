@@ -69,7 +69,12 @@ export async function GET(
   }
 
   const qr = await fetchQrImage(session);
-  if (!qr.ok) return new NextResponse(null, { status: qr.status });
+  if (!qr.ok) {
+    return new NextResponse(null, {
+      status: qr.status,
+      headers: qr.channelState ? { "x-channel-state": qr.channelState } : undefined,
+    });
+  }
   return new NextResponse(qr.body, {
     status: 200,
     headers: { "content-type": qr.contentType, "cache-control": "no-store, max-age=0" },

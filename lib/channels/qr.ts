@@ -8,7 +8,7 @@ import { getWahaClient } from "@/lib/waha/client";
 
 export type QrImageResult =
   | { ok: true; contentType: string; body: ArrayBuffer }
-  | { ok: false; status: number };
+  | { ok: false; status: number; channelState?: string };
 
 export interface QrSessionInput {
   provider: string;
@@ -18,7 +18,7 @@ export interface QrSessionInput {
 
 export async function fetchQrImage(session: QrSessionInput): Promise<QrImageResult> {
   if (session.provider === "waha") {
-    if (!session.waha_session_name) return { ok: false, status: 409 };
+    if (!session.waha_session_name) return { ok: false, status: 409, channelState: "no-session" };
     const baseUrl = process.env.WAHA_API_BASE_URL;
     const apiKey = process.env.WAHA_API_KEY;
     if (!baseUrl || !apiKey || apiKey === "dev_plaintext_change_me") return { ok: false, status: 503 };
@@ -53,5 +53,5 @@ export async function fetchQrImage(session: QrSessionInput): Promise<QrImageResu
   // pareamento). Ver a instância de `getWahaClient` acima: só existe para
   // deixar o import usado sem quebrar tree-shaking em builds estritos.
   void getWahaClient;
-  return { ok: false, status: 409 };
+  return { ok: false, status: 409, channelState: "no-session" };
 }
