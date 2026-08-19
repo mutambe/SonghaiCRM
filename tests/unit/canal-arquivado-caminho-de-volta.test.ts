@@ -484,6 +484,36 @@ describe("POST /api/v1/channel-sessions/[id]/reconnect — canal excluído não 
     expect(db.escritas).toEqual([]);
     expect(waha.startSession).not.toHaveBeenCalled();
   });
+
+  /**
+   * ⭐ Canal EVOLUTION não é o oficial — mas caía no MESMO ramo dele
+   * (`waha_session_name` também é NULL numa linha Evolution) e recebia
+   * "Este canal é o oficial (API da plataforma)", que é falso e confunde.
+   * Precisa de um código e uma mensagem PRÓPRIOS, que nomeiem o canal certo.
+   */
+  it("⭐ canal EVOLUTION → 501 com mensagem própria, NÃO a do canal oficial", async () => {
+    authOk();
+    const db = makeDb({
+      sessions: [
+        canalQr({
+          provider: "evolution",
+          waha_session_name: null,
+          evolution_instance_name: "org_22222222_abc123",
+        }),
+      ],
+    });
+    const waha = transporteOk();
+    const { POST } = await import("@/app/api/v1/channel-sessions/[id]/reconnect/route");
+    const res = await POST(req(), ctx());
+    const body = await res.json();
+
+    expect(res.status).toBe(501);
+    expect(body.error.code).toBe("evolution_reconnect_not_implemented");
+    expect(body.error.message).not.toMatch(/oficial/i);
+    expect(waha.stopSession).not.toHaveBeenCalled();
+    expect(waha.startSession).not.toHaveBeenCalled();
+    expect(db.escritas).toEqual([]);
+  });
 });
 
 describe("POST /api/v1/onboarding/whatsapp/session — retomar o pareamento ressuscita", () => {

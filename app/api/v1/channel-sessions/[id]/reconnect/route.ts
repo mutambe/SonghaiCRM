@@ -81,11 +81,12 @@ export async function POST(
   // arquivado, e exigir a coluna aqui derrubaria a reconexão inteira — que é o
   // socorro de quem está com o número fora do ar.
   const { data: sessionRaw } = await queryTolerantToMissingArchived(
-    () => buscar(`id, waha_session_name, ${ARCHIVED_AT}`),
-    () => buscar("id, waha_session_name"),
+    () => buscar(`id, provider, waha_session_name, ${ARCHIVED_AT}`),
+    () => buscar("id, provider, waha_session_name"),
   );
   const session = sessionRaw as {
     id: string;
+    provider: string;
     waha_session_name: string | null;
     archived_at?: string | null;
   } | null;
@@ -98,6 +99,25 @@ export async function POST(
       { requestId },
     );
   }
+
+  // Evolution tem sessão no transporte (pareia por QR, igual ao WAHA) mas
+  // `waha_session_name` é NULL nela — sem este `if`, ela caía no ramo de
+  // baixo e recebia "Este canal é o oficial (API da plataforma)", que é FALSO
+  // e confunde: o canal Evolution NÃO é o oficial, só não tem (ainda) a lógica
+  // de stop+start/logout implementada neste endpoint. `EvolutionClient` (ver
+  // `lib/evolution/client.ts`) hoje só tem create/delete/getQr/getConnectionState
+  // — sem stop/logout, reconectar de verdade exigiria escopo que esta task não
+  // cobre. Devolve 501 com mensagem que nomeia o canal certo, em vez de mentir
+  // sobre ele ser o oficial.
+  if (session.provider === "evolution") {
+    return fail(
+      "evolution_reconnect_not_implemented",
+      "Este canal usa o Evolution API: reconectar automaticamente ainda não está disponível para este provider. Se o número caiu, exclua este canal e conecte-o de novo.",
+      501,
+      { requestId },
+    );
+  }
+
   // O nome da sessão é NULL no canal oficial, e o CHECK
   // `channel_sessions_provider_ref_check` garante que só nele. Afirmar `string`
   // aqui (era um cast) não fazia o valor existir: mandava `null` para o
