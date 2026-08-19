@@ -31,4 +31,24 @@ describe("fetchQrImage", () => {
     const r = await fetchQrImage({ provider: "waha", waha_session_name: null, evolution_instance_name: null });
     expect(r).toEqual({ ok: false, status: 409, channelState: "no-session" });
   });
+
+  it("evolution sem evolution_instance_name: 409 com channelState no-session", async () => {
+    const r = await fetchQrImage({ provider: "evolution", waha_session_name: null, evolution_instance_name: null });
+    expect(r).toEqual({ ok: false, status: 409, channelState: "no-session" });
+  });
+
+  it("evolution: upstream não-ok (client.getQr lança) vira 502, não exceção", async () => {
+    vi.stubEnv("EVOLUTION_API_BASE_URL", "http://evolution.local");
+    vi.stubEnv("EVOLUTION_API_KEY", "chave");
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({ ok: false, status: 500, text: async () => "boom" }),
+    );
+    const r = await fetchQrImage({
+      provider: "evolution",
+      waha_session_name: null,
+      evolution_instance_name: "org_1",
+    });
+    expect(r).toEqual({ ok: false, status: 502 });
+  });
 });

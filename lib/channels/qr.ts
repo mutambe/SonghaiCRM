@@ -4,7 +4,6 @@
  * não precisar perguntar "qual canal é" (invariante 1 da doutrina).
  */
 import { getEvolutionClient } from "@/lib/evolution/client";
-import { getWahaClient } from "@/lib/waha/client";
 
 export type QrImageResult =
   | { ok: true; contentType: string; body: ArrayBuffer }
@@ -35,23 +34,35 @@ export async function fetchQrImage(session: QrSessionInput): Promise<QrImageResu
   }
 
   if (session.provider === "evolution") {
-    if (!session.evolution_instance_name) return { ok: false, status: 409 };
+    if (!session.evolution_instance_name) {
+      return { ok: false, status: 409, channelState: "no-session" };
+    }
     const client = getEvolutionClient();
     if (!client) return { ok: false, status: 503 };
-    const { base64 } = await client.getQr(session.evolution_instance_name);
-    if (!base64) return { ok: false, status: 404 };
-    // `base64` é uma data URL (`data:image/png;base64,AAAA...`) — decodifica
-    // para o mesmo formato binário que o caminho do WAHA devolve, para a rota
-    // não precisar saber a diferença.
-    const [prefix, dados] = base64.split(",");
-    const contentType = prefix?.match(/data:(.*);base64/)?.[1] ?? "image/png";
-    const binario = Buffer.from(dados ?? "", "base64");
-    return { ok: true, contentType, body: binario.buffer.slice(binario.byteOffset, binario.byteOffset + binario.byteLength) };
+    try {
+      const { base64 } = await client.getQr(session.evolution_instance_name);
+      if (!base64) return { ok: false, status: 404 };
+      // `base64` é uma data URL (`data:image/png;base64,AAAA...`) — decodifica
+      // para o mesmo formato binário que o caminho do WAHA devolve, para a rota
+      // não precisar saber a diferença.
+      const [prefix, dados] = base64.split(",");
+      const contentType = prefix?.match(/data:(.*);base64/)?.[1] ?? "image/png";
+      const binario = Buffer.from(dados ?? "", "base64");
+      return {
+        ok: true,
+        contentType,
+        body: binario.buffer.slice(binario.byteOffset, binario.byteOffset + binario.byteLength),
+      };
+    } catch {
+      // `client.getQr` lança `evolution_<status>` quando o upstream responde
+      // não-ok (ver `EvolutionClient.getQr`) — sem o catch, essa exceção
+      // escapava sem tratamento em vez do `{ ok: false, status: 502 }` que o
+      // ramo do WAHA já devolve para o mesmo tipo de falha upstream.
+      return { ok: false, status: 502 };
+    }
   }
 
   // Provider sem QR (meta_cloud, zernio — conectam por credencial, não por
-  // pareamento). Ver a instância de `getWahaClient` acima: só existe para
-  // deixar o import usado sem quebrar tree-shaking em builds estritos.
-  void getWahaClient;
+  // pareamento).
   return { ok: false, status: 409, channelState: "no-session" };
 }
