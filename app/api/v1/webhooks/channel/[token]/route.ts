@@ -124,7 +124,11 @@ export async function POST(
     if (r.ok) {
       await fecharArquivoDoWebhook(admin, arquivo, {
         status: "processed",
-        validSignature: true,
+        // Vem do seam, não de um `true` fixo: Zernio verifica HMAC de verdade
+        // (`true`), Evolution só tem o token opaco do path (`false`) — gravar
+        // `true` incondicional aqui fazia o arquivo mentir que houve
+        // verificação criptográfica para um provider que nunca teve uma.
+        validSignature: r.signatureVerified,
         // O desfecho do seam vai junto: é ele que distingue "ingerido" de
         // "ignorado por falta de identidade" quando alguém for contar depois.
         erro: typeof r.body.reason === "string" ? r.body.reason : null,

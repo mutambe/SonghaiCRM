@@ -19,6 +19,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { ingestEvolutionInbound } from "@/lib/evolution/ingest";
+import { mapEvolutionState } from "@/lib/evolution/state";
 import { parseEvolutionConnectionUpdate } from "@/lib/evolution/webhook";
 
 import { CHANNEL_PROVIDER_EVOLUTION, CHANNEL_PROVIDER_ZERNIO } from "./capabilities";
@@ -54,7 +55,24 @@ export interface InboundWebhookInput {
 }
 
 export type InboundWebhookOutcome =
-  | { ok: true; body: Record<string, unknown> }
+  | {
+      ok: true;
+      body: Record<string, unknown>;
+      /**
+       * O provider verificou criptograficamente este payload (assinatura
+       * HMAC)? Zernio sempre `true` — assina toda entrega e este caminho
+       * falha fechado quando a assinatura não bate (ver `zernioInbound`).
+       * Evolution sempre `false`: o único segredo é o token opaco do path da
+       * URL, não uma assinatura — um trunfo real, mas de nível diferente.
+       *
+       * Existe para `webhook_events_log.valid_signature` nunca afirmar `true`
+       * para um provider que não verificou nada: sem este campo, a rota
+       * gravava `true` incondicionalmente em todo sucesso, e quem investigasse
+       * um incidente acreditaria que houve verificação criptográfica onde não
+       * houve.
+       */
+      signatureVerified: boolean;
+    }
   | { ok: false; code: "unauthorized" | "provider_mismatch" | "invalid_json"; message: string };
 
 /**
@@ -147,11 +165,19 @@ async function zernioInbound(
         // por isso a varredura não fecha o que ele abriu.
         "empurrao",
       );
-      return { ok: true, body: { status: "saude", kind: aviso.kind, desfecho, espelhado } };
+      return {
+        ok: true,
+        body: { status: "saude", kind: aviso.kind, desfecho, espelhado },
+        signatureVerified: true,
+      };
     }
 
     const desfecho = await registrarAviso(admin, input.session.organization_id, aviso);
-    return { ok: true, body: { status: "aviso", kind: aviso.kind, desfecho, espelhado } };
+    return {
+      ok: true,
+      body: { status: "aviso", kind: aviso.kind, desfecho, espelhado },
+      signatureVerified: true,
+    };
   }
 
   // ─── Edição e apagamento ────────────────────────────────────────────────
@@ -162,7 +188,11 @@ async function zernioInbound(
   const edicao = parseZernioEdicao(payload);
   if (edicao) {
     const desfecho = await aplicarEdicaoZernio(admin, input.session.organization_id, edicao);
-    return { ok: true, body: { status: "edicao", tipo: edicao.tipo, desfecho } };
+    return {
+      ok: true,
+      body: { status: "edicao", tipo: edicao.tipo, desfecho },
+      signatureVerified: true,
+    };
   }
 
   const r = await ingestZernioInbound(admin, {
@@ -170,7 +200,7 @@ async function zernioInbound(
     channelSessionId: input.session.id,
     payload,
   });
-  return { ok: true, body: { ...r } };
+  return { ok: true, body: { ...r }, signatureVerified: true };
 }
 
 async function evolutionInbound(
@@ -187,18 +217,31 @@ async function evolutionInbound(
   // Evento de CONEXÃO passa pelo vigia de saúde, não pela ingestão de mensagem.
   const conexao = parseEvolutionConnectionUpdate(payload);
   if (conexao) {
+    // NUNCA repassa `conexao.state` cru (vocabulário `open`/`connecting`/
+    // `close` da Evolution) para `channel_sessions.status` — o CHECK só
+    // aceita os 5 valores canônicos. Mesma tradução usada por
+    // `evolutionAdapter.checkHealth`, para os dois caminhos que escrevem
+    // saúde nunca divergirem (ver `lib/evolution/state.ts`).
+    const statusCanonico = mapEvolutionState(conexao.state);
     const desfecho = await sincronizarSaudeDaConexao(
       admin,
-      { id: input.session.id, organization_id: input.session.organization_id, status: conexao.state },
+      { id: input.session.id, organization_id: input.session.organization_id, status: statusCanonico },
       // `reachable: true` porque o evento chegou — o provedor conseguiu falar
       // conosco e nos disse o estado atual. `SaudeObservada` distingue "não deu
       // para perguntar" (reachable: false) de "perguntei e o estado é X", e este
       // é sempre o segundo caso: é um empurrão, não uma tentativa que falhou.
-      { reachable: true, status: conexao.state, detail: null },
+      { reachable: true, status: statusCanonico, detail: null },
       input.session.display_name ?? input.session.phone_number ?? "sem nome",
       "empurrao",
     );
-    return { ok: true, body: { status: "saude", state: conexao.state, desfecho } };
+    return {
+      ok: true,
+      body: { status: "saude", state: statusCanonico, desfecho },
+      // Evolution não assina o payload — o único segredo é o token opaco do
+      // path, verificado pela rota ao resolver a sessão. Não é uma assinatura
+      // criptográfica, e o arquivo do webhook não pode afirmar que foi.
+      signatureVerified: false,
+    };
   }
 
   const r = await ingestEvolutionInbound(admin, {
@@ -206,5 +249,5 @@ async function evolutionInbound(
     channelSessionId: input.session.id,
     payload,
   });
-  return { ok: true, body: { ...r } };
+  return { ok: true, body: { ...r }, signatureVerified: false };
 }

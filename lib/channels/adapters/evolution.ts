@@ -6,6 +6,7 @@
 import { getEvolutionClient } from "@/lib/evolution/client";
 import { parseEvolutionMessageId } from "@/lib/evolution/message-id";
 import { resolveEvolutionChatId } from "@/lib/evolution/send";
+import { mapEvolutionState } from "@/lib/evolution/state";
 import type { ChannelAdapter, ChannelHealth, OutboundEnvelope, RecipientInput } from "../types";
 
 export const evolutionAdapter: ChannelAdapter = {
@@ -34,7 +35,18 @@ export const evolutionAdapter: ChannelAdapter = {
     if (!client) return { reachable: false, status: null, detail: "transporte_nao_configurado" };
     try {
       const state = await client.getConnectionState(input.sessionRef);
-      return { reachable: true, status: state, detail: null };
+      // `state === null` é "não deu para perguntar" (upstream não respondeu
+      // ok) — mesma semântica documentada em `ChannelHealth.status`: não pode
+      // ser tratado como saudável, e `reachable: false` é o que impede
+      // `sincronizarSaudeDaConexao` de fechar um aviso aberto sem saber do que
+      // está falando.
+      if (state === null) return { reachable: false, status: null, detail: "estado_indisponivel" };
+      // NUNCA repassa `state` cru: é o vocabulário da Evolution
+      // (`open`/`connecting`/`close`), e `channel_sessions.status` só aceita
+      // os 5 valores do CHECK. Ver `mapEvolutionState` — mesma tradução usada
+      // pelo webhook `connection.update`, para os dois caminhos nunca
+      // divergirem.
+      return { reachable: true, status: mapEvolutionState(state), detail: null };
     } catch (err) {
       const msg = err instanceof Error ? err.message : "erro_desconhecido";
       return { reachable: false, status: null, detail: msg.slice(0, 200) };
