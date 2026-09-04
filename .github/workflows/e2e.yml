@@ -506,7 +506,12 @@ jobs:
     if: always()
     needs: [e2e-parte]
     runs-on: ubuntu-latest
-    permissions: {}
+    # `permissions: {}` (sem NENHUMA permissão) quebra o `actions/checkout`
+    # abaixo — medido: "remote: Repository not found" nas 3 tentativas, porque
+    # o token do job fica sem `contents: read` para clonar. Precisa disto,
+    # nada além.
+    permissions:
+      contents: read
     steps:
       - name: Falhar se qualquer parte não passou
         run: |
