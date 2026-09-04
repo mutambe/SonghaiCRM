@@ -462,14 +462,14 @@ jobs:
       # Uma invocação por matrix job = processo novo = contador de rate-limit
       # de login zerado, o mesmo motivo que antes exigia dois passos sequenciais
       # no mesmo job — aqui sai de graça, cada `parte` já é um runner isolado.
-      - name: E2E — parte ${{ matrix.parte }} de 2
-        run: |
-          if [ "${{ matrix.parte }}" = "1" ]; then
-            SPECS="$SPECS_PARTE_1"
-          else
-            SPECS="$SPECS_PARTE_2"
-          fi
-          pnpm exec playwright test --workers=1 $SPECS
+      #
+      # Dois passos LITERAIS (gated por `if:`), não um `if/else` de shell num só
+      # passo: `tests/unit/e2e-cobertura-completa.test.ts` faz `expect(yml).toMatch`
+      # contra o texto cru `playwright test --workers=1 $SPECS_PARTE_1` (e `_2`) —
+      # uma variável de shell escolhida em runtime não casa com esse regex.
+      - name: E2E — parte 1 de 2
+        if: matrix.parte == 1
+        run: pnpm exec playwright test --workers=1 $SPECS_PARTE_1
         env:
           # Só o que NÃO vem do `.env.e2e`: isto é ajuste de CI, não config do
           # produto. CI = 1 IP para todos os specs, e o teto de produção
@@ -477,6 +477,13 @@ jobs:
           # ele que barra brute force.
           AUTH_RATE_LIMIT_LOGIN_IP: "1000"
           # ver o comentário do passo de build: vazio NÃO desliga.
+          SENTRY_DSN: "off"
+
+      - name: E2E — parte 2 de 2
+        if: matrix.parte == 2
+        run: pnpm exec playwright test --workers=1 $SPECS_PARTE_2
+        env:
+          AUTH_RATE_LIMIT_LOGIN_IP: "1000"
           SENTRY_DSN: "off"
 
       - uses: actions/upload-artifact@v7
