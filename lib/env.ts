@@ -211,6 +211,16 @@ const schema = z.object({
    * poder; a validação do valor é do resolvedor, que degrada e diz o motivo.
    */
   APP_ACCENT_HEX: z.string().optional().default(""),
+
+  // Licenciamento self-host via PaySuite — ver docs/superpowers/specs/2026-09-04-licenciamento-paysuite-design.md
+  // Só preenchidas na instância CENTRAL (a que a Songhai opera):
+  LICENSING_SIGNING_PRIVATE_KEY: z.string().optional().default(""),
+  LICENSING_PUBLIC_BASE_URL: z.string().optional().default(""),
+  LICENSING_PAYSUITE_API_KEY: z.string().optional().default(""),
+  LICENSING_PAYSUITE_WEBHOOK_SECRET: z.string().optional().default(""),
+  // Só preenchidas na instância de CLIENTE (o produto normal, self-host):
+  LICENSE_KEY: z.string().optional().default(""),
+  LICENSING_CENTRAL_URL: z.string().optional().default(""),
 });
 
 /**
