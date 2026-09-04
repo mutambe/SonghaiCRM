@@ -57,9 +57,23 @@ permissions:
   contents: read
 
 jobs:
-  e2e:
+  # As duas partes rodam em jobs SEPARADOS (matrix), não mais em passos
+  # sequenciais do mesmo job: sequencial estourava o timeout-minutes de 30 —
+  # medido (mutambe/SonghaiCRM PR #1, 2026-09-04): duas tentativas seguidas
+  # cancelaram por timeout rodando ~30min cada, e a suíte só cresceu desde que
+  # o teto de 30min foi calibrado. Em paralelo, o tempo de parede é o da parte
+  # mais lenta, não a soma — cada matrix job já é um runner próprio, então o
+  # motivo de duas INVOCAÇÕES do playwright (processo novo por parte, contador
+  # de rate-limit de login zerado — ver comentário abaixo) continua satisfeito
+  # de graça, sem custo extra de wall-clock.
+  e2e-parte:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    strategy:
+      # Sem fail-fast: se a parte 1 quebrar, ainda quero saber se a 2 também.
+      fail-fast: false
+      matrix:
+        parte: [1, 2]
     # ─────────────────────────────────────────────────────────────────────────
     # A COBERTURA DEIXA DE SER PROSA DIGITADA À MÃO.
     #
@@ -445,7 +459,16 @@ jobs:
       # workers, dois specs gerando o mesmo código no mesmo intervalo de 30s
       # fazem o segundo ser recusado como replay. Foi o que derrubava a
       # `reset-password-mfa` (issue #80): ela passa sozinha e falha em paralelo.
+      # Uma invocação por matrix job = processo novo = contador de rate-limit
+      # de login zerado, o mesmo motivo que antes exigia dois passos sequenciais
+      # no mesmo job — aqui sai de graça, cada `parte` já é um runner isolado.
+      #
+      # Dois passos LITERAIS (gated por `if:`), não um `if/else` de shell num só
+      # passo: `tests/unit/e2e-cobertura-completa.test.ts` faz `expect(yml).toMatch`
+      # contra o texto cru `playwright test --workers=1 $SPECS_PARTE_1` (e `_2`) —
+      # uma variável de shell escolhida em runtime não casa com esse regex.
       - name: E2E — parte 1 de 2
+        if: matrix.parte == 1
         run: pnpm exec playwright test --workers=1 $SPECS_PARTE_1
         env:
           # Só o que NÃO vem do `.env.e2e`: isto é ajuste de CI, não config do
@@ -456,43 +479,70 @@ jobs:
           # ver o comentário do passo de build: vazio NÃO desliga.
           SENTRY_DSN: "off"
 
-      - name: E2E — parte 2 de 2 (processo novo, contador de login zerado)
+      - name: E2E — parte 2 de 2
+        if: matrix.parte == 2
         run: pnpm exec playwright test --workers=1 $SPECS_PARTE_2
         env:
-          # Só o que NÃO vem do `.env.e2e`: isto é ajuste de CI, não config do
-          # produto. CI = 1 IP para todos os specs, e o teto de produção
-          # (60/5min) é irreal aqui. O teto por CONTA (5 falhas) NÃO muda — é
-          # ele que barra brute force.
           AUTH_RATE_LIMIT_LOGIN_IP: "1000"
-          # ver o comentário do passo de build: vazio NÃO desliga.
           SENTRY_DSN: "off"
-
-      - name: Declarar o que este job ainda NÃO cobre
-        if: always()
-        run: |
-          # CONTA, não afirma. A versão anterior deste passo era prosa digitada à
-          # mão e dizia "32 de 33" com 39 arquivos no disco — a única coisa que
-          # existia para declarar a lacuna estava, ela mesma, desatualizada.
-          NO_DISCO=$(ls tests/e2e/*.spec.ts | wc -l | tr -d ' ')
-          RODOU=$(echo $SPECS_PARTE_1 $SPECS_PARTE_2 | wc -w | tr -d ' ')
-          FORA=$(echo $FORA_DO_CI | wc -w | tr -d ' ')
-          {
-            echo "## E2E — cobertura deste job"
-            echo ""
-            echo "**Rodou: ${RODOU} de ${NO_DISCO} specs.**"
-            echo ""
-            echo "**Não rodou (${FORA}):**"
-            for s in $FORA_DO_CI; do echo "- \`${s}\` — precisa de WAHA + Redis + Resend (P0 da doutrina de QA Visual)"; done
-            echo ""
-            echo "A soma é conferida mecanicamente por \`tests/unit/e2e-cobertura-completa.test.ts\`:"
-            echo "spec no disco que não esteja em nenhuma das três listas reprova o build."
-          } >> "$GITHUB_STEP_SUMMARY"
 
       - uses: actions/upload-artifact@v7
         if: failure()
         with:
-          name: playwright-report
+          name: playwright-report-parte-${{ matrix.parte }}
           path: |
             playwright-report/
             test-results/
           retention-days: 7
+
+  # O NOME DESTE JOB É O CHECK OBRIGATÓRIO, e é por isso que ele existe.
+  #
+  # A branch protection espera um check chamado exatamente `e2e`. Jobs de
+  # matrix se chamam `e2e-parte (1)` e `e2e-parte (2)` — se o job das partes
+  # tivesse ficado com o nome `e2e`, a proteção passaria a esperar para sempre
+  # um check que nenhum run produz, e nenhum PR mergearia. Mesmo padrão do
+  # `imagens-ok` em `publish-image.yml`.
+  e2e:
+    if: always()
+    needs: [e2e-parte]
+    runs-on: ubuntu-latest
+    # `permissions: {}` (sem NENHUMA permissão) quebra o `actions/checkout`
+    # abaixo — medido: "remote: Repository not found" nas 3 tentativas, porque
+    # o token do job fica sem `contents: read` para clonar. Precisa disto,
+    # nada além.
+    permissions:
+      contents: read
+    steps:
+      - name: Falhar se qualquer parte não passou
+        run: |
+          echo "e2e-parte: ${{ needs.e2e-parte.result }}"
+          # `skipped` também reprova, de propósito: parte pulada não mediu nada.
+          [ "${{ needs.e2e-parte.result }}" = "success" ]
+
+      - uses: actions/checkout@v7
+        if: always()
+
+      - name: Declarar o que este job ainda NÃO cobre
+        if: always()
+        run: |
+          # CONTA, não afirma. As listas saem do PRÓPRIO workflow (recorte por
+          # bloco), não de env deste job — job separado não herda o env: do
+          # e2e-parte.
+          bloco() { sed -n "/^      $1: >-/,/^      [A-Z_0-9]*:/p" .github/workflows/e2e.yml \
+                    | grep -oE "[a-z0-9-]+\.spec\.ts" | sort -u; }
+          NO_DISCO=$(ls tests/e2e/*.spec.ts | wc -l | tr -d ' ')
+          RODOU=$( { bloco SPECS_PARTE_1; bloco SPECS_PARTE_2; } | sort -u | wc -l | tr -d ' ')
+          FORA_LISTA=$(bloco FORA_DO_CI)
+          FORA=$(echo "$FORA_LISTA" | grep -c . || true)
+          [ "$RODOU" -gt 10 ] || { echo "::error::o recorte das listas do workflow parou de casar"; exit 1; }
+          {
+            echo "## E2E — cobertura deste job"
+            echo ""
+            echo "**Rodou: ${RODOU} de ${NO_DISCO} specs**, em duas partes paralelas."
+            echo ""
+            echo "**Não rodou (${FORA}):**"
+            for s in $FORA_LISTA; do echo "- \`${s}\` — precisa de WAHA + Redis + Resend (P0 da doutrina de QA Visual)"; done
+            echo ""
+            echo "A soma é conferida mecanicamente por \`tests/unit/e2e-cobertura-completa.test.ts\`:"
+            echo "spec no disco que não esteja em nenhuma das três listas reprova o build."
+          } >> "$GITHUB_STEP_SUMMARY"
