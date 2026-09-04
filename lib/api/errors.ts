@@ -26,6 +26,7 @@ export const ApiErrorCodes = {
   forbidden: "forbidden",
   forbidden_role: "forbidden_role",
   forbidden_tenant: "forbidden_tenant",
+  license_required: "license_required", // gate de assinatura self-host — mutação bloqueada, leitura passa
   lgpd_anonymization_irreversible: "lgpd_anonymization_irreversible",
 
   // 404
