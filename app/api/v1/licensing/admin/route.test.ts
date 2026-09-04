@@ -1,8 +1,10 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
-const loadAuthUserMock = vi.fn();
-const insertInstallMock = vi.fn();
-const insertLicenseMock = vi.fn();
+const { loadAuthUserMock, insertInstallMock, insertLicenseMock } = vi.hoisted(() => ({
+  loadAuthUserMock: vi.fn(),
+  insertInstallMock: vi.fn(),
+  insertLicenseMock: vi.fn(),
+}));
 
 vi.mock("@/lib/auth/server", () => ({ loadAuthUser: loadAuthUserMock }));
 vi.mock("@/lib/audit", () => ({ audit: vi.fn() }));
