@@ -11392,78 +11392,6 @@ update public.contacts
  where display_name ~ '^Contato [0-9]+(@lid)?$'
    and is_anonymized = false;
 
--- ---- licenciamento self-host via PaySuite (migration 0173) ----
-
-create table if not exists public.licensing_installs (
-  id uuid primary key default gen_random_uuid(),
-  customer_name text not null,
-  contact_email text not null,
-  notes text,
-  created_at timestamp with time zone not null default now()
-);
-
-alter table public.licensing_installs enable row level security;
-revoke all on public.licensing_installs from anon, authenticated;
-grant select, insert, update on public.licensing_installs to service_role;
-
-create table if not exists public.licensing_licenses (
-  id uuid primary key default gen_random_uuid(),
-  install_id uuid not null references public.licensing_installs(id) on delete cascade,
-  license_key text not null unique,
-  status text not null default 'trial' check (status in ('trial', 'active', 'revoked')),
-  plan_amount_cents bigint not null check (plan_amount_cents > 0),
-  plan_interval_days integer not null default 30 check (plan_interval_days > 0),
-  trial_ends_at timestamp with time zone,
-  current_period_end timestamp with time zone not null,
-  created_at timestamp with time zone not null default now(),
-  updated_at timestamp with time zone not null default now()
-);
-
-create index if not exists licensing_licenses_install_idx
-  on public.licensing_licenses using btree (install_id);
-
-alter table public.licensing_licenses enable row level security;
-revoke all on public.licensing_licenses from anon, authenticated;
-grant select, insert, update on public.licensing_licenses to service_role;
-
-create or replace trigger trg_licensing_licenses_updated_at
-  before update on public.licensing_licenses
-  for each row execute function public.fn_set_updated_at();
-
-create table if not exists public.licensing_payments (
-  id uuid primary key default gen_random_uuid(),
-  license_id uuid not null references public.licensing_licenses(id) on delete cascade,
-  paysuite_payment_id text not null unique,
-  amount_cents bigint not null check (amount_cents > 0),
-  status text not null default 'pending' check (status in ('pending', 'success', 'failed')),
-  checkout_url text,
-  created_at timestamp with time zone not null default now(),
-  paid_at timestamp with time zone
-);
-
-create index if not exists licensing_payments_license_idx
-  on public.licensing_payments using btree (license_id);
-
-alter table public.licensing_payments enable row level security;
-revoke all on public.licensing_payments from anon, authenticated;
-grant select, insert, update on public.licensing_payments to service_role;
-
-create table if not exists public.licensing_client_state (
-  id text primary key default 'singleton' check (id = 'singleton'),
-  token text,
-  fetched_at timestamp with time zone,
-  updated_at timestamp with time zone not null default now()
-);
-
-alter table public.licensing_client_state enable row level security;
-revoke all on public.licensing_client_state from anon, authenticated;
-grant select, insert, update on public.licensing_client_state to service_role;
-
-create or replace trigger trg_licensing_client_state_updated_at
-  before update on public.licensing_client_state
-  for each row execute function public.fn_set_updated_at();
-
-
 -- ---- fila de confirmação de dado do contato (migration 0123) ----
 -- O Operador PROPÕE, um humano CONFIRMA — o dado que o cliente diz na conversa
 -- não é gravado direto (spec 17 §4b). Forma copiada de `crm_lead_reactivations`,
@@ -14071,4 +13999,75 @@ grant execute on function public.fn_decrypt_oauth(bytea) to service_role;
 grant execute on function public.fn_encrypt_oauth(text) to service_role;
 grant execute on function public.fn_lgpd_cascade_redact_contact(uuid, uuid, uuid) to service_role;
 grant execute on function public.fn_update_budget_consumption() to service_role;
+
+-- ---- licenciamento self-host via PaySuite (migration 0173) ----
+
+create table if not exists public.licensing_installs (
+  id uuid primary key default gen_random_uuid(),
+  customer_name text not null,
+  contact_email text not null,
+  notes text,
+  created_at timestamp with time zone not null default now()
+);
+
+alter table public.licensing_installs enable row level security;
+revoke all on public.licensing_installs from anon, authenticated;
+grant select, insert, update on public.licensing_installs to service_role;
+
+create table if not exists public.licensing_licenses (
+  id uuid primary key default gen_random_uuid(),
+  install_id uuid not null references public.licensing_installs(id) on delete cascade,
+  license_key text not null unique,
+  status text not null default 'trial' check (status in ('trial', 'active', 'revoked')),
+  plan_amount_cents bigint not null check (plan_amount_cents > 0),
+  plan_interval_days integer not null default 30 check (plan_interval_days > 0),
+  trial_ends_at timestamp with time zone,
+  current_period_end timestamp with time zone not null,
+  created_at timestamp with time zone not null default now(),
+  updated_at timestamp with time zone not null default now()
+);
+
+create index if not exists licensing_licenses_install_idx
+  on public.licensing_licenses using btree (install_id);
+
+alter table public.licensing_licenses enable row level security;
+revoke all on public.licensing_licenses from anon, authenticated;
+grant select, insert, update on public.licensing_licenses to service_role;
+
+create or replace trigger trg_licensing_licenses_updated_at
+  before update on public.licensing_licenses
+  for each row execute function public.fn_set_updated_at();
+
+create table if not exists public.licensing_payments (
+  id uuid primary key default gen_random_uuid(),
+  license_id uuid not null references public.licensing_licenses(id) on delete cascade,
+  paysuite_payment_id text not null unique,
+  amount_cents bigint not null check (amount_cents > 0),
+  status text not null default 'pending' check (status in ('pending', 'success', 'failed')),
+  checkout_url text,
+  created_at timestamp with time zone not null default now(),
+  paid_at timestamp with time zone
+);
+
+create index if not exists licensing_payments_license_idx
+  on public.licensing_payments using btree (license_id);
+
+alter table public.licensing_payments enable row level security;
+revoke all on public.licensing_payments from anon, authenticated;
+grant select, insert, update on public.licensing_payments to service_role;
+
+create table if not exists public.licensing_client_state (
+  id text primary key default 'singleton' check (id = 'singleton'),
+  token text,
+  fetched_at timestamp with time zone,
+  updated_at timestamp with time zone not null default now()
+);
+
+alter table public.licensing_client_state enable row level security;
+revoke all on public.licensing_client_state from anon, authenticated;
+grant select, insert, update on public.licensing_client_state to service_role;
+
+create or replace trigger trg_licensing_client_state_updated_at
+  before update on public.licensing_client_state
+  for each row execute function public.fn_set_updated_at();
 
