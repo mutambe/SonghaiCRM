@@ -6,6 +6,6 @@
  * no `.env` da instância central, nunca commitada.
  */
 export const LICENSING_PUBLIC_KEY_PEM = `-----BEGIN PUBLIC KEY-----
-MCowBQYDK2VwAyEAGKroOWWwqWcqhL9uu2vcG+PgtbDTU2xe/rhiwO9Qszs=
+MCowBQYDK2VwAyEA6OJL5lD8r26ySKQ8nVQqX+H+KojHcfm8HvN6aRN7ovw=
 -----END PUBLIC KEY-----
 `;
