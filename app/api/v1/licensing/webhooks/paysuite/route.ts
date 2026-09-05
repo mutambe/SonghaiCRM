@@ -13,9 +13,9 @@ import { randomUUID } from "node:crypto";
 import type { NextRequest } from "next/server";
 
 import { fail, ok } from "@/lib/api/wrappers";
-import { env } from "@/lib/env";
 import { verifyInboundSignature } from "@/lib/webhooks/inbound";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { decryptWebhookSecret } from "@/lib/webhooks/secrets";
 import { logger } from "@/lib/logger";
 
 export const dynamic = "force-dynamic";
@@ -30,7 +30,16 @@ export async function POST(req: NextRequest): Promise<Response> {
   const requestId = randomUUID();
   const rawBody = await req.text();
 
-  if (!verifyInboundSignature(rawBody, req.headers.get("x-signature"), env.LICENSING_PAYSUITE_WEBHOOK_SECRET)) {
+  const admin = createAdminClient();
+  const { data: credentials } = await admin
+    .from("licensing_paysuite_credentials")
+    .select("webhook_secret_encrypted")
+    .eq("id", "singleton")
+    .maybeSingle();
+  const secretEnc = (credentials as { webhook_secret_encrypted: string } | null)?.webhook_secret_encrypted;
+  const webhookSecret = secretEnc ? await decryptWebhookSecret(admin, secretEnc) : null;
+
+  if (!webhookSecret || !verifyInboundSignature(rawBody, req.headers.get("x-signature"), webhookSecret)) {
     return fail("unauthorized", "Assinatura inválida.", 401, { requestId });
   }
 
@@ -49,7 +58,6 @@ export async function POST(req: NextRequest): Promise<Response> {
     return ok({ status: "ignored" }, { requestId });
   }
 
-  const admin = createAdminClient();
   const novoStatus = body.event === "payment.success" ? "success" : "failed";
 
   const { data: payment, error: updErr } = await admin

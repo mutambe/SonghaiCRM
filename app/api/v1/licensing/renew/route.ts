@@ -14,6 +14,7 @@ import { fail, ok } from "@/lib/api/wrappers";
 import { env } from "@/lib/env";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createPayment } from "@/lib/payments/paysuite/client";
+import { decryptWebhookSecret } from "@/lib/webhooks/secrets";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -40,12 +41,28 @@ export async function POST(req: NextRequest): Promise<Response> {
   }
   const row = license as { id: string; plan_amount_cents: number };
 
+  const { data: credentials } = await admin
+    .from("licensing_paysuite_credentials")
+    .select("api_token_encrypted")
+    .eq("id", "singleton")
+    .maybeSingle();
+  const apiTokenEnc = (credentials as { api_token_encrypted: string } | null)?.api_token_encrypted;
+  const apiToken = apiTokenEnc ? await decryptWebhookSecret(admin, apiTokenEnc) : null;
+  if (!apiToken) {
+    return fail(
+      "licensing_paysuite_not_configured",
+      "Credencial do PaySuite não configurada. Cole em /admin/licensing.",
+      409,
+      { requestId },
+    );
+  }
+
   const reference = `lic-${row.id}-${Date.now()}`;
   const amount = (row.plan_amount_cents / 100).toFixed(2);
 
   let payment: { id: string; checkoutUrl: string };
   try {
-    payment = await createPayment(env.LICENSING_PAYSUITE_API_KEY, {
+    payment = await createPayment(apiToken, {
       amount,
       reference,
       description: "Renovação de assinatura SonghaiCRM",

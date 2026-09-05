@@ -1,16 +1,27 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { createHmac } from "node:crypto";
 
-const { updatePaymentMock, singleLicenseMock, updateLicenseMock } = vi.hoisted(() => ({
+const {
+  credentialsMaybeSingleMock,
+  updatePaymentMock,
+  singleLicenseMock,
+  updateLicenseMock,
+  decryptMock,
+} = vi.hoisted(() => ({
+  credentialsMaybeSingleMock: vi.fn(),
   updatePaymentMock: vi.fn(),
   singleLicenseMock: vi.fn(),
   updateLicenseMock: vi.fn(),
+  decryptMock: vi.fn(),
 }));
 
-vi.mock("@/lib/env", () => ({ env: { LICENSING_PAYSUITE_WEBHOOK_SECRET: "segredo-webhook" } }));
+vi.mock("@/lib/webhooks/secrets", () => ({ decryptWebhookSecret: decryptMock }));
 vi.mock("@/lib/supabase/admin", () => ({
   createAdminClient: () => ({
     from: (table: string) => {
+      if (table === "licensing_paysuite_credentials") {
+        return { select: () => ({ eq: () => ({ maybeSingle: credentialsMaybeSingleMock }) }) };
+      }
       if (table === "licensing_payments") {
         return {
           update: () => ({
@@ -46,10 +57,20 @@ function req(bodyObj: unknown, signature?: string) {
 }
 
 describe("POST /api/v1/licensing/webhooks/paysuite", () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => {
+    vi.clearAllMocks();
+    credentialsMaybeSingleMock.mockResolvedValue({ data: { webhook_secret_encrypted: "\\xaaaa" } });
+    decryptMock.mockResolvedValue("segredo-webhook");
+  });
 
   it("rejeita assinatura inválida", async () => {
     const res = await POST(req({ event: "payment.success", data: { id: "p1" } }, "assinatura-errada") as never);
+    expect(res.status).toBe(401);
+  });
+
+  it("rejeita quando a credencial não está configurada (fail-closed)", async () => {
+    credentialsMaybeSingleMock.mockResolvedValue({ data: null });
+    const res = await POST(req({ event: "payment.success", data: { id: "p1" } }) as never);
     expect(res.status).toBe(401);
   });
 
