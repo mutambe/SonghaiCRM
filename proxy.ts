@@ -181,7 +181,6 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  runtime: "nodejs",
   matcher: [
     // Run on all paths except static assets / Next internals.
     "/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js)$).*)",

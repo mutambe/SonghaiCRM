@@ -30,7 +30,7 @@ describe("licensing/token", () => {
       privatePem,
     );
     const [body, sig] = token.split(".");
-    const payloadAdulterado = JSON.parse(Buffer.from(body, "base64url").toString("utf8"));
+    const payloadAdulterado = JSON.parse(Buffer.from(body ?? "", "base64url").toString("utf8"));
     payloadAdulterado.status = "active";
     const bodyAdulterado = Buffer.from(JSON.stringify(payloadAdulterado)).toString("base64url");
     const tokenAdulterado = `${bodyAdulterado}.${sig}`;
