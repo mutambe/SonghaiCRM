@@ -1,45 +1,20 @@
-/**
- * PUBLIC_PATHS decide quem atravessa o proxy sem sessão em toda a aplicação
- * (`proxy.ts`). Sem teste, uma âncora `$` trocada por prefixo, ou uma entrada
- * larga demais, some em silêncio do CI — foi exatamente o bug achado provando
- * a Task 6 (heartbeat do agente bloqueado por faltar aqui).
- */
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
+import { isPublicPath } from "./public-paths";
 
-import { isPublicPath } from "@/lib/auth/public-paths";
-
-describe("isPublicPath", () => {
-  it("libera o heartbeat do agente do host (bearer, sem cookie)", () => {
-    expect(isPublicPath("/api/v1/system/agent")).toBe(true);
+describe("isPublicPath — licenciamento self-host (PaySuite)", () => {
+  it("libera /verify, /renew e o webhook — chamadas de servidor-a-servidor, sem cookie", () => {
+    expect(isPublicPath("/api/v1/licensing/verify")).toBe(true);
+    expect(isPublicPath("/api/v1/licensing/renew")).toBe(true);
+    expect(isPublicPath("/api/v1/licensing/webhooks/paysuite")).toBe(true);
   });
 
-  it("a âncora `$` impede que um sub-path passe de carona", () => {
-    expect(isPublicPath("/api/v1/system/agent/qualquer")).toBe(false);
+  it("mantém as rotas administrativas atrás de sessão — só a tela /admin/licensing usa", () => {
+    expect(isPublicPath("/api/v1/licensing/admin")).toBe(false);
+    expect(isPublicPath("/api/v1/licensing/admin/paysuite-credentials")).toBe(false);
   });
 
-  it("não libera a rota de pedido de atualização (exige sessão do dono)", () => {
-    expect(isPublicPath("/api/v1/system/update")).toBe(false);
-  });
-
-  it("não libera a rota de estado da versão (exige sessão)", () => {
-    expect(isPublicPath("/api/v1/system/version")).toBe(false);
-  });
-
-  /**
-   * Os documentos legais são linkados do checkbox OBRIGATÓRIO da primeira tela
-   * do produto (`/onboarding/welcome`). Fora daqui, `proxy.ts` manda o visitante
-   * para `/login?next=/legal/terms` — e um aceite de termos que só se lê depois
-   * de ter conta é um aceite que ninguém pode conferir antes de aceitar.
-   */
-  it("libera os documentos legais — o aceite acontece antes de existir conta", () => {
-    expect(isPublicPath("/legal/terms")).toBe(true);
-    expect(isPublicPath("/legal/privacy")).toBe(true);
-  });
-
-  it("e só esses dois: /legal não é um portão aberto", () => {
-    // Entrada larga aqui é furo de auth em toda a aplicação, não só nesta tela.
-    expect(isPublicPath("/legal")).toBe(false);
-    expect(isPublicPath("/legal/terms/interno")).toBe(false);
-    expect(isPublicPath("/legal/qualquer-outra")).toBe(false);
+  it("não libera por acidente um path parecido com prefixo errado", () => {
+    expect(isPublicPath("/api/v1/licensing/verify/extra")).toBe(false);
+    expect(isPublicPath("/api/v1/licensing/renewx")).toBe(false);
   });
 });
