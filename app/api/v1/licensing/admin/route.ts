@@ -26,6 +26,29 @@ const CreateSchema = z.object({
   trial_days: z.number().int().min(0).default(7),
 });
 
+export async function GET(): Promise<Response> {
+  const requestId = randomUUID();
+
+  const user = await loadAuthUser();
+  if (!user?.is_platform_admin) {
+    return fail("forbidden", "Só platform admin lista licenças.", 403, { requestId });
+  }
+
+  const admin = createAdminClient();
+  const { data, error } = await admin
+    .from("licensing_licenses")
+    .select(
+      "id, license_key, status, plan_amount_cents, plan_interval_days, trial_ends_at, current_period_end, created_at, licensing_installs(customer_name, contact_email)",
+    )
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    return fail("internal_error", error.message, 500, { requestId });
+  }
+
+  return ok(data ?? [], { requestId });
+}
+
 export async function POST(req: NextRequest): Promise<Response> {
   const requestId = randomUUID();
 
