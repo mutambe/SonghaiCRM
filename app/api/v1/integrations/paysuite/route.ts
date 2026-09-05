@@ -26,9 +26,18 @@ const saveSchema = z.object({
   webhook_secret: z.string().min(10),
 });
 
+/**
+ * NUNCA usa `process.env.NEXT_PUBLIC_APP_URL` aqui — achado em produção
+ * (2026-09-05): toda `NEXT_PUBLIC_*` é gravada dentro da imagem Docker no
+ * momento do BUILD (no CI, que publica uma imagem só pra todo self-hoster —
+ * doutrina de packaging), nunca lida do `.env` da VPS em runtime. Sem
+ * domínio real conhecido no build, o CI semeia um placeholder
+ * (`lib/env.ts` → `https://build-placeholder.invalid`) que fica congelado
+ * no bundle pra sempre — nenhuma var no `.env` da VPS o alcança depois.
+ * A URL da PRÓPRIA requisição (via `Host`, que o Traefik preserva) é a
+ * única fonte confiável do domínio real de cada instalação.
+ */
 function resolveBaseUrl(req: NextRequest): string {
-  const envBase = process.env.NEXT_PUBLIC_APP_URL;
-  if (envBase) return envBase.replace(/\/$/, "");
   return new URL(req.url).origin;
 }
 
