@@ -1,6 +1,6 @@
 # Mapa de Jornadas & Testes E2E — Experiência do usuário em VPS fresca
 
-> Fonte da verdade do QA de produto do SonghaiCRM open-source. Cada caso aqui é
+> Fonte da verdade do QA de produto do SonghaiCRM self-hosted. Cada caso aqui é
 > exercitado **pelo frontend real** (Playwright), com contas de teste reais e
 > recursos reais (banco fresco do `baseline.sql`, WAHA local, receiver de webhook
 > real). Curl/API só como diagnóstico, nunca como prova de UX.
@@ -162,6 +162,9 @@ fonte só (`lib/onboarding/passos.ts`) — eram três listas que discordavam. Ga
 | J5.7 | Revogar atendente | perde acesso na hora (próxima navegação) |
 | J5.8 | Revogar último admin | bloqueado com explicação |
 | J5.9 | Link de convite expirado/adulterado | tela clara, sem stack |
+| J5.10 | **Licenciamento self-host (PaySuite):** admin abre `/app/settings/billing` sem `licensing_client_state` populado (instalação nunca contactou a central) | card "Assinatura pendente" visível, botão "Renovar agora" presente; leitura do CRM continua liberada, só mutação (`POST/PUT/PATCH/DELETE` em `/api/v1/*`) devolve `403 license_required` (gate em `proxy.ts`, ver plano `docs/superpowers/plans/2026-09-04-licenciamento-paysuite.md`) |
+| J5.11 | Clique em "Renovar agora" | server action `renovarLicenca` chama a central (`LICENSING_CENTRAL_URL`); abre nova aba com o `checkout_url` do PaySuite, ou mostra erro se a central estiver inacessível |
+| J5.12 | Instalação sem `LICENSE_KEY`/`LICENSING_CENTRAL_URL` no `.env` | tela de billing explica que o licenciamento não está configurado, sem stack; ainda **sem prova de tela** (verificação manual do plano ficou pendente por falta de ambiente com WAHA+Redis+central de teste) |
 
 ## J6 — Webhooks: receber, automatizar, provar `[P0]`
 
