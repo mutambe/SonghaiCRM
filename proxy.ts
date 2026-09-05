@@ -21,9 +21,22 @@ const MUTATING_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
  * entrega de webhook de terceiro ou o próprio cron que tira a instalação do
  * bloqueio (`licensing-refresh`) perderia dado, não é isso que "degradar"
  * deveria significar. Ver docs/superpowers/specs/2026-09-04-licenciamento-paysuite-design.md.
+ *
+ * A instância CENTRAL (a que a Songhai opera) nunca tem `licensing_client_state`
+ * populado — ela não compra licença de si mesma, é quem EMITE — mas sem esta
+ * exceção o próprio gate bloquearia `/api/v1/licensing/admin` e
+ * `/api/v1/licensing/admin/paysuite-credentials`, os únicos endpoints que a
+ * Central usa pra operar (medido em produção: 403 license_required ao tentar
+ * salvar a credencial do PaySuite pela tela `/admin/licensing`, no dia em que
+ * a Central foi ligada pela primeira vez). `LICENSING_SIGNING_PRIVATE_KEY`
+ * só existe preenchida na Central — é o identificador confiável do papel,
+ * não algo que um clone de cliente jamais teria por engano.
  */
 async function bloqueadoPorLicenca(request: NextRequest): Promise<NextResponse | null> {
   if (!MUTATING_METHODS.has(request.method) || !request.nextUrl.pathname.startsWith("/api/v1/")) {
+    return null;
+  }
+  if (env.LICENSING_SIGNING_PRIVATE_KEY) {
     return null;
   }
 
