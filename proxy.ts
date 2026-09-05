@@ -9,7 +9,7 @@ import {
 } from "@/lib/impersonate/cookie-edge";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { avaliarAcesso } from "@/lib/licensing/gate";
-import { LICENSING_PUBLIC_KEY_PEM } from "@/lib/licensing/chave-publica";
+import { resolvePublicKeyPem } from "@/lib/licensing/chave-publica";
 
 const COOKIE_NAME = "sb-deskcomm-auth";
 
@@ -41,7 +41,7 @@ async function bloqueadoPorLicenca(request: NextRequest): Promise<NextResponse |
       fetchedAt: row?.fetched_at ? new Date(row.fetched_at) : null,
     },
     new Date(),
-    LICENSING_PUBLIC_KEY_PEM,
+    resolvePublicKeyPem(),
   );
 
   if (!decisao.bloqueado) {

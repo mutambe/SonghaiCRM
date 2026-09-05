@@ -222,6 +222,12 @@ const schema = z.object({
   // de valor pra editar casualmente pela tela.
   LICENSING_SIGNING_PRIVATE_KEY: z.string().optional().default(""),
   LICENSING_PUBLIC_BASE_URL: z.string().optional().default(""),
+  // SÓ pra suíte e2e (scripts/seed-e2e-licensing.ts) — nunca documentada como
+  // algo a preencher numa instalação real. Sobrescreve a chave pública
+  // embutida (`lib/licensing/chave-publica.ts`) por uma efêmera gerada no
+  // próprio job de teste, pra poder assinar um token "sempre válido" sem
+  // nunca tocar a chave privada real da Central.
+  LICENSING_PUBLIC_KEY_PEM_TEST_OVERRIDE: z.string().optional().default(""),
   // Só preenchidas na instância de CLIENTE (o produto normal, self-host):
   LICENSE_KEY: z.string().optional().default(""),
   LICENSING_CENTRAL_URL: z.string().optional().default(""),

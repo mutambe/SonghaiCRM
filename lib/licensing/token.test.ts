@@ -64,4 +64,15 @@ describe("licensing/token", () => {
     const payload = verifyLicenseToken(token, publicPem);
     expect(payload?.license_id).toBe("lic-1");
   });
+
+  it("verifica com a chave pública em base64 numa linha só (LICENSING_PUBLIC_KEY_PEM_TEST_OVERRIDE)", () => {
+    const { publicPem, privatePem } = gerarPar();
+    const publicB64 = Buffer.from(publicPem, "utf8").toString("base64");
+    const token = signLicenseToken(
+      { license_id: "lic-1", status: "active", current_period_end: "2026-12-01T00:00:00.000Z" },
+      privatePem,
+    );
+    const payload = verifyLicenseToken(token, publicB64);
+    expect(payload?.license_id).toBe("lic-1");
+  });
 });

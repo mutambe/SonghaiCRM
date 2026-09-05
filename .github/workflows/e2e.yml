@@ -427,6 +427,14 @@ jobs:
           # busca na internet). Sem esta linha, `prova-painel-provedores` mede a
           # sorte do ambiente em vez da tela.
           pnpm exec tsx scripts/seed-e2e-catalogo-openrouter.ts
+          # Sem isto, TODA mutação volta 403 license_required (banco fresco =
+          # sem licensing_client_state) — é o comportamento correto de uma
+          # instalação sem licença, mas derruba a maioria da suíte. Gera um par
+          # Ed25519 efêmero, nunca a chave real da Central (ver o cabeçalho do
+          # script). Roda ANTES do `next start` (nas etapas seguintes) porque
+          # anexa LICENSING_PUBLIC_KEY_PEM_TEST_OVERRIDE a .env.e2e/.env.local,
+          # que o boot lê do disco.
+          pnpm exec tsx scripts/seed-e2e-licensing.ts
 
       # O que ficou DE FORA (e por quê) é declarado no passo de summary —
       # cobertura parcial silenciosa se lê como cobertura total.

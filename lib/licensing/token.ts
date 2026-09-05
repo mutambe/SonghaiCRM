@@ -19,11 +19,12 @@ function b64url(buf: Buffer): string {
 }
 
 /**
- * `LICENSING_SIGNING_PRIVATE_KEY` aceita a chave em duas formas: o PEM
- * multi-linha "cru", ou o PEM inteiro em base64 numa linha só (o formato
- * recomendado pro `.env` — mesma convenção de `AI_CRED_AES_KEY`/
- * `CPF_ENCRYPTION_KEY` neste projeto, evita o operador ter que lidar com
- * quebra de linha dentro de um valor de `.env`).
+ * Aceita a chave (privada OU pública) em duas formas: o PEM multi-linha
+ * "cru", ou o PEM inteiro em base64 numa linha só (o formato recomendado pro
+ * `.env` — mesma convenção de `AI_CRED_AES_KEY`/`CPF_ENCRYPTION_KEY` neste
+ * projeto, evita lidar com quebra de linha dentro de um valor de `.env`).
+ * Usado tanto por `LICENSING_SIGNING_PRIVATE_KEY` quanto por
+ * `LICENSING_PUBLIC_KEY_PEM_TEST_OVERRIDE` (ver scripts/seed-e2e-licensing.ts).
  */
 function normalizePemInput(value: string): string {
   if (value.includes("-----BEGIN")) return value;
@@ -54,7 +55,7 @@ export function verifyLicenseToken(token: string, publicKeyPem: string): License
   if (!body || !sig) return null;
 
   try {
-    const key = createPublicKey(publicKeyPem);
+    const key = createPublicKey(normalizePemInput(publicKeyPem));
     const valido = verify(null, Buffer.from(body, "utf8"), key, Buffer.from(sig, "base64url"));
     if (!valido) return null;
     return JSON.parse(Buffer.from(body, "base64url").toString("utf8")) as LicenseTokenPayload;

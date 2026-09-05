@@ -7,7 +7,7 @@ import { env } from "@/lib/env";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { avaliarAcesso } from "@/lib/licensing/gate";
 import { verifyLicenseToken } from "@/lib/licensing/token";
-import { LICENSING_PUBLIC_KEY_PEM } from "@/lib/licensing/chave-publica";
+import { resolvePublicKeyPem } from "@/lib/licensing/chave-publica";
 import { Card } from "@/components/ui/card";
 import { RenovarLicencaButton } from "./_components/RenovarLicencaButton";
 
@@ -64,12 +64,13 @@ export default async function BillingPage() {
     .maybeSingle();
   const row = data as { token: string | null; fetched_at: string | null } | null;
 
+  const publicKeyPem = resolvePublicKeyPem();
   const decisao = avaliarAcesso(
     { token: row?.token ?? null, fetchedAt: row?.fetched_at ? new Date(row.fetched_at) : null },
     new Date(),
-    LICENSING_PUBLIC_KEY_PEM,
+    publicKeyPem,
   );
-  const payload = row?.token ? verifyLicenseToken(row.token, LICENSING_PUBLIC_KEY_PEM) : null;
+  const payload = row?.token ? verifyLicenseToken(row.token, publicKeyPem) : null;
 
   return (
     <div className="flex h-full flex-col gap-6 p-6">
