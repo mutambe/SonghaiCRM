@@ -1,6 +1,6 @@
 # 🧭 Visão — SonghaiCRM
 
-> **O sistema operacional de vendas com agentes de IA, open source, nativo no WhatsApp.**
+> **O sistema operacional de vendas com agentes de IA, self-hosted, nativo no WhatsApp.**
 > Este documento é a fonte da verdade do posicionamento do projeto. Tudo que for público (README, site, docs, descrições) deriva daqui.
 
 ---
@@ -44,35 +44,35 @@ Os pedidos de feature dessa comunidade empurraram o produto na direção que hoj
 
 ## Posicionamento
 
-**Categoria de entrada (âncora):** a alternativa **open source e self-hosted** às plataformas fechadas de atendimento e vendas por WhatsApp (Kommo, Octadesk, Intercom, Zendesk).
+**Categoria de entrada (âncora):** a alternativa **self-hosted** às plataformas fechadas de atendimento e vendas por WhatsApp (Kommo, Octadesk, Intercom, Zendesk).
 
-**Categoria própria (bandeira):** **sistema operacional de vendas com agentes de IA** — *AI Sales OS*. É pra onde a âncora nos leva: os incumbentes vendem assinatura de chat com bot acoplado; nós entregamos um sistema onde o agente de IA é operador nativo e o código é seu.
+**Categoria própria (bandeira):** **sistema operacional de vendas com agentes de IA** — *AI Sales OS*. É pra onde a âncora nos leva: os incumbentes vendem assinatura de chat com bot acoplado; nós entregamos um sistema onde o agente de IA é operador nativo, rodando na infraestrutura do próprio cliente.
 
 **Uma frase (pt-br):**
-> SonghaiCRM é o sistema operacional de vendas open source com agentes de IA nativos e WhatsApp — self-hosted, multi-tenant, para qualquer negócio que vende conversando.
+> SonghaiCRM é o sistema operacional de vendas com agentes de IA nativos e WhatsApp — self-hosted, multi-tenant, para qualquer negócio que vende conversando.
 
 **One-liner (en):**
-> Open-source AI sales OS: a self-hosted CRM where AI agents natively operate sales and support over WhatsApp — an open alternative to Kommo, Octadesk and Intercom.
+> Self-hosted AI sales OS: a CRM where AI agents natively operate sales and support over WhatsApp — running on the customer's own infrastructure, an alternative to Kommo, Octadesk and Intercom.
 
 **Público:** negócios brasileiros (e além) que vendem pelo WhatsApp — e-commerce, clínicas, imobiliárias, infoprodutores, agências, serviços — e a comunidade dev/self-hosted que instala pra si ou pra clientes.
 
 ## Modelo do projeto (sem letra miúda)
 
-- **O software é 100% open source (MIT), completo, sem versão paga.** Não vendemos assinatura. Não existe feature travada.
+- **Monetização = licenciamento por assinatura recorrente da instalação self-host**, cobrada via PaySuite. O software roda na VPS do cliente (qualquer provedor com Docker); a licença dá acesso a uso contínuo, não a uma feature específica — não existe feature travada por plano.
 - **Não há monetização por infraestrutura:** não há parceria comercial de hospedagem. O caminho recomendado de produção é qualquer VPS com Docker, instalada pelo `self-host-kit` com 1 comando.
-- **O caminho genérico nunca é sabotado:** `docker compose` e o kit self-host funcionam em qualquer VPS, sem preferência por provedor. (Regra de ouro do open source sustentável: percepção de pegadinha mata a marca.)
+- **O caminho genérico nunca é sabotado:** `docker compose` e o kit self-host funcionam em qualquer VPS, sem preferência por provedor. (Regra de ouro de um produto self-host sustentável: percepção de pegadinha mata a marca.)
 
 ## Princípios de comunicação
 
-1. **Keyword primeiro, jargão depois.** Em todo título público: "open source", "AI agents", "WhatsApp", "CRM", "self-hosted" antes de qualquer nome interno de subsistema.
+1. **Keyword primeiro, jargão depois.** Em todo título público: "self-hosted", "AI agents", "WhatsApp", "CRM" antes de qualquer nome interno de subsistema.
 2. **Mostrar, não descrever.** Screenshot/GIF do produto no primeiro scroll de qualquer página.
-3. **Âncora explícita.** "Alternativa open source a X" aparece no About do GitHub, no README e no site — é assim que a demanda dos incumbentes nos encontra (busca e LLMs).
+3. **Âncora explícita.** "Alternativa self-hosted a X" aparece no About do GitHub, no README e no site — é assim que a demanda dos incumbentes nos encontra (busca e LLMs).
 4. **E-commerce é exemplo, não definição.** Ao citar casos de uso, sempre em lista multi-nicho ("e-commerce, clínicas, imobiliárias...").
 5. **Transparência de modelo.** Modelo de monetização e telemetria declarados em linguagem humana no README, nunca escondidos.
 
 ## Norte de 3 anos
 
-Ser a resposta padrão — do Google, do ChatGPT, do Reddit e do dev brasileiro — para a pergunta **"qual o melhor CRM open source com agentes de IA e WhatsApp?"**; com milhares de instâncias self-hosted rodando, um ecossistema de agentes plugados via MCP público, e um flywheel de auto-aprimoramento que faça cada instância vender melhor a cada mês de operação.
+Ser a resposta padrão — do Google, do ChatGPT, do Reddit e do dev brasileiro — para a pergunta **"qual o melhor CRM self-hosted com agentes de IA e WhatsApp?"**; com milhares de instâncias self-hosted rodando, um ecossistema de agentes plugados via MCP público, e um flywheel de auto-aprimoramento que faça cada instância vender melhor a cada mês de operação.
 
 ---
 

@@ -61,6 +61,7 @@ CRONS="
 15 4 * * *|60|api/v1/cron/sync-model-catalog
 10 3 * * *|60|api/v1/cron/event-log-purge
 40 3 * * *|120|api/v1/cron/prune-old-media
+0 3 * * *|25|api/v1/cron/licensing-refresh
 "
 
 # CRONTAB_PATH é ponto de injeção do teste (tests/shell/scheduler-entrypoint.test.sh).

@@ -322,6 +322,7 @@ export const AUDIT_ACTIONS = [
   "appointment.created",
   "appointment.rescheduled",
   "appointment.status_changed",
+  "licensing.license_issued",
 ] as const;
 
 /** Um código de auditoria. Derivado de `AUDIT_ACTIONS` — não redigite a lista. */

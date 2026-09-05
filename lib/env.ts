@@ -211,6 +211,26 @@ const schema = z.object({
    * poder; a validação do valor é do resolvedor, que degrada e diz o motivo.
    */
   APP_ACCENT_HEX: z.string().optional().default(""),
+
+  // Licenciamento self-host via PaySuite — ver docs/superpowers/specs/2026-09-04-licenciamento-paysuite-design.md
+  // Só preenchida na instância CENTRAL (a que a Songhai opera). A credencial
+  // do PaySuite (API key + webhook secret) NÃO é env var — vive cifrada em
+  // `licensing_paysuite_credentials`, colada pela tela `/admin/licensing`
+  // (mesmo padrão de `payment_credentials`/`app/api/v1/integrations/paysuite`).
+  // Trocar essa chave invalida todo token já assinado e bloqueia clientes já
+  // rodando até atualizarem a imagem com a chave pública nova — não é o tipo
+  // de valor pra editar casualmente pela tela.
+  LICENSING_SIGNING_PRIVATE_KEY: z.string().optional().default(""),
+  LICENSING_PUBLIC_BASE_URL: z.string().optional().default(""),
+  // SÓ pra suíte e2e (scripts/seed-e2e-licensing.ts) — nunca documentada como
+  // algo a preencher numa instalação real. Sobrescreve a chave pública
+  // embutida (`lib/licensing/chave-publica.ts`) por uma efêmera gerada no
+  // próprio job de teste, pra poder assinar um token "sempre válido" sem
+  // nunca tocar a chave privada real da Central.
+  LICENSING_PUBLIC_KEY_PEM_TEST_OVERRIDE: z.string().optional().default(""),
+  // Só preenchidas na instância de CLIENTE (o produto normal, self-host):
+  LICENSE_KEY: z.string().optional().default(""),
+  LICENSING_CENTRAL_URL: z.string().optional().default(""),
 });
 
 /**
