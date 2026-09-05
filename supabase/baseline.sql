@@ -14071,3 +14071,22 @@ create or replace trigger trg_licensing_client_state_updated_at
   before update on public.licensing_client_state
   for each row execute function public.fn_set_updated_at();
 
+-- ---- credencial PaySuite da instância central (migration 0174) ----
+
+create table if not exists public.licensing_paysuite_credentials (
+  id text primary key default 'singleton' check (id = 'singleton'),
+  api_token_encrypted bytea not null,
+  webhook_secret_encrypted bytea not null,
+  status text not null default 'healthy' check (status in ('healthy', 'error')),
+  created_at timestamp with time zone not null default now(),
+  updated_at timestamp with time zone not null default now()
+);
+
+alter table public.licensing_paysuite_credentials enable row level security;
+revoke all on public.licensing_paysuite_credentials from anon, authenticated;
+grant select, insert, update on public.licensing_paysuite_credentials to service_role;
+
+create or replace trigger trg_licensing_paysuite_credentials_updated_at
+  before update on public.licensing_paysuite_credentials
+  for each row execute function public.fn_set_updated_at();
+

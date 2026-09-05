@@ -213,11 +213,15 @@ const schema = z.object({
   APP_ACCENT_HEX: z.string().optional().default(""),
 
   // Licenciamento self-host via PaySuite — ver docs/superpowers/specs/2026-09-04-licenciamento-paysuite-design.md
-  // Só preenchidas na instância CENTRAL (a que a Songhai opera):
+  // Só preenchida na instância CENTRAL (a que a Songhai opera). A credencial
+  // do PaySuite (API key + webhook secret) NÃO é env var — vive cifrada em
+  // `licensing_paysuite_credentials`, colada pela tela `/admin/licensing`
+  // (mesmo padrão de `payment_credentials`/`app/api/v1/integrations/paysuite`).
+  // Trocar essa chave invalida todo token já assinado e bloqueia clientes já
+  // rodando até atualizarem a imagem com a chave pública nova — não é o tipo
+  // de valor pra editar casualmente pela tela.
   LICENSING_SIGNING_PRIVATE_KEY: z.string().optional().default(""),
   LICENSING_PUBLIC_BASE_URL: z.string().optional().default(""),
-  LICENSING_PAYSUITE_API_KEY: z.string().optional().default(""),
-  LICENSING_PAYSUITE_WEBHOOK_SECRET: z.string().optional().default(""),
   // Só preenchidas na instância de CLIENTE (o produto normal, self-host):
   LICENSE_KEY: z.string().optional().default(""),
   LICENSING_CENTRAL_URL: z.string().optional().default(""),

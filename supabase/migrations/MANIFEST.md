@@ -222,6 +222,8 @@ aplica.
 
 | `20260904130000` | `0173_licensing_paysuite` | Tabelas de licenciamento self-host (`licensing_installs/licenses/payments/client_state`) — assinatura recorrente do operador da VPS via PaySuite. |
 
+| `20260905090000` | `0174_licensing_paysuite_credentials` | `licensing_paysuite_credentials` (singleton, cifrado) — a credencial do PaySuite da instância Central deixa de ser env var (`LICENSING_PAYSUITE_API_KEY`/`_WEBHOOK_SECRET`) e passa a ser colada pela tela `/admin/licensing`, mesmo padrão de `payment_credentials` (0162). Pedido do dono do produto: quem administra a Central no dia a dia não deve precisar editar `.env`/reiniciar container. |
+
 **Nota sobre a fusão de 2026-09-02:** as duas branches numeraram migrations independentemente a partir da 0163 e colidiram em 0165-0168 (`main` tomou 0165-0167 para Agenda nativa + forward-fix de `payments_select`; esta branch tinha tomado os mesmos números para fuso/NUIT/locale/idempotência). `0163_rag_escrita_exige_manager` e `0164_historico_de_atribuicao_respeita_visibilidade` não colidiram (só existiam nesta branch) e mantiveram o número. O forward-fix de `payments_select` desta branch (`0168_payments_select_idempotente` original) foi **descartado**, não renumerado — é o mesmo fix, byte a byte, do `0167_payments_select_idempotente` que já estava em `main`; manter os dois duplicaria o `drop policy if exists` sem efeito adicional.
 
 ## Reproducibility
