@@ -70,6 +70,12 @@ services:
       APP_NAME: ${APP_NAME}
       APP_LOGO_URL: ${APP_LOGO_URL}
       APP_ACCENT_HEX: ${APP_ACCENT_HEX}
+      # Licenciamento self-host via PaySuite — preencha SÓ um dos dois pares,
+      # dependendo do papel desta instalação (ver lib/env.ts).
+      LICENSING_SIGNING_PRIVATE_KEY: ${LICENSING_SIGNING_PRIVATE_KEY}
+      LICENSING_PUBLIC_BASE_URL: ${LICENSING_PUBLIC_BASE_URL}
+      LICENSE_KEY: ${LICENSE_KEY}
+      LICENSING_CENTRAL_URL: ${LICENSING_CENTRAL_URL}
     healthcheck:
       test: ["CMD", "node", "-e", "require('net').connect(3000,'127.0.0.1').on('connect',()=>process.exit(0)).on('error',()=>process.exit(1))"]
       interval: 30s
