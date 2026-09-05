@@ -14,7 +14,7 @@
 
 ## Visão (1 parágrafo)
 
-SonghaiCRM é um sistema operacional de vendas open source com agentes de IA nativos — multi-nicho (e-commerce, clínicas, imobiliárias, infoprodutos, serviços), com WhatsApp como canal primário (via WAHA). Agentes com RAG por tenant atendem, qualificam e movem o funil junto com humanos; CRM inteiro exposto via MCP. Monetização = self-host em VPS (qualquer provedor com Docker), não assinatura. Arquitetura multi-tenant com RLS desde o dia 1; proteção de dados pessoais nativa (base legal: Lei n.º 3/2017, Moçambique — mecanismo LGPD-like, sem prazo legal fixo). Posicionamento completo: `VISION.md`.
+SonghaiCRM é um sistema operacional de vendas self-hosted com agentes de IA nativos — multi-nicho (e-commerce, clínicas, imobiliárias, infoprodutos, serviços), com WhatsApp como canal primário (via WAHA). Agentes com RAG por tenant atendem, qualificam e movem o funil junto com humanos; CRM inteiro exposto via MCP. Monetização = licenciamento por assinatura recorrente da instalação self-host em VPS (qualquer provedor com Docker), cobrado via PaySuite. Arquitetura multi-tenant com RLS desde o dia 1; proteção de dados pessoais nativa (base legal: Lei n.º 3/2017, Moçambique — mecanismo LGPD-like, sem prazo legal fixo). Posicionamento completo: `VISION.md`.
 
 ---
 
