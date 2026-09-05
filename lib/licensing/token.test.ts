@@ -53,4 +53,15 @@ describe("licensing/token", () => {
     expect(verifyLicenseToken("lixo-sem-ponto", publicPem)).toBeNull();
     expect(verifyLicenseToken("", publicPem)).toBeNull();
   });
+
+  it("assina com a chave privada em base64 numa linha só (formato recomendado pro .env)", () => {
+    const { publicPem, privatePem } = gerarPar();
+    const privateB64 = Buffer.from(privatePem, "utf8").toString("base64");
+    const token = signLicenseToken(
+      { license_id: "lic-1", status: "active", current_period_end: "2026-12-01T00:00:00.000Z" },
+      privateB64,
+    );
+    const payload = verifyLicenseToken(token, publicPem);
+    expect(payload?.license_id).toBe("lic-1");
+  });
 });

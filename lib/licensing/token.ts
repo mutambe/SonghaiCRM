@@ -18,13 +18,31 @@ function b64url(buf: Buffer): string {
   return buf.toString("base64url");
 }
 
+/**
+ * `LICENSING_SIGNING_PRIVATE_KEY` aceita a chave em duas formas: o PEM
+ * multi-linha "cru", ou o PEM inteiro em base64 numa linha só (o formato
+ * recomendado pro `.env` — mesma convenção de `AI_CRED_AES_KEY`/
+ * `CPF_ENCRYPTION_KEY` neste projeto, evita o operador ter que lidar com
+ * quebra de linha dentro de um valor de `.env`).
+ */
+function normalizePemInput(value: string): string {
+  if (value.includes("-----BEGIN")) return value;
+  try {
+    const decoded = Buffer.from(value, "base64").toString("utf8");
+    if (decoded.includes("-----BEGIN")) return decoded;
+  } catch {
+    // cai pro erro de createPrivateKey abaixo, com a string original
+  }
+  return value;
+}
+
 export function signLicenseToken(
   payload: Omit<LicenseTokenPayload, "iat">,
   privateKeyPem: string,
 ): string {
   const full: LicenseTokenPayload = { ...payload, iat: Date.now() };
   const body = b64url(Buffer.from(JSON.stringify(full), "utf8"));
-  const key = createPrivateKey(privateKeyPem);
+  const key = createPrivateKey(normalizePemInput(privateKeyPem));
   const signature = sign(null, Buffer.from(body, "utf8"), key);
   return `${body}.${b64url(signature)}`;
 }
