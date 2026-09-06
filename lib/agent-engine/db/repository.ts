@@ -59,6 +59,12 @@ export type InboxKind =
   // para "deveria ter terminado há mais de 1h" e ninguém confirmou o
   // desfecho. Emitido só pelo cron appointment-outcome-nudge.
   | 'appointment_outcome_pending'
+  // (migration 0175) O gate de pacing (anti-ban) vetou send_message e o turno
+  // terminou sem nenhum envio bem-sucedido — o cliente ficou sem resposta e o
+  // sistema teve de agendar o retorno sozinho (o modelo não tenta de novo por
+  // conta própria de forma confiável, medido em produção). `warn`: a IA não
+  // parou por erro, está esperando a janela/cap de anti-ban liberar.
+  | 'message_send_blocked'
   | 'other';
 
 export interface InboxItemRow {

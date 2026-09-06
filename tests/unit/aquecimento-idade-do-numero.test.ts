@@ -90,7 +90,8 @@ describe("knobsView.warmup — o número que a tela precisava mostrar", () => {
     const row = { ...VAZIO, number_activated_at: "2026-08-06T19:00:00.000Z" };
     const v = knobsView(row, hoje);
     expect(v.warmup.age_days).toBe(0);
-    expect(v.warmup.cap_today).toBe(20);
+    // Piso 20→50 (2026-09-06): ver lib/agent-engine/pacing/defaults.ts.
+    expect(v.warmup.cap_today).toBe(50);
     expect(v.warmup.skipped).toBe(false);
   });
 

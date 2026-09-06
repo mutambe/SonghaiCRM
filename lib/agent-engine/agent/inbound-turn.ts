@@ -1345,6 +1345,10 @@ async function executarTurnoDoAgente(
   // (`internal_vocabulary_leak`): 1º veto no turno ensina o modelo a reescrever; persistir
   // solta o envio com registro. Por turno (closure), nunca cross-turno.
   let internalVocabularyVetoCount = 0;
+  // Último veto de PACING (anti-ban: outside_window/warmup_cap/daily_cap) do turno —
+  // ver o bloco de retry automático após o checkpoint. `null` = nenhum veto de pacing
+  // (ou já superado por um envio bem-sucedido depois dele, via `outcomes`).
+  let lastPacingVeto: { code: string; nextAllowedAt: Date } | null = null;
   const outcomes: ChannelSendResult[] = [];
   // Citações acumuladas por buscas de conhecimento DESTE turno — anexadas à
   // próxima outbound enviada (shape de lib/ai/citations/types, que a UI já lê).
@@ -1729,10 +1733,23 @@ async function executarTurnoDoAgente(
             });
           }
           if (chain.status === 'vetoed') {
+            // Veto de PACING (anti-ban): guardado para o retry automático depois do
+            // checkpoint — depender só do modelo lembrar de tentar de novo é o defeito
+            // medido (ver o bloco após insertCheckpoint). `nextAllowedAt` sempre vem
+            // preenchido nestes três códigos (pacingGate sempre o inclui no veto).
+            if (
+              (chain.code === 'outside_window' || chain.code === 'warmup_cap' || chain.code === 'daily_cap') &&
+              chain.nextAllowedAt !== undefined
+            ) {
+              lastPacingVeto = { code: chain.code, nextAllowedAt: chain.nextAllowedAt };
+            }
             // Erro de ENSINO pt-br (mesmo shape de get_lead_context/breaker): o
             // modelo o vê no turno seguinte. NÃO é exceção — não derruba o run.
             return { ok: false, error: { code: chain.code, message: chain.message } };
           }
+          // Envio efetivamente saiu neste turno: qualquer veto de pacing anterior no
+          // MESMO turno (ex.: throttle que depois liberou) deixou de ser o desfecho.
+          lastPacingVeto = null;
           const outcome = chain.outcome;
           outcomes.push(outcome);
           if (outcome.kind === 'sent' && pendingCitations.length > 0) {
@@ -2402,6 +2419,89 @@ async function executarTurnoDoAgente(
   // faria a seguir.
   const checkpointAnterior = await latestCheckpoint(pool, tenantId, leadId);
   await insertCheckpoint(pool, { tenantId, leadId, jobId: job.id, content });
+
+  // ── RETRY AUTOMÁTICO DE ENVIO VETADO POR PACING (anti-ban) ────────────────
+  //
+  // CAUSA RAIZ MEDIDA EM PRODUÇÃO (2026-09-05): o gate de pacing (before-send.ts)
+  // veta send_message e devolve a razão ao MODELO como erro de ensino — mas
+  // depender só da memória dele para tentar de novo foi o que quebrou. Um número
+  // novo bateu o cap de warm-up no meio de uma conversa; depois desse ÚNICO veto,
+  // o modelo simplesmente parou de tentar reenviar nos turnos seguintes —
+  // inclusive no dia seguinte, já com o cap resetado — e três mensagens do
+  // cliente ('Estou à espera da resposta', 'Olá', 'Olá') ficaram sem resposta
+  // por ~20h, sem NENHUM aviso na Central. O RUNTIME agenda o retorno, nunca o
+  // modelo — mesmo princípio do turno do Operador logo abaixo. Reusa
+  // `applyScheduleFollowup` (cron one-shot → followup_turn) em vez de inventar
+  // um segundo caminho de retry.
+  const sentThisTurn = outcomes.some((o) => o.kind === 'sent' || o.kind === 'already_sent');
+  if (sentThisTurn) {
+    // Laço de retorno (invariante 7 do Sistema Vivo): um envio bem-sucedido
+    // fecha qualquer aviso de bloqueio ainda aberto NESTA conversa — sem isto o
+    // alerta ficaria aceso na Central afirmando uma parada que já se resolveu.
+    try {
+      await pool.query(
+        `update agent_inbox_items set status = 'resolved'
+          where organization_id = $1 and kind = 'message_send_blocked'
+            and ref_kind = 'conversation' and ref_id = $2 and status = 'open'`,
+        [tenantId, input.conversationId],
+      );
+    } catch (err) {
+      runLog.warn('retratação do aviso message_send_blocked falhou (segue)', {
+        error: (err instanceof Error ? err.message : String(err)).slice(0, 120),
+      });
+    }
+  } else if (lastPacingVeto !== null) {
+    // Capturado em `const` para o compilador (e o leitor): a narrowing de `let`
+    // fechado num closure de tool não atravessa com segurança até aqui embaixo.
+    const veto = lastPacingVeto;
+    if (deps.knobs.followup !== undefined) {
+      const agendou = await applyScheduleFollowup(
+        pool,
+        { clock, knobs: deps.knobs.followup },
+        { tenantId, leadId, agentId: agentConfig?.agentId ?? null },
+        {
+          reason: `retry automático do sistema após veto de pacing (${veto.code}) — o modelo não reenviou sozinho`,
+          promised_at: veto.nextAllowedAt.toISOString(),
+          promise: 'Responder ao lead assim que a janela/cap de envio da proteção anti-banimento liberar',
+        },
+      );
+      // 'already_pending' é sucesso silencioso: já existe um follow-up vivo para
+      // este lead (o próprio modelo pode já tê-lo agendado) — ele reabre o turno
+      // de qualquer forma. Qualquer OUTRA recusa é bug nosso (janela/formato),
+      // não do lead, e cai no aviso abaixo do mesmo jeito que a ausência de knobs.
+      if (!agendou.ok && agendou.error.code !== 'already_pending') {
+        runLog.error('retry automático pós-veto de pacing não pôde ser agendado', {
+          code: agendou.error.code,
+        });
+      }
+    } else {
+      runLog.warn('veto de pacing sem knobs de follow-up configurados — só o aviso, sem retry automático');
+    }
+    try {
+      await insertInboxItem(
+        pool,
+        tenantId,
+        {
+          kind: 'message_send_blocked',
+          severity: 'warn',
+          title: 'Envio de mensagens pausado por proteção anti-banimento',
+          body:
+            'O número está temporariamente impedido de enviar mensagens (limite diário de ' +
+            'aquecimento ou janela de horário do anti-banimento) e um cliente ficou sem ' +
+            'resposta nesta conversa. O sistema já agendou o reenvio automático assim que a ' +
+            'proteção liberar — não é preciso agir, mas você pode responder você mesmo ' +
+            'enquanto isso.',
+          refKind: 'conversation',
+          refId: input.conversationId,
+        },
+        'kind_e_ref',
+      );
+    } catch (erroDoAviso) {
+      runLog.error('aviso de envio bloqueado por pacing não foi gravado', {
+        error: (erroDoAviso instanceof Error ? erroDoAviso.message : String(erroDoAviso)).slice(0, 120),
+      });
+    }
+  }
 
   // ── O TURNO DO OPERADOR (spec 16 §3.2) ─────────────────────────────────────
   //

@@ -57,7 +57,12 @@ export const PACING_DEFAULTS: PacingKnobs = {
   // Número sem linha em channel_knobs é tratado como idade 0 (o degrau mais
   // conservador) até alguém registrar number_activated_at.
   warmupDailyCaps: [
-    { minAgeDays: 0, cap: 20 },
+    // Piso 20→50 (2026-09-06, decisão do dono do produto): o degrau anterior
+    // travava número novo depois de um único atendimento com idas e vindas —
+    // medido em produção, uma conversa comum de qualificação consumiu as 20
+    // mensagens sozinha e derrubou a IA para TODO o número pelo resto do dia
+    // (nenhum cliente novo recebia resposta, não só o que esgotou o cap).
+    { minAgeDays: 0, cap: 50 },
     { minAgeDays: 4, cap: 50 },
     { minAgeDays: 8, cap: 100 },
     { minAgeDays: 15, cap: 200 },
