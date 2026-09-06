@@ -2,8 +2,8 @@
  * POST /api/v1/conversations/[id]/mark-read — o agente abriu (ou respondeu)
  * a conversa: mensagens do CLIENTE (inbound) pendentes viram lidas no CRM.
  *
- * Não é o ack do WAHA (esse é sobre o que NÓS enviamos e o cliente leu no
- * WhatsApp dele) — é o agente lendo o que o cliente mandou, dentro do CRM.
+ * Não é o ack do canal (esse é sobre o que NÓS enviamos e o cliente leu do
+ * lado dele) — é o agente lendo o que o cliente mandou, dentro do CRM.
  * `messages.read_at` é reaproveitado pra isso porque, pra inbound, nunca era
  * escrito por outro caminho.
  */

@@ -30,9 +30,9 @@ function AckIndicator({ status }: { status: string }) {
   return null;
 }
 
-// Inbound não tem status de ack do WAHA (é sempre "delivered", fixo na
+// Inbound não tem status de ack do canal (é sempre "delivered", fixo na
 // ingestão) — os 2 ticks aqui marcam se o AGENTE já leu no CRM, não se o
-// WhatsApp do cliente confirmou entrega. Verde (não azul) de propósito: azul
+// cliente confirmou entrega do lado dele. Verde (não azul) de propósito: azul
 // já significa "cliente leu o que NÓS enviamos" no indicador acima, e são
 // leituras de lados diferentes da conversa.
 function InboundReadIndicator({ readAt }: { readAt: string | null }) {
