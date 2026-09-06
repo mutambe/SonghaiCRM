@@ -10033,6 +10033,14 @@ alter table public.agent_inbox_items
     -- NESTA lista, no fim, pela mesma razão das entradas acima (bloco único
     -- por constraint, #159) — e antes de 'other' pela mesma convenção.
     'appointment_outcome_pending',
+    -- (migration 0175) O gate de pacing (anti-ban) vetou send_message e o
+    -- turno terminou sem nenhum envio bem-sucedido. Emitido por
+    -- lib/agent-engine/agent/inbound-turn.ts junto do retry automático via
+    -- applyScheduleFollowup — o sistema agenda o retorno, nunca confia só no
+    -- modelo lembrar de tentar de novo (defeito medido em produção: depois de
+    -- UM veto, o modelo parou de reenviar mesmo dias depois, com o cap já
+    -- resetado). Entra NESTA lista, no fim, pela mesma razão de sempre.
+    'message_send_blocked',
     'other'
   ));
 

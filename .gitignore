@@ -111,3 +111,5 @@ evidence/.sonda-score-residuo.json
 
 # worktrees isolados de subagent-driven-development
 .worktrees/
+
+chavesVPS.txt

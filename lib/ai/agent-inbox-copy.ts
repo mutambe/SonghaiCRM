@@ -62,6 +62,10 @@ export const KIND_LABEL = {
   // Diz o que falta SABER, não o que faltou fazer: ninguém sabe ainda se o
   // cliente veio, faltou ou cancelou — o sistema não decide isso sozinho.
   appointment_outcome_pending: "Confirme o desfecho de um agendamento que já passou",
+  // Diz o que o CLIENTE viveu (ficou sem resposta), não o mecanismo interno
+  // (gate de pacing vetou send_message) — o motivo técnico e a data do retorno
+  // agendado ficam no corpo do aviso.
+  message_send_blocked: "Envio de mensagens pausado por proteção anti-banimento",
   other: "Aviso do assistente",
 } as const satisfies Record<InboxKind, string>;
 
