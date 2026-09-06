@@ -76,4 +76,26 @@ describe("computeAvailableSlots", () => {
     });
     expect(slots).toEqual([]);
   });
+
+  it("feriado nacional moçambicano: nenhum slot, mesmo com bloco de horário cadastrado", () => {
+    const slots = computeAvailableSlots({
+      date: "2026-09-07", // Dia da Vitória
+      timezone: TZ,
+      durationMinutes: 30,
+      scheduleBlocks: [{ starts_at: "09:00:00", ends_at: "11:00:00" }],
+      existingAppointments: [],
+    });
+    expect(slots).toEqual([]);
+  });
+
+  it("Sexta-feira Santa (feriado móvel): nenhum slot", () => {
+    const slots = computeAvailableSlots({
+      date: "2026-04-03",
+      timezone: TZ,
+      durationMinutes: 30,
+      scheduleBlocks: [{ starts_at: "09:00:00", ends_at: "11:00:00" }],
+      existingAppointments: [],
+    });
+    expect(slots).toEqual([]);
+  });
 });
