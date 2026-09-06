@@ -50,9 +50,15 @@ export const KNOB_BOUNDS = {
 export const PACING_DEFAULTS: PacingKnobs = {
   throttleMs: 1200, // 1 msg / 1,2s
   jitterMaxMs: 800,
-  windowStartHour: 7, // janela 7h-22h
-  windowEndHour: 22,
-  allowSunday: false,
+  windowStartHour: 6, // janela 6h-23h
+  windowEndHour: 23,
+  // Aberto por padrão (2026-09-06, decisão do dono do produto): existem
+  // modelos de negócio (e-commerce, delivery, imobiliária de plantão) em que
+  // domingo é dia normal de atendimento. Continua sendo CORTESIA, não
+  // anti-ban (invariante 3 de docs/doctrine/restricao-de-canal.md) — quem
+  // quiser fechar domingo para um número específico desliga o interruptor
+  // "Enviar aos domingos" em Conexões → proteção de envio (AntiBanSheet.tsx).
+  allowSunday: true,
   timezone: 'Africa/Maputo',
   // Número sem linha em channel_knobs é tratado como idade 0 (o degrau mais
   // conservador) até alguém registrar number_activated_at.
