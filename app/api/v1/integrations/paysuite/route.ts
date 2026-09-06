@@ -34,10 +34,20 @@ const saveSchema = z.object({
  * domínio real conhecido no build, o CI semeia um placeholder
  * (`lib/env.ts` → `https://build-placeholder.invalid`) que fica congelado
  * no bundle pra sempre — nenhuma var no `.env` da VPS o alcança depois.
- * A URL da PRÓPRIA requisição (via `Host`, que o Traefik preserva) é a
- * única fonte confiável do domínio real de cada instalação.
+ *
+ * `new URL(req.url).origin` sozinho TAMBÉM não serve — medido em produção
+ * atrás do Traefik desta VPS: saía `http://0.0.0.0:3000` (o bind interno do
+ * container), não o domínio público. `req.url` reflete o destino que o
+ * Node recebeu na conexão TCP, não o `Host` que o navegador mandou pro
+ * proxy. Os headers `X-Forwarded-*` são o que todo reverse proxy (Traefik
+ * incluso) usa pra repassar o host/proto ORIGINAIS — é a única fonte
+ * confiável aqui. `req.url` fica só como último recurso (dev local sem
+ * proxy na frente, onde não há X-Forwarded-* nenhum).
  */
 function resolveBaseUrl(req: NextRequest): string {
+  const forwardedHost = req.headers.get("x-forwarded-host") ?? req.headers.get("host");
+  const forwardedProto = req.headers.get("x-forwarded-proto") ?? "https";
+  if (forwardedHost) return `${forwardedProto}://${forwardedHost}`;
   return new URL(req.url).origin;
 }
 

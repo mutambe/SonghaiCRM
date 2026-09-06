@@ -22,8 +22,11 @@ vi.mock("@/lib/supabase/admin", () => ({
 
 import { GET, POST } from "./route";
 
-function req(url: string, body?: unknown) {
-  return new Request(url, body ? { method: "POST", body: JSON.stringify(body) } : undefined);
+function req(url: string, body?: unknown, headers?: Record<string, string>) {
+  return new Request(url, {
+    ...(body ? { method: "POST", body: JSON.stringify(body) } : {}),
+    ...(headers ? { headers } : {}),
+  });
 }
 
 describe("GET /api/v1/integrations/paysuite", () => {
@@ -72,6 +75,32 @@ describe("GET /api/v1/integrations/paysuite", () => {
     } finally {
       process.env.NEXT_PUBLIC_APP_URL = originalEnv;
     }
+  });
+
+  /**
+   * Segundo achado (2026-09-06), depois de "resolver" o de cima: trocar pra
+   * `new URL(req.url).origin` sozinho TAMBÉM saía errado em produção atrás
+   * do Traefik — devolvia `http://0.0.0.0:3000` (o bind interno do
+   * container). `req.url` reflete a conexão TCP que o Node recebeu, não o
+   * `Host` que o navegador mandou pro proxy. Simula exatamente essa forma:
+   * a URL da requisição aponta pro bind interno, mas o Traefik anexou
+   * `X-Forwarded-Host`/`X-Forwarded-Proto` com o domínio público real.
+   */
+  it("prefere X-Forwarded-Host/Proto — req.url sozinho é o bind interno atrás do Traefik", async () => {
+    maybeSingleMock.mockResolvedValue({
+      data: { status: "healthy", status_reason: null, webhook_path_token: "tok123", updated_at: "2026-09-05" },
+      error: null,
+    });
+    const res = await GET(
+      req("http://0.0.0.0:3000/api/v1/integrations/paysuite", undefined, {
+        "x-forwarded-host": "crm.songhai.ltd",
+        "x-forwarded-proto": "https",
+      }) as never,
+    );
+    const body = (await res.json()) as { data: { webhook_url: string } };
+    expect(body.data.webhook_url).toBe(
+      "https://crm.songhai.ltd/api/v1/webhooks/payments/paysuite/tok123",
+    );
   });
 });
 
