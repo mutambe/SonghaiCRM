@@ -1348,7 +1348,15 @@ async function executarTurnoDoAgente(
   // Último veto de PACING (anti-ban: outside_window/warmup_cap/daily_cap) do turno —
   // ver o bloco de retry automático após o checkpoint. `null` = nenhum veto de pacing
   // (ou já superado por um envio bem-sucedido depois dele, via `outcomes`).
-  let lastPacingVeto: { code: string; nextAllowedAt: Date } | null = null;
+  //
+  // Objeto-caixa (`{ atual }`), e não `let` direto: um `let` fechado por um closure
+  // de tool (o `execute` de `send_message`, definido bem abaixo) sofre um bug de
+  // over-narrowing do compilador — o TypeScript infere `never` na leitura, mesmo
+  // com anotação explícita e mesmo copiando pra uma `const` antes de ler a
+  // propriedade. Propriedade de objeto não sofre esse over-narrowing entre
+  // fronteiras de função; `let` sofre. Medido: `npx tsc --noEmit` só passou depois
+  // desta troca.
+  const pacingVetoRef: { atual: { code: string; nextAllowedAt: Date } | null } = { atual: null };
   const outcomes: ChannelSendResult[] = [];
   // Citações acumuladas por buscas de conhecimento DESTE turno — anexadas à
   // próxima outbound enviada (shape de lib/ai/citations/types, que a UI já lê).
@@ -1741,7 +1749,7 @@ async function executarTurnoDoAgente(
               (chain.code === 'outside_window' || chain.code === 'warmup_cap' || chain.code === 'daily_cap') &&
               chain.nextAllowedAt !== undefined
             ) {
-              lastPacingVeto = { code: chain.code, nextAllowedAt: chain.nextAllowedAt };
+              pacingVetoRef.atual = { code: chain.code, nextAllowedAt: chain.nextAllowedAt };
             }
             // Erro de ENSINO pt-br (mesmo shape de get_lead_context/breaker): o
             // modelo o vê no turno seguinte. NÃO é exceção — não derruba o run.
@@ -1749,7 +1757,7 @@ async function executarTurnoDoAgente(
           }
           // Envio efetivamente saiu neste turno: qualquer veto de pacing anterior no
           // MESMO turno (ex.: throttle que depois liberou) deixou de ser o desfecho.
-          lastPacingVeto = null;
+          pacingVetoRef.atual = null;
           const outcome = chain.outcome;
           outcomes.push(outcome);
           if (outcome.kind === 'sent' && pendingCitations.length > 0) {
@@ -2420,19 +2428,29 @@ async function executarTurnoDoAgente(
   const checkpointAnterior = await latestCheckpoint(pool, tenantId, leadId);
   await insertCheckpoint(pool, { tenantId, leadId, jobId: job.id, content });
 
-  // ── RETRY AUTOMÁTICO DE ENVIO VETADO POR PACING (anti-ban) ────────────────
+  // ── RETRY AUTOMÁTICO DE TURNO SEM ENVIO (com ou sem veto de pacing) ───────
   //
-  // CAUSA RAIZ MEDIDA EM PRODUÇÃO (2026-09-05): o gate de pacing (before-send.ts)
-  // veta send_message e devolve a razão ao MODELO como erro de ensino — mas
-  // depender só da memória dele para tentar de novo foi o que quebrou. Um número
-  // novo bateu o cap de warm-up no meio de uma conversa; depois desse ÚNICO veto,
-  // o modelo simplesmente parou de tentar reenviar nos turnos seguintes —
-  // inclusive no dia seguinte, já com o cap resetado — e três mensagens do
-  // cliente ('Estou à espera da resposta', 'Olá', 'Olá') ficaram sem resposta
-  // por ~20h, sem NENHUM aviso na Central. O RUNTIME agenda o retorno, nunca o
-  // modelo — mesmo princípio do turno do Operador logo abaixo. Reusa
-  // `applyScheduleFollowup` (cron one-shot → followup_turn) em vez de inventar
-  // um segundo caminho de retry.
+  // CAUSA RAIZ MEDIDA EM PRODUÇÃO EM DUAS RODADAS:
+  //
+  // (2026-09-05) o gate de pacing (before-send.ts) veta send_message e devolve
+  // a razão ao MODELO como erro de ensino — mas depender só da memória dele
+  // para tentar de novo foi o que quebrou. Um número novo bateu o cap de
+  // warm-up no meio de uma conversa; depois desse ÚNICO veto, o modelo parou
+  // de tentar reenviar nos turnos seguintes, inclusive no dia seguinte já com
+  // o cap resetado, e três mensagens do cliente ficaram sem resposta por ~20h.
+  //
+  // (2026-09-06, um dia depois do primeiro fix) uma mensagem NOVA ainda ficou
+  // sem resposta — mas desta vez o modelo nem CHAMOU send_message: o
+  // rolling_summary do turno vetado ("estou bloqueado até tal hora", escrito
+  // pela própria IA) convenceu turnos seguintes a não tentar de novo, sem
+  // testar a realidade. Sem chamada não há veto, e a escolta original (que só
+  // olhava `pacingVetoRef.atual`) nunca disparava.
+  //
+  // A escolta abaixo não pergunta POR QUÊ o modelo não enviou — só que não
+  // enviou, e que não foi por handoff/opt-out (as únicas duas saídas de
+  // silêncio que são corretas). O RUNTIME agenda o retorno e avisa a Central,
+  // nunca confiando na memória do modelo. Reusa `applyScheduleFollowup` (cron
+  // one-shot → followup_turn) em vez de inventar um segundo caminho de retry.
   const sentThisTurn = outcomes.some((o) => o.kind === 'sent' || o.kind === 'already_sent');
   if (sentThisTurn) {
     // Laço de retorno (invariante 7 do Sistema Vivo): um envio bem-sucedido
@@ -2450,32 +2468,55 @@ async function executarTurnoDoAgente(
         error: (err instanceof Error ? err.message : String(err)).slice(0, 120),
       });
     }
-  } else if (lastPacingVeto !== null) {
-    // Capturado em `const` para o compilador (e o leitor): a narrowing de `let`
-    // fechado num closure de tool não atravessa com segurança até aqui embaixo.
-    const veto = lastPacingVeto;
+  } else if (!optedOutThisTurn && !(await isLeadInHandoff(pool, tenantId, leadId))) {
+    // SILÊNCIO SEM PRÓXIMO PASSO — com veto explícito de pacing OU SEM ELE.
+    //
+    // CAUSA RAIZ AMPLIADA, medida em produção (2026-09-06, um dia depois do fix
+    // acima): uma mensagem NOVA do lead ainda ficou sem resposta — mas desta vez
+    // o modelo nem CHAMOU send_message. O rolling_summary do turno anterior
+    // (que carrega a crença "estou bloqueado até tal hora", escrita pela própria
+    // IA num turno vetado) convenceu o modelo a não tentar de novo, sem testar a
+    // realidade. Sem chamada, não há veto: `pacingVetoRef.atual` fica null e a
+    // escolta acima nunca dispara. A escolta AQUI não pergunta POR QUÊ o modelo
+    // não enviou — só que não enviou, e que não foi por handoff/opt-out (as
+    // únicas duas saídas de silêncio que são corretas). Trata veto explícito e
+    // "desistência silenciosa" da mesma forma: o cliente não sabe (nem precisa
+    // saber) qual dos dois aconteceu.
+    // Capturado em `const` para o compilador: a narrowing de `let` fechado num
+    // closure de tool não atravessa com segurança até aqui embaixo.
+    const vetoDoTurno = pacingVetoRef.atual;
+    const promisedAt =
+      vetoDoTurno?.nextAllowedAt ??
+      // +2min de folga sobre o retry padrão da fila (SEND_QUEUED_RETRY_MS): o
+      // relógio deste `clock()` e o de `applyScheduleFollowup` (chamado linhas
+      // abaixo) não são o mesmo instante, e sem a folga um valor bem no limiar
+      // de FOLLOWUP_MIN_AHEAD_MS (mesmo default de 5min) vira `instante_fora_da_janela`
+      // por alguns milissegundos de deriva.
+      new Date(clock().getTime() + deps.knobs.queuedRetryDelayMs + 120_000);
+    const motivo = vetoDoTurno?.code ?? 'sem_envio_no_turno';
     if (deps.knobs.followup !== undefined) {
       const agendou = await applyScheduleFollowup(
         pool,
         { clock, knobs: deps.knobs.followup },
         { tenantId, leadId, agentId: agentConfig?.agentId ?? null },
         {
-          reason: `retry automático do sistema após veto de pacing (${veto.code}) — o modelo não reenviou sozinho`,
-          promised_at: veto.nextAllowedAt.toISOString(),
-          promise: 'Responder ao lead assim que a janela/cap de envio da proteção anti-banimento liberar',
+          reason: `retry automático do sistema — turno terminou sem enviar nada ao lead (${motivo})`,
+          promised_at: promisedAt.toISOString(),
+          promise: 'Responder ao lead assim que possível',
         },
       );
       // 'already_pending' é sucesso silencioso: já existe um follow-up vivo para
-      // este lead (o próprio modelo pode já tê-lo agendado) — ele reabre o turno
-      // de qualquer forma. Qualquer OUTRA recusa é bug nosso (janela/formato),
-      // não do lead, e cai no aviso abaixo do mesmo jeito que a ausência de knobs.
+      // este lead (o próprio modelo, ou um turno anterior desta mesma escolta,
+      // pode já tê-lo agendado) — ele reabre o turno de qualquer forma. Qualquer
+      // OUTRA recusa é bug nosso (janela/formato), não do lead, e cai no aviso
+      // abaixo do mesmo jeito que a ausência de knobs.
       if (!agendou.ok && agendou.error.code !== 'already_pending') {
-        runLog.error('retry automático pós-veto de pacing não pôde ser agendado', {
+        runLog.error('retry automático de turno silencioso não pôde ser agendado', {
           code: agendou.error.code,
         });
       }
     } else {
-      runLog.warn('veto de pacing sem knobs de follow-up configurados — só o aviso, sem retry automático');
+      runLog.warn('turno terminou sem enviar nada e sem knobs de follow-up configurados — só o aviso, sem retry automático');
     }
     try {
       await insertInboxItem(
@@ -2484,13 +2525,13 @@ async function executarTurnoDoAgente(
         {
           kind: 'message_send_blocked',
           severity: 'warn',
-          title: 'Envio de mensagens pausado por proteção anti-banimento',
+          title: 'Um cliente ficou sem resposta nesta conversa',
           body:
-            'O número está temporariamente impedido de enviar mensagens (limite diário de ' +
-            'aquecimento ou janela de horário do anti-banimento) e um cliente ficou sem ' +
-            'resposta nesta conversa. O sistema já agendou o reenvio automático assim que a ' +
-            'proteção liberar — não é preciso agir, mas você pode responder você mesmo ' +
-            'enquanto isso.',
+            'A IA terminou de processar a mensagem deste cliente sem enviar nenhuma resposta ' +
+            `(motivo técnico: ${motivo}) — pode ser a proteção anti-banimento (limite diário de ` +
+            'aquecimento ou janela de horário) ou o assistente ter avaliado, errado, que já não ' +
+            'havia nada a fazer. O sistema já agendou uma nova tentativa automática — não é ' +
+            'preciso agir, mas você pode responder você mesmo enquanto isso.',
           refKind: 'conversation',
           refId: input.conversationId,
         },
