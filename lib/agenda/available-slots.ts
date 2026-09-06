@@ -1,4 +1,5 @@
 import { instantFromWallClock } from "@/lib/tempo/zoned-clock";
+import { isHolidayMZ } from "@/lib/tempo/holidays-mz";
 
 export interface ComputeSlotsInput {
   /** "YYYY-MM-DD" */
@@ -33,6 +34,11 @@ function parseTime(time: string): { hour: number; minute: number } {
  * termina).
  */
 export function computeAvailableSlots(input: ComputeSlotsInput): Slot[] {
+  // Feriado nacional moçambicano: nenhum slot, mesmo com bloco de horário
+  // cadastrado para o dia da semana. Comparação em Africa/Maputo dentro de
+  // `isHolidayMZ`, então meio-dia UTC evita virada de dia por offset.
+  if (isHolidayMZ(new Date(`${input.date}T12:00:00Z`))) return [];
+
   const { year, month, day } = parseDate(input.date);
   const durationMs = input.durationMinutes * 60_000;
 

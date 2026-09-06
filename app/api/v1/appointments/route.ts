@@ -8,6 +8,7 @@ import { requireRole } from "@/lib/auth/require-role";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { emitLeadActivity } from "@/lib/leads/activity-emitter";
 import { logger } from "@/lib/logger";
+import { isHolidayMZ } from "@/lib/tempo/holidays-mz";
 
 export const dynamic = "force-dynamic";
 
@@ -59,6 +60,15 @@ export async function POST(req: NextRequest): Promise<Response> {
   const parsed = createSchema.safeParse(rawBody);
   if (!parsed.success) {
     return fail("validation_failed", "Campos inválidos.", 422, { requestId, details: parsed.error.flatten() });
+  }
+
+  // Feriado nacional moçambicano: fecha aqui mesmo (fonte da verdade da
+  // criação, não só do endpoint de slots disponíveis) — quem monta o body
+  // à mão ou por MCP não passa pelo `available-slots` antes.
+  if (isHolidayMZ(new Date(parsed.data.scheduled_at))) {
+    return fail("holiday_not_bookable", "Este dia é feriado nacional em Moçambique e não aceita agendamentos.", 422, {
+      requestId,
+    });
   }
 
   const admin = createAdminClient();

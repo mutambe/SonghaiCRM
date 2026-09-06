@@ -75,6 +75,7 @@ export const AUDIT_ACTIONS = [
   "conversation.released",
   "conversation.closed",
   "conversation.tags_changed",
+  "conversation.messages_marked_read",
   "contact.tags_changed",
   // Fila de confirmação (spec 17 §4b): a IA PROPÕE, uma pessoa decide. As três
   // entram porque a proposta é intenção auditável mesmo quando nunca vira

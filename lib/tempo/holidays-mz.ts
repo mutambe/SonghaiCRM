@@ -1,6 +1,7 @@
 /**
  * Mozambican national holidays 2026-2030.
- * Used by the LGPD SLA calculator to skip non-business days.
+ * Used by the LGPD SLA calculator to skip non-business days, and by the
+ * agenda nativa to keep holidays out of bookable slots.
  *
  * Most Mozambican public holidays are fixed calendar dates. Sexta-feira
  * Santa (Good Friday) is the one exception — it's moveable, tied to Easter,

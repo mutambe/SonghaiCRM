@@ -8,7 +8,7 @@
 
 import { describe, it, expect } from "vitest";
 import { computeDueAt } from "@/lib/lgpd/sla";
-import { HOLIDAYS_MZ_ISO } from "@/lib/lgpd/holidays-mz";
+import { HOLIDAYS_MZ_ISO } from "@/lib/tempo/holidays-mz";
 
 /** Parse a YYYY-MM-DD string as a UTC Date */
 function d(iso: string): Date {

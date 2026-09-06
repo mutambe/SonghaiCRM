@@ -96,5 +96,10 @@ export function useSendMessage() {
       qc.invalidateQueries({ queryKey: ["messages", args.conversation_id] });
       qc.invalidateQueries({ queryKey: ["conversations"] });
     },
+    // Responder já prova que o agente leu a conversa — cobre o caso de uma
+    // mensagem inbound ter chegado DEPOIS que o mark-read do abrir já rodou.
+    onSuccess: (_data, args) => {
+      void apiClient.post(`/api/v1/conversations/${args.conversation_id}/mark-read`, {}).catch(() => {});
+    },
   });
 }

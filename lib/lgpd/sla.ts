@@ -9,7 +9,7 @@
  *    next business day (edge: weekend/holiday receipt).
  */
 
-import { HOLIDAYS_MZ_ISO } from "./holidays-mz";
+import { HOLIDAYS_MZ_ISO } from "@/lib/tempo/holidays-mz";
 
 const _defaultHolidays = new Set(HOLIDAYS_MZ_ISO);
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { HOLIDAYS_MZ_ISO, isHolidayMZ } from "@/lib/lgpd/holidays-mz";
+import { HOLIDAYS_MZ_ISO, isHolidayMZ } from "@/lib/tempo/holidays-mz";
 
 /**
  * Sexta-feira Santa (Good Friday) é feriado nacional em Moçambique e é
