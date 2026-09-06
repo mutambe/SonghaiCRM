@@ -30,6 +30,22 @@ function AckIndicator({ status }: { status: string }) {
   return null;
 }
 
+// Inbound não tem status de ack do WAHA (é sempre "delivered", fixo na
+// ingestão) — os 2 ticks aqui marcam se o AGENTE já leu no CRM, não se o
+// WhatsApp do cliente confirmou entrega. Verde (não azul) de propósito: azul
+// já significa "cliente leu o que NÓS enviamos" no indicador acima, e são
+// leituras de lados diferentes da conversa.
+function InboundReadIndicator({ readAt }: { readAt: string | null }) {
+  return (
+    <Checks
+      size={12}
+      weight="bold"
+      className={readAt ? "text-green-500" : "text-current/70"}
+      aria-label={readAt ? "Lida" : "Recebida"}
+    />
+  );
+}
+
 export function MessageBubble({ message, debugCitations }: Props) {
   const isOutbound = message.direction === "outbound";
   const time = format(new Date(message.sent_at), "HH:mm", { locale: ptBR });
@@ -117,6 +133,7 @@ export function MessageBubble({ message, debugCitations }: Props) {
             <CitationButton citations={citations} messageId={message.id} />
           )}
           {isOutbound && !isFailed && <AckIndicator status={message.status} />}
+          {!isOutbound && <InboundReadIndicator readAt={message.read_at} />}
           {isFailed && (
             // Provider local: o painel do inbox não tem TooltipProvider ancestral e
             // este Tooltip só monta em mensagem failed — sem o provider, abrir uma

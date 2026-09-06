@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { MessageBubble } from "./MessageBubble";
 import { NoteCard } from "./NoteCard";
 import { useMessagesRealtime } from "@/hooks/inbox/useMessagesRealtime";
+import { useMarkConversationRead } from "@/hooks/inbox/useMarkConversationRead";
 import { useConversationNotes } from "@/hooks/inbox/useConversationNotes";
 import { useDeleteNote } from "@/hooks/inbox/useDeleteNote";
 import { useDebugToggle } from "@/hooks/ai/useDebugToggle";
@@ -44,6 +45,7 @@ function dayLabel(d: Date): string {
 export function ChatThread({ conversationId }: Props) {
   const q = useMessagesRealtime(conversationId);
   const notes = useConversationNotes(conversationId);
+  useMarkConversationRead(conversationId);
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const scrollerRef = useRef<HTMLDivElement | null>(null);
   const paginasVistas = useRef(0);
