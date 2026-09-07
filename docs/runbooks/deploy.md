@@ -130,3 +130,42 @@ stack em operação, não o WAHA isolado — e a folga existe justamente porque 
 parcela por sessão não é conhecida com precisão.
 
 Ao terminar, feche o ciclo — merge na `main` e volte a VPS pra imagem oficial.
+
+---
+
+## 5. Pendência aberta (2026-09-07) — dívida deste caminho de exceção em produção
+
+**Contexto:** `verify`/`invariants`/`build-and-push`/`e2e`/`imagens-ok` do PR #11
+(mutambe/SonghaiCRM) não rodaram — GitHub Actions bloqueado por falha de
+pagamento/limite de gasto na conta (todos os jobs recusados antes de começar,
+não é falha de código). PR mergeado na `main` (commit `5e02f60c`) com
+`--admin` (bypass de branch protection), aprovado explicitamente pelo dono do
+produto, com verificação local manual (typecheck + lint + testes unitários
+tocados, todos verdes) no lugar do CI — `pnpm test:db` (RLS) e `pnpm test:e2e`
+**não** rodaram.
+
+A VPS de produção (`crm.songhai.ltd`, Docker Swarm, stack `songhaicrm`) não
+usa `docker compose` (o caminho documentado acima) — usa
+`self-host-kit/deploy-swarm-latest.sh`, que puxa `:latest` do GHCR. Como o
+`publish-image.yml` também está bloqueado pelo mesmo billing, a tag `:latest`
+no registry **não tem** o commit `5e02f60c`. Deploy feito manualmente,
+adaptando a exceção da seção 4 pro Swarm: `docker build` local das 3 imagens
+(`deskcomm-app:local`, `deskcomm-worker:local`, `deskcomm-scheduler:local`) e
+`docker service update --image <tag>:local --force songhaicrm_<serviço>` —
+sem tocar em `.env` (que continua apontando pra `ghcr.io/mutambe/...:latest`).
+Schema **não** foi reaplicado (`baseline.sql`) — esta mudança não tem
+migration, então não era necessário.
+
+**Tarefa pendente — fechar o ciclo assim que o billing do GitHub for resolvido:**
+
+- [ ] Resolver o billing (Settings → Billing & plans da conta/org `mutambe`).
+- [ ] Re-disparar o CI do commit `5e02f60c` (ou empurrar um commit trivial)
+      e confirmar os 5 checks obrigatórios verdes — cobre agora o que o
+      merge manual pulou (`test:db`/RLS, `e2e`).
+- [ ] Confirmar que `publish-image.yml` publicou as 3 imagens em `:latest`.
+- [ ] Na VPS: `cd /root/songhaicrm && bash self-host-kit/deploy-swarm-latest.sh`
+      — isso troca `deskcomm-app:local`/`-worker:local`/`-scheduler:local`
+      pela imagem oficial do GHCR, fechando a dívida. **Sem este passo, um
+      `docker service update --force` futuro sem `--image` reaplica a imagem
+      local em vez da oficial** (Swarm não sabe que ela é "provisória").
+
