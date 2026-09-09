@@ -1856,31 +1856,54 @@ git commit -m "feat(channels): enforcement de max_whatsapp_connections do pacote
 
 ---
 
-### Task 12: Remover o painel antigo de licenciamento por instalação
+### Task 12: Remover TODO o subsistema de licenciamento por instalação (painel + gate global + cron + tela do tenant)
+
+> **Escopo ampliado por ruling pós-Task 1 (ver ledger).** A revisão da Task 1 descobriu, via grep, que a migration renomeia `licensing_licenses/payments/client_state/paysuite_credentials` para `_deprecated_*`, mas o texto original desta Task 12 só previa apagar o painel admin — deixando de fora QUATRO superfícies vivas que ainda leem essas tabelas pelo nome antigo: `app/api/v1/licensing/{verify,renew,webhooks/paysuite}/route.ts`, `app/api/v1/cron/licensing-refresh/route.ts`, `app/actions/licensing/renovar.ts`, a tela `app/app/settings/billing/page.tsx`, e — mais grave — **o gate global de mutação em `proxy.ts`** (`bloqueadoPorLicenca`, rodando em toda request `POST/PUT/PATCH/DELETE` de `/api/v1/*` que não seja path público), que consulta `licensing_client_state` a cada request. Sem esta Task 12 ampliada, o merge da Task 1 sozinha já deixaria o gate global consultando uma tabela que não existe mais sob esse nome (embora `bloqueadoPorLicenca` só rode de fato quando `env.LICENSING_SIGNING_PRIVATE_KEY` está VAZIO — a instância Central, que é o que este produto vira depois do pivô, tem essa env setada e pula o gate inteiro; mas deixar o mecanismo morto e frágil, citando uma doutrina de negócio já substituída, é pior que removê-lo). Removendo tudo isto no mesmo commit da Task 1, o subsistema inteiro de licenciamento-por-instalação sai de uma vez, sem estado intermediário quebrado.
 
 **Files:**
-- Delete: `app/admin/(protected)/licensing/` (pasta inteira: `page.tsx`, `_licencas.tsx`, `_paysuite-form.tsx`)
-- Delete: `app/api/v1/licensing/admin/` (pasta inteira, incluindo `paysuite-credentials/`)
+- Delete: `app/admin/(protected)/licensing/` (pasta inteira)
+- Delete: `app/api/v1/licensing/` (pasta inteira: `admin/`, `admin/paysuite-credentials/`, `verify/`, `renew/`, `renew/route.test.ts`, `webhooks/paysuite/`, `webhooks/paysuite/route.test.ts`)
+- Delete: `app/api/v1/cron/licensing-refresh/` (pasta inteira, com `route.test.ts`)
+- Delete: `app/actions/licensing/` (pasta inteira, com `renovar.test.ts`)
+- Delete: `app/app/settings/billing/page.tsx`
+- Delete: `lib/licensing/` (pasta inteira: `gate.ts`, `gate.test.ts`, `chave-publica.ts`, `token.ts`, `token.test.ts`, `central-client.ts`, `central-client.test.ts`) — confirmado por grep que NENHUM desses módulos é importado fora desta feature.
+- Modify: `proxy.ts` — remove a função `bloqueadoPorLicenca` inteira (linhas ~18-75 na versão atual), a chamada `const licenseBlock = await bloqueadoPorLicenca(request); if (licenseBlock) return licenseBlock;` (linhas ~100-103), e os imports `avaliarAcesso`/`resolvePublicKeyPem` (linhas 11-12).
+- Modify: `lib/auth/public-paths.ts` — remove a entrada que isenta `licensing-refresh` (o cron não existe mais, não precisa de exceção).
+- Modify: `docker/scheduler/entrypoint.sh` — remove a linha que agenda `licensing-refresh`.
+- Modify: `lib/env.ts:223-233` — remove as 4 variáveis `LICENSING_SIGNING_PRIVATE_KEY`, `LICENSING_PUBLIC_BASE_URL`, `LICENSING_PUBLIC_KEY_PEM_TEST_OVERRIDE`, `LICENSING_CENTRAL_URL`.
+- Modify: `docker-compose.swarm.yml:75` — remove a linha `LICENSING_SIGNING_PRIVATE_KEY: ${LICENSING_SIGNING_PRIVATE_KEY}`.
+- Modify: `.env.example` — remove as mesmas 4 variáveis, se presentes.
 
-**Interfaces:** nenhuma — remoção pura.
+**Interfaces:** nenhuma — remoção pura. Nenhuma outra task deste plano depende de nada nesta lista.
 
-- [ ] **Step 1: Localizar todo link/referência à tela antes de apagar**
+- [ ] **Step 1: Confirmar o escopo exato antes de apagar (o grep pode ter mudado desde que este texto foi escrito)**
 
 ```bash
+grep -rln "licensing_licenses\|licensing_payments\|licensing_client_state\|licensing_paysuite_credentials" app/ lib/ --include="*.ts" --include="*.tsx"
+grep -rn "bloqueadoPorLicenca\|avaliarAcesso\|resolvePublicKeyPem" proxy.ts
 grep -rn "admin/licensing\|licensing/admin" app/ components/ lib/ --include="*.tsx" --include="*.ts"
+grep -n "licensing-refresh" lib/auth/public-paths.ts docker/scheduler/entrypoint.sh
+grep -n "LICENSING_" lib/env.ts .env.example docker-compose.swarm.yml
 ```
 
-Anotar cada arquivo que referencia a rota (ex.: algum menu lateral do `/admin` fora de `lib/navigation/registry.ts` — a investigação anterior não achou a entrada nesse arquivo, então ela deve estar num componente de layout do próprio `/admin`).
+Se o resultado divergir da lista de arquivos acima (arquivo novo referenciando essas tabelas, ou um dos listados já não existir mais), ajuste o Step 3 e anote a diferença no seu report — não pare o Step, só documente o que mudou.
 
-- [ ] **Step 2: Remover cada link encontrado no Step 1**
-
-Editar o(s) arquivo(s) de menu/sidebar do `/admin` removendo a entrada "Licenciamento" — sem código de exemplo aqui porque o arquivo exato depende do resultado do grep acima; siga o padrão das outras entradas do mesmo menu (mesmo componente, mesma estrutura de item).
-
-- [ ] **Step 3: Apagar as pastas**
+- [ ] **Step 2: Localizar e remover qualquer link de menu para `/admin/licensing`**
 
 ```bash
-git rm -r "app/admin/(protected)/licensing" "app/api/v1/licensing/admin"
+grep -rn "admin/licensing" app/admin components/admin
 ```
+
+Editar o(s) arquivo(s) de menu/sidebar do `/admin` removendo a entrada "Licenciamento" — siga o padrão das outras entradas do mesmo menu (mesmo componente, mesma estrutura de item). Se o grep não encontrar nada (a tela pode já não ter link nenhum, conforme a investigação original), documente isso no report em vez de inventar uma remoção.
+
+- [ ] **Step 3: Apagar as pastas e arquivos**
+
+```bash
+git rm -r "app/admin/(protected)/licensing" "app/api/v1/licensing" "app/api/v1/cron/licensing-refresh" "app/actions/licensing" "lib/licensing"
+git rm "app/app/settings/billing/page.tsx"
+```
+
+Depois editar manualmente (não é `git rm`, é edição): `proxy.ts`, `lib/auth/public-paths.ts`, `docker/scheduler/entrypoint.sh`, `lib/env.ts`, `docker-compose.swarm.yml`, `.env.example` — removendo exatamente o que o Step 1 listou em cada um, sem tocar em mais nada desses arquivos.
 
 - [ ] **Step 4: Rodar a suíte inteira de unit tests**
 
@@ -1888,7 +1911,7 @@ git rm -r "app/admin/(protected)/licensing" "app/api/v1/licensing/admin"
 pnpm test:unit
 ```
 
-Expected: PASS — nenhum teste deveria importar arquivos dessas pastas (confirmar não há import quebrado; se algum teste falhar por importar algo de lá, ele também é removido neste step).
+Expected: PASS. Se algum teste sobrevivente importar algo de um arquivo apagado, ele também é removido/ajustado neste step (ex.: `tests/unit/telemetria-tem-um-leitor-so.test.ts`, que o grep original encontrou referenciando `gate.ts` — leia esse teste primeiro para ver se ele testa `gate.ts` especificamente, e se sim, remova o `it`/`describe` correspondente em vez de o arquivo inteiro, caso o arquivo cubra mais de uma coisa).
 
 - [ ] **Step 5: Verificar que a navegação não quebrou (doutrina de "porta")**
 
@@ -1896,23 +1919,31 @@ Expected: PASS — nenhum teste deveria importar arquivos dessas pastas (confirm
 npx vitest run tests/unit/navegacao-completude.test.ts
 ```
 
-Expected: PASS — como a tela nunca teve entrada em `lib/navigation/registry.ts` (confirmado na investigação), este teste não deveria estar cobrindo-a; se estiver, remova a entrada correspondente do teste também.
+Expected: PASS — se a tela `/admin/licensing` ou `/app/settings/billing` tinha entrada nesse teste (allowlist ou registry), remova a entrada correspondente.
 
-- [ ] **Step 6: Testar pela tela**
+- [ ] **Step 6: Confirmar que o gate global não quebrou o app inteiro**
+
+```bash
+npm run build
+```
+
+Expected: build limpo — `proxy.ts` sem os imports/função removidos, sem erro de módulo não encontrado. Este é o check mais importante deste Step: um erro de import quebrado em `proxy.ts` derruba TODA rota da aplicação (é middleware global), não só a tela de licenciamento.
+
+- [ ] **Step 7: Testar pela tela**
 
 ```bash
 npm run dev
 ```
 
-Confirmar que `/admin/licensing` agora retorna 404 e que nenhum item de menu do `/admin` aponta mais para lá.
+Confirmar que `/admin/licensing` e `/app/settings/billing` agora retornam 404, que nenhum item de menu aponta mais para lá, e que uma mutação normal qualquer (ex.: criar um lead) continua funcionando sem erro `license_required` — prova de que remover o gate não quebrou o caminho feliz.
 
-- [ ] **Step 7: Typecheck + lint + commit**
+- [ ] **Step 8: Typecheck + lint + commit**
 
 ```bash
 npx tsc --noEmit
-npx eslint app/admin app/api/v1
+npx eslint app lib proxy.ts
 git add -A
-git commit -m "chore(licensing): remove o painel de licenciamento por instalação, descontinuado"
+git commit -m "chore(licensing): remove por completo o subsistema de licenciamento por instalação (painel, gate global, cron, tela do tenant)"
 ```
 
 ---
