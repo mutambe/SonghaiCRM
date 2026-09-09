@@ -269,15 +269,17 @@ git commit -m "feat(api): códigos de erro plan_inactive e plan_limit_reached"
 
 ```ts
   "appointment.status_changed",
+  "licensing.license_issued",
   // Licenciamento por tenant (0176): convite real do owner na criação do
   // tenant (antes o owner_email era descartado) e as duas mutações da
   // assinatura versionada — criação inicial e troca de plano.
   "tenant.owner_invited",
   "tenant.subscription_assigned",
   "tenant.subscription_changed",
-  "licensing.license_issued",
 ] as const;
 ```
+
+> **Correção pós-revisão (2026-09-09):** a versão original deste bloco colocava `"licensing.license_issued"` DEPOIS das 3 entradas novas — mas essa string já era o último elemento real do array antes desta task, então a ordem correta (doutrina "acrescente no fim") é ela ficar ANTES das 3 novas, não depois. Sem impacto funcional (é um array de literais `as const`, ordem não tem significado em runtime), mas corrigido para não confundir quem ler o array depois.
 
 - [ ] **Step 2: Typecheck**
 
