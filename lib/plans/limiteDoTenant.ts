@@ -28,7 +28,7 @@ export async function limitesDoTenant(organizationId: string): Promise<LimitesDo
     .maybeSingle();
 
   if (error || !data) return null;
-  const plan = (data as { plan: PlanRow | null }).plan;
+  const plan = (data as unknown as { plan: PlanRow | null }).plan;
   if (!plan) return null;
 
   return {
