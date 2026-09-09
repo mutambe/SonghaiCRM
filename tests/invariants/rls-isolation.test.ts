@@ -186,6 +186,14 @@ beforeAll(() => {
             (organization_id, contact_id, campo, valor_proposto, expires_at)
             values (v_org, v_contact, 'email', 'rls-invariant@exemplo.test', now() + interval '7 days');
         end if;
+
+        -- organization_subscriptions (migration 0176): cada org de teste
+        -- recebe uma assinatura no plano 'agente_simples' — plans é catálogo
+        -- global já seedado pela própria migration, sem depender de fixture.
+        if not exists (select 1 from public.organization_subscriptions where organization_id = v_org) then
+          insert into public.organization_subscriptions (organization_id, plan_id, status)
+            select v_org, id, 'active' from public.plans where slug = 'agente_simples' limit 1;
+        end if;
       end loop;
     end
     $seed$;
@@ -223,6 +231,10 @@ const TABLES = [
   // sabotada para `... or true` a suíte seguia 31/31 verde num banco em que o vizinho
   // lia e escrevia. É o modo de falha que o aviso acima descreve, encontrado vivo.
   "org_guardrail_layers",
+  // migration 0176 — assinatura de plano por tenant. plans (o catálogo) NÃO
+  // entra aqui: não é tenant-aware, é leitura pública autenticada por design
+  // (todo tenant precisa ler o catálogo de planos pra ver o que pode assinar).
+  "organization_subscriptions",
 ] as const;
 
 describe("RLS tenant isolation (fn_user_org_ids pattern)", () => {
