@@ -37,6 +37,8 @@ export const ApiErrorCodes = {
   state_conflict: "state_conflict",
   invalid_state: "invalid_state", // resposta a um agent_case que saiu de awaiting_human (spec 15 §7)
   tenant_already_exists: "tenant_already_exists",
+  plan_inactive: "plan_inactive", // plan_id referenciado existe mas plans.is_active = false
+  plan_limit_reached: "plan_limit_reached", // limits.max_users/max_whatsapp_connections do pacote atingido
   duplicate_external_id: "duplicate_external_id",
   event_gone: "event_gone", // resend de run cujo event_log original foi apagado (on delete set null)
   next_action_absent: "next_action_absent", // decisão sobre proposta que não existe (mais) [wave 4]
