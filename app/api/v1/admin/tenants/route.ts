@@ -3,7 +3,7 @@ import { z } from "zod";
 import { requirePlatformAdmin } from "@/lib/auth/requirePlatformAdmin";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { ok, fail } from "@/lib/api/wrappers";
-import { audit } from "@/lib/audit";
+import { audit, hashEmail } from "@/lib/audit";
 import { randomUUID } from "node:crypto";
 
 // ---------------------------------------------------------------------------
@@ -26,7 +26,7 @@ const createSchema = z.object({
     .regex(/^[a-z0-9-]+$/, "Slug must be lowercase alphanumeric with hyphens"),
   legal_name: z.string().min(2).max(255).optional(),
   nuit: z.string().optional(),
-  plan: z.enum(["standard", "pro", "enterprise"]).default("standard"),
+  plan_id: z.string().uuid(),
   owner_email: z.string().email(),
 });
 
@@ -188,9 +188,50 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  const { display_name, slug, legal_name, nuit, plan, owner_email } = parsed.data;
+  const { display_name, slug, legal_name, nuit, plan_id, owner_email } = parsed.data;
   const admin = createAdminClient();
 
+  // 1) Plano precisa existir e estar ativo — falha ANTES de convidar ninguém.
+  const { data: plan } = await admin
+    .from("plans")
+    .select("id, is_active")
+    .eq("id", plan_id)
+    .maybeSingle();
+  if (!plan || !plan.is_active) {
+    return fail("plan_inactive", "Pacote inexistente ou inativo", 409, { requestId });
+  }
+
+  // 2) Convite do owner — chamada de rede à Auth API, fica FORA da transação
+  // SQL que vem a seguir (trigger nunca faz HTTP; o mesmo raciocínio vale
+  // para um handler que precisa da resposta da rede antes de decidir).
+  // redirectTo aponta para /auth/confirm com type=invite explícito: o link
+  // que o Supabase gera para convite não inclui `type` na query (mesmo
+  // motivo documentado em requestPasswordReset.ts para recovery), então
+  // precisamos afirmá-lo aqui para /auth/confirm saber que não deve
+  // provisionar uma organization nova para este usuário.
+  const { data: invited, error: inviteError } = await admin.auth.admin.inviteUserByEmail(
+    owner_email,
+    { redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/confirm?type=invite` },
+  );
+  if (inviteError || !invited?.user) {
+    return fail(
+      "internal_error",
+      "Falha ao convidar o responsável pelo tenant",
+      500,
+      { requestId, details: inviteError?.message },
+    );
+  }
+  const ownerId = invited.user.id;
+
+  void audit({
+    action: "tenant.owner_invited",
+    actorUserId: adminCtx.user.id,
+    actingAsPlatformAdmin: true,
+    requestId,
+    metadata: { owner_email_hash: hashEmail(owner_email) },
+  });
+
+  // 3) Organization
   const { data: org, error: insertError } = await admin
     .from("organizations")
     .insert({
@@ -198,24 +239,60 @@ export async function POST(req: NextRequest) {
       slug,
       legal_name: legal_name ?? null,
       nuit: nuit ?? null,
-      // A check constraint de organizations.status não tem 'onboarding' — o
-      // marcador de onboarding é onboarded_at null (mesmo modelo do signup).
       status: "active",
-      settings: { plan },
       created_by: adminCtx.user.id,
     })
     .select("id, slug, display_name")
     .single();
 
-  if (insertError) {
-    if (insertError.code === "23505") {
-      return fail("conflict", "Slug already exists", 409, { requestId });
+  if (insertError || !org) {
+    if (insertError?.code === "23505") {
+      return fail("tenant_already_exists", "Slug already exists", 409, { requestId });
     }
     return fail("internal_error", "Failed to create tenant", 500, {
       requestId,
-      details: insertError.message,
+      details: insertError?.message,
     });
   }
+
+  // 4) Membership do owner (role admin) — não bloqueia a resposta 201 se
+  // falhar isoladamente aqui seria pior (org sem dono), então propaga erro.
+  const { error: memberError } = await admin.from("user_organizations").insert({
+    organization_id: org.id,
+    user_id: ownerId,
+    role: "admin",
+    accepted_at: null,
+  });
+  if (memberError) {
+    return fail("internal_error", "Tenant criado mas falhou ao vincular o responsável", 500, {
+      requestId,
+      details: memberError.message,
+    });
+  }
+
+  // 5) Assinatura inicial
+  const { error: subError } = await admin.from("organization_subscriptions").insert({
+    organization_id: org.id,
+    plan_id,
+    status: "active",
+    assigned_by: adminCtx.user.id,
+  });
+  if (subError) {
+    return fail("internal_error", "Tenant criado mas falhou ao atribuir o plano", 500, {
+      requestId,
+      details: subError.message,
+    });
+  }
+
+  void audit({
+    action: "tenant.subscription_assigned",
+    actorUserId: adminCtx.user.id,
+    actingAsPlatformAdmin: true,
+    organizationId: org.id,
+    resourceType: "organization_subscription",
+    requestId,
+    metadata: { plan_id },
+  });
 
   void audit({
     action: "tenant.created_by_platform_admin",
@@ -226,16 +303,7 @@ export async function POST(req: NextRequest) {
     resourceType: "organization",
     resourceId: org.id,
     requestId,
-    metadata: {
-      slug: org.slug,
-      display_name: org.display_name,
-      plan,
-      owner_email_hash: owner_email
-        ? Buffer.from(owner_email.trim().toLowerCase())
-            .toString("hex")
-            .slice(0, 12) + "..."
-        : null,
-    },
+    metadata: { slug: org.slug, display_name: org.display_name, plan_id },
   });
 
   return ok(

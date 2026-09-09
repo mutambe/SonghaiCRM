@@ -104,6 +104,21 @@ export async function GET(request: NextRequest) {
     return redirectTo("/login/reset");
   }
 
+  if (type === "invite") {
+    // O owner de um tenant criado por POST /api/v1/admin/tenants — a
+    // organization e a membership JÁ existem (criadas naquele handler).
+    // Cair no branch de signup abaixo chamaria ensureTenantForUser e criaria
+    // uma SEGUNDA organization para este usuário. Convite aceito = só falta
+    // definir senha; reusa a mesma tela de "nova senha" da recuperação.
+    void audit({
+      action: "auth.signup_confirmed",
+      actorUserId: data.user.id,
+      metadata: { via: "tenant_owner_invite" },
+      requestId,
+    });
+    return redirectTo("/login/reset");
+  }
+
   // Foi convidado? Então NÃO ganha organização própria. Sem esta bifurcação,
   // quem clica no link do convite sem ter conta cria uma, cai aqui sem vínculo
   // nenhum, e `ensureTenantForUser` faz o que faria com qualquer visitante:
