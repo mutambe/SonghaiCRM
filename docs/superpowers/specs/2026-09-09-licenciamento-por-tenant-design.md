@@ -32,7 +32,12 @@ tenant. Todo campo novo abaixo carrega essa distinção no nome e no comentário
    (hoje fica congelado, sem endpoint de mudança), com histórico auditável.
 3. Descontinuar o modelo de licenciamento por instalação (`licensing_installs` e tabelas
    relacionadas, tela `/admin/licensing`), que não faz mais sentido numa instância única.
-4. Deixar o desenho pronto para, no futuro, ligar cobrança automática via PaySuite por organization
+4. Catálogo de planos = os **4 pacotes reais** vendidos em songhai.cc (Agente Simples, Agente
+   Médio, Agente Avançado, Enterprise), com preço/setup/limites verdadeiros — não um catálogo
+   genérico `standard/pro/enterprise`.
+5. **Aplicar os limites do pacote** (nº de usuários, nº de conexões WhatsApp) — atingir o limite
+   bloqueia a ação com erro claro, não é só um número decorativo na tela.
+6. Deixar o desenho pronto para, no futuro, ligar cobrança automática via PaySuite por organization
    específica (sob pedido do cliente), sem precisar de nova migration.
 
 ## Arquitetura e modelo de dados
@@ -42,13 +47,31 @@ Duas tabelas novas, ambas na base de dados única da instância central:
 ```sql
 create table plans (
   id uuid primary key default gen_random_uuid(),
-  slug text not null unique check (slug in ('standard', 'pro', 'enterprise')),
+  slug text not null unique check (slug in ('agente_simples', 'agente_medio', 'agente_avancado', 'enterprise')),
   display_name text not null,
-  limits jsonb not null default '{}'::jsonb,  -- ex: {"max_users": 5, "max_whatsapp_connections": 1}
+  price_cents integer,           -- null = "sob consulta" (caso do Enterprise)
+  setup_fee_cents integer,       -- cobrança única de implementação; null = sem setup fee
+  currency text not null default 'MZN',
+  limits jsonb not null default '{}'::jsonb,  -- {"max_users": 20, "max_whatsapp_connections": 1}
   is_active boolean not null default true,
   created_at timestamptz not null default now()
 );
 
+insert into plans (slug, display_name, price_cents, setup_fee_cents, limits) values
+  ('agente_simples', 'Agente Simples', 500000, 200000, '{"max_users": 20, "max_whatsapp_connections": 1}'),
+  ('agente_medio', 'Agente Médio', 800000, 300000, '{"max_users": 50, "max_whatsapp_connections": 2}'),
+  ('agente_avancado', 'Agente Avançado', 1200000, 400000, '{"max_users": 200, "max_whatsapp_connections": 5}'),
+  ('enterprise', 'Enterprise', null, null, '{}');
+```
+
+`price_cents`/`setup_fee_cents` seguem a convenção de dinheiro do `CLAUDE.md` (`_cents` +
+`currency` ISO-4217). Preços em `MZN`: 5.000/8.000/12.000 MZN mensais + 2.000/3.000/4.000 MZN de
+setup, conforme os "a partir de" publicados em songhai.cc/precos (2026-09-09 — reconferir na fonte
+antes de cobrar, é preço de marketing "a partir de", pode ter mudado). Enterprise fica com
+`limits = '{}'` (sem chave = sem limite, ver enforcement abaixo) e preço `null` (negociado por
+volume, nunca exibido como número fixo na UI).
+
+```sql
 -- Cobrança Songhai -> tenant (licença/plano). NÃO confundir com o módulo comercial
 -- do tenant (PaySuite que a organization usa para cobrar os próprios leads/clientes).
 create table organization_subscriptions (
@@ -89,7 +112,27 @@ create index idx_organization_subscriptions_current
   bypassa RLS, então o handler é a única barreira de escrita.
 - `plans` não é tenant-aware (é catálogo global da Songhai) — sem RLS, leitura pública autenticada
   (qualquer usuário logado pode ver o catálogo pra saber o que existe), escrita só platform admin.
-- Seed inicial de `plans` (`standard`/`pro`/`enterprise`) entra na mesma migration.
+- Seed dos 4 pacotes reais entra na mesma migration (`insert` acima).
+
+### Enforcement dos limites do pacote
+
+`limits` é lido, nunca duplicado: uma função helper `lib/plans/limiteDoTenant.ts` resolve, para uma
+`organization_id`, a `organization_subscriptions` vigente → `plans.limits`. Chave ausente em
+`limits` (caso do Enterprise) = sem limite (`Infinity`), não zero.
+
+Dois pontos de enforcement, cada um no handler que já existe (nunca em trigger — contagem +
+decisão de negócio, não side effect puro):
+
+- **`max_users`**: `app/api/v1/team/invite/route.ts` (POST) — antes de criar o convite, conta
+  `user_organizations` ativos da organization e compara com `limits.max_users`. Excede → `fail()`
+  com código `plan_limit_reached` (`details: { limit: "max_users", current, max }`), HTTP 403.
+- **`max_whatsapp_connections`**: no handler que cria uma conexão WhatsApp nova (canal WAHA) —
+  mesma lógica, conta conexões ativas da organization, compara com `limits.max_whatsapp_connections`.
+
+Erro é sempre **bloqueio com mensagem acionável** (decisão desta sessão): a resposta inclui o nome
+do pacote atual e uma instrução de contacto/upgrade, exibida na UI como toast, não como 500 genérico.
+Isto é enforcement de **leitura no momento da ação**, não um cron — se o catálogo mudar (`plans`
+UPDATE), o limite novo vale já na próxima tentativa de criação, sem precisar reprocessar nada.
 
 ### Descontinuação do modelo por instalação
 
@@ -130,9 +173,12 @@ log. Endpoint novo: `PATCH /api/v1/admin/tenants/[id]/subscription`.
   em vez de convite novo, conforme passo 1 acima.
 - **Plano inexistente ou inativo** (`plans.is_active=false`): Zod + FK barram; endpoint retorna
   `fail()` com código `plan_inactive`.
-- **Downgrade com dados acima do novo limite** (ex.: tenant tem 10 usuários, novo plano permite 5):
-  **fora de escopo desta spec**. Esta mudança só registra o plano vigente; enforcement de
-  `limits` (feature-gating) é trabalho futuro separado — TODO explícito, não implementar aqui.
+- **Downgrade com dados acima do novo limite** (ex.: tenant tem 30 usuários ativos, admin muda pra
+  Agente Simples que permite 20): a troca de plano em si **não é bloqueada** (não vamos remover
+  usuário ninguém automaticamente) — o tenant fica "acima do limite" e o enforcement passa a
+  bloquear qualquer **criação nova** (não pode convidar o 31º) até ele voltar a ficar dentro do
+  limite ou o admin trocar de novo pra um plano maior. Isto evita a decisão de "quem remover" ser
+  automática.
 - **Cobrança automática por organization (`billing_mode = 'paysuite_managed'`)**: fora de escopo de
   implementação desta spec. O campo existe desde já para não exigir migration nova quando for
   ligado, mas nenhuma lógica de cobrança automática é construída agora — `billing_mode` fica sempre
@@ -150,6 +196,11 @@ log. Endpoint novo: `PATCH /api/v1/admin/tenants/[id]/subscription`.
   rejeitado.
 - E2E (Playwright, doutrina de QA Visual): fluxo completo "admin cria tenant → e-mail de convite →
   owner aceita → owner loga" pela tela — prova o bug original resolvido, não só o backend.
+- Unit de `lib/plans/limiteDoTenant.ts`: pacote sem a chave em `limits` (Enterprise) nunca bloqueia;
+  pacote com `max_users` bloqueia exatamente no limite (permite o Nº = `max_users`, recusa o
+  Nº + 1).
+- Unit/integração de `team/invite` e da criação de conexão WhatsApp: convite/conexão extra além do
+  limite retorna `plan_limit_reached` (403), não cria a linha; dentro do limite passa normal.
 - Migration validada em Postgres descartável (`pgvector/pgvector:pg17`): install fresh
   (`ON_ERROR_STOP=1`) e update idempotente, incluindo a renomeação das tabelas `licensing_*`.
 
@@ -158,7 +209,9 @@ log. Endpoint novo: `PATCH /api/v1/admin/tenants/[id]/subscription`.
 - Self-service de signup (confirmado nesta sessão: criação continua manual pelo admin).
 - Cobrança automática via PaySuite por organization (campo `billing_mode` preparado, lógica não
   implementada).
-- Enforcement de `limits` do plano (feature-gating por nº de usuários/conexões/etc.).
+- Enforcement de limites além de `max_users`/`max_whatsapp_connections` (ex.: armazenamento,
+  nº de mensagens/mês) — os dois implementados são os únicos citados como diferenciais concretos
+  e mensuráveis nos pacotes reais; outros limites entram quando o site/negócio os definir.
 - Apagar de vez as tabelas `_deprecated_licensing_*` (decisão operacional futura).
 - Atualização de `CLAUDE.md`/`VISION.md` para refletir o novo eixo de negócio (instância central
   multi-tenant em vez de self-host por cliente) — tratar como tarefa documental separada, antes ou
