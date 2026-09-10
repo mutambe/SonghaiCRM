@@ -7,72 +7,7 @@ import {
   verifyImpersonateCookieEdge,
   IMPERSONATE_COOKIE_NAME_EDGE,
 } from "@/lib/impersonate/cookie-edge";
-import { createAdminClient } from "@/lib/supabase/admin";
-import { avaliarAcesso } from "@/lib/licensing/gate";
-import { resolvePublicKeyPem } from "@/lib/licensing/chave-publica";
-
 const COOKIE_NAME = "sb-deskcomm-auth";
-
-const MUTATING_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
-
-/**
- * Gate de assinatura self-host (licenciamento via PaySuite). `/api/v1/webhooks/*`
- * e `/api/v1/cron/*` já são `isPublicPath` e nunca chegam aqui — bloquear
- * entrega de webhook de terceiro ou o próprio cron que tira a instalação do
- * bloqueio (`licensing-refresh`) perderia dado, não é isso que "degradar"
- * deveria significar. Ver docs/superpowers/specs/2026-09-04-licenciamento-paysuite-design.md.
- *
- * A instância CENTRAL (a que a Songhai opera) nunca tem `licensing_client_state`
- * populado — ela não compra licença de si mesma, é quem EMITE — mas sem esta
- * exceção o próprio gate bloquearia `/api/v1/licensing/admin` e
- * `/api/v1/licensing/admin/paysuite-credentials`, os únicos endpoints que a
- * Central usa pra operar (medido em produção: 403 license_required ao tentar
- * salvar a credencial do PaySuite pela tela `/admin/licensing`, no dia em que
- * a Central foi ligada pela primeira vez). `LICENSING_SIGNING_PRIVATE_KEY`
- * só existe preenchida na Central — é o identificador confiável do papel,
- * não algo que um clone de cliente jamais teria por engano.
- */
-async function bloqueadoPorLicenca(request: NextRequest): Promise<NextResponse | null> {
-  if (!MUTATING_METHODS.has(request.method) || !request.nextUrl.pathname.startsWith("/api/v1/")) {
-    return null;
-  }
-  if (env.LICENSING_SIGNING_PRIVATE_KEY) {
-    return null;
-  }
-
-  const admin = createAdminClient();
-  const { data } = await admin
-    .from("licensing_client_state")
-    .select("token, fetched_at")
-    .eq("id", "singleton")
-    .maybeSingle();
-
-  const row = data as { token: string | null; fetched_at: string | null } | null;
-  const decisao = avaliarAcesso(
-    {
-      token: row?.token ?? null,
-      fetchedAt: row?.fetched_at ? new Date(row.fetched_at) : null,
-    },
-    new Date(),
-    resolvePublicKeyPem(),
-  );
-
-  if (!decisao.bloqueado) {
-    return null;
-  }
-
-  return NextResponse.json(
-    {
-      error: {
-        code: "license_required",
-        message:
-          "Assinatura pendente. Regularize em Configurações › Billing para continuar criando ou editando dados.",
-        details: { reason: decisao.motivo },
-      },
-    },
-    { status: 403 },
-  );
-}
 
 export async function proxy(request: NextRequest) {
   const response = NextResponse.next({ request: { headers: request.headers } });
@@ -95,11 +30,6 @@ export async function proxy(request: NextRequest) {
 
   if (isPublicPath(pathname)) {
     return response;
-  }
-
-  const licenseBlock = await bloqueadoPorLicenca(request);
-  if (licenseBlock) {
-    return licenseBlock;
   }
 
   const supabase = createServerClient(
@@ -158,9 +88,7 @@ export async function proxy(request: NextRequest) {
   }
 
   // EPIC-11 S-11.07: validate impersonate cookie on /app/* paths. Esta checagem
-  // em si só faz HMAC + expiry (sem DB) — o runtime virou Node (não mais Edge)
-  // com a Task 11 do licenciamento (`bloqueadoPorLicenca` acima precisa de
-  // `node:crypto`/admin client), mas este bloco não passou a consultar banco.
+  // em si só faz HMAC + expiry (sem DB) — este bloco não consulta banco.
   // On any failure we delete the cookie (defence-in-depth) and let the request
   // continue (the layout re-checks server-side; downstream code that depends
   // on the cookie will simply see no impersonation in effect).

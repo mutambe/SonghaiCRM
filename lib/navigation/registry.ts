@@ -28,7 +28,6 @@ import {
   Plugs,
   PlugsConnected,
   PuzzlePiece,
-  Receipt,
   Robot,
   ScalesSimple,
   ShieldCheck,
@@ -504,15 +503,6 @@ export const NAV_DESTINATIONS: NavDestination[] = [
     // SEM `sidebar`: fica só no hub. Trocar a marca é tarefa de uma vez, e
     // agrupar o menu já o fez crescer — duas telas a mais estouraram a dobra em
     // 900px, medido pelo e2e `navegacao.spec.ts`.
-  },
-  {
-    href: "/app/settings/billing",
-    label: "Billing",
-    description: "Plano e cobrança.",
-    icon: Receipt,
-    group: "organizacao",
-    section: "Sua empresa",
-    minRole: "admin",
   },
   {
     href: "/app/lgpd/requests",

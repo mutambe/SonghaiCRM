@@ -12,7 +12,6 @@ import {
   Users,
   ShieldCheck,
   Palette,
-  CreditCard,
   ArrowRight,
 } from "@/lib/ui/icons";
 import type { Icon as PhosphorIcon } from "@phosphor-icons/react";
@@ -40,9 +39,6 @@ const NAV_ITEMS: NavItem[] = [
   // completude que o vigia varre só aquela raiz. O admin de plataforma tem
   // navegação própria, e é esta lista.
   { href: "/admin/marca", label: "Marca", icon: Palette },
-  // Mesmo motivo da linha de cima: navegação própria do admin de plataforma,
-  // não entra em `lib/navigation/registry.ts` (aquele é do tenant).
-  { href: "/admin/licensing", label: "Licenciamento", icon: CreditCard },
 ];
 
 interface AdminSidebarProps {

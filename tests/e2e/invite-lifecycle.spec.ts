@@ -4,7 +4,7 @@
  * Cobre o que a pergunta do dono pediu — convidar → aceitar → entrar → ver só o
  * permitido → agir dentro da permissão — e stressa os cantos:
  *   1. Ciclo feliz: admin convida → convidado loga e aceita → vira membership agent → cai no inbox
- *   2. Escopo pós-aceite: o agent vê inbox/kanban, é bloqueado (403) em billing/api-tokens
+ *   2. Escopo pós-aceite: o agent vê inbox/kanban, é bloqueado (403) em api-tokens
  *   3. Permissão pós-aceite: o agent NÃO consegue convidar (invite é admin-only → 403)
  *   4. Reuso do token: aceitar o MESMO token 2x é idempotente (sem membership duplicada)
  *   5. already_member: reconvidar quem já é membro → failed:[{reason: already_member}]
@@ -152,7 +152,7 @@ test.describe("ciclo de vida do convite (ponta a ponta + adversarial)", () => {
     await page.locator("#password").fill(base.password);
     await page.getByRole("button", { name: /entrar/i }).click();
     await page.waitForURL(/\/app\//, { timeout: 150_000 }).catch(() => {});
-    for (const r of ["/app/inbox", "/app/kanban", "/app/contacts", "/app/settings/billing", "/app/settings/api-tokens"]) {
+    for (const r of ["/app/inbox", "/app/kanban", "/app/contacts", "/app/settings/api-tokens"]) {
       await page.goto(r).catch(() => {});
     }
     // compila o endpoint de convite (agent → 403, mas compila a rota)
@@ -213,12 +213,8 @@ test.describe("ciclo de vida do convite (ponta a ponta + adversarial)", () => {
     await inviteeCtx.close();
   });
 
-  test("2. escopo pós-aceite: agent vê inbox/kanban, bloqueado em billing/api-tokens", async ({ page }) => {
+  test("2. escopo pós-aceite: agent vê inbox/kanban, bloqueado em api-tokens", async ({ page }) => {
     await login(page, inv.invitee_email);
-
-    await page.goto("/app/settings/billing");
-    await page.waitForURL(/\/403/);
-    await expect(page.getByRole("heading", { name: /403/ })).toBeVisible();
 
     await page.goto("/app/settings/api-tokens");
     await page.waitForURL(/\/403/);
