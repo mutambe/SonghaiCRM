@@ -50,6 +50,18 @@ export async function PATCH(
   const { plan_id, notes } = parsed.data;
   const admin = createAdminClient();
 
+  // Confere que o tenant existe antes de seguir — sem isto, um organization_id
+  // inválido só falhava mais tarde no FK constraint do INSERT, virando 500
+  // internal_error genérico em vez do 404 limpo que o GET irmão já devolve.
+  const { data: org } = await admin
+    .from("organizations")
+    .select("id")
+    .eq("id", organizationId)
+    .maybeSingle();
+  if (!org) {
+    return fail("not_found", "Tenant not found", 404, { requestId });
+  }
+
   const { data: plan } = await admin
     .from("plans")
     .select("id, display_name, is_active")
@@ -94,9 +106,29 @@ export async function PATCH(
     .single();
 
   if (insertError || !created) {
+    // O close (acima) e este insert não são transacionais — não há RPC
+    // transacional pronta no client Supabase para isso. Se o close teve
+    // sucesso e o insert falhou, o tenant ficaria com ZERO linhas abertas em
+    // organization_subscriptions (pior que antes da chamada). Compensa
+    // reabrindo a linha fechada (best-effort) antes de devolver o 500.
+    let details: unknown = insertError?.message;
+    if (current) {
+      const { error: reopenError } = await admin
+        .from("organization_subscriptions")
+        .update({ ended_at: null })
+        .eq("id", current.id);
+      if (reopenError) {
+        // A própria compensação falhou — não mascare o estado inconsistente.
+        details = {
+          insert_error: insertError?.message,
+          reopen_error: reopenError.message,
+          inconsistent_subscription_id: current.id,
+        };
+      }
+    }
     return fail("internal_error", "Falha ao atribuir o novo plano", 500, {
       requestId,
-      details: insertError?.message,
+      details,
     });
   }
 

@@ -19,6 +19,16 @@ function patchReq(body: unknown) {
   });
 }
 
+/** Stub de `organizations` que devolve o tenant como existente. */
+function orgExistsBuilder() {
+  return { select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: { id: ORG_ID }, error: null }) }) }) };
+}
+
+/** Stub de `organizations` que devolve "não existe" (tenant inválido). */
+function orgMissingBuilder() {
+  return { select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: null, error: null }) }) }) };
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(requirePlatformAdmin).mockResolvedValue({
@@ -34,6 +44,7 @@ describe("PATCH /api/v1/admin/tenants/[id]/subscription", () => {
 
     vi.mocked(createAdminClient).mockReturnValue({
       from: (table: string) => {
+        if (table === "organizations") return orgExistsBuilder();
         if (table === "plans") {
           return { select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: { id: NEW_PLAN_ID, display_name: "Agente Médio", is_active: true }, error: null }) }) }) };
         }
@@ -67,6 +78,7 @@ describe("PATCH /api/v1/admin/tenants/[id]/subscription", () => {
   it("plan_id inativo → 409 plan_inactive", async () => {
     vi.mocked(createAdminClient).mockReturnValue({
       from: (table: string) => {
+        if (table === "organizations") return orgExistsBuilder();
         if (table === "plans") {
           return { select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: { id: NEW_PLAN_ID, is_active: false }, error: null }) }) }) };
         }
@@ -77,5 +89,73 @@ describe("PATCH /api/v1/admin/tenants/[id]/subscription", () => {
     const { PATCH } = await import("./route");
     const res = await PATCH(patchReq({ plan_id: NEW_PLAN_ID }), { params: Promise.resolve({ id: ORG_ID }) });
     expect(res.status).toBe(409);
+  });
+
+  it("organization_id inexistente → 404 not_found, sem chegar em plans/subscriptions", async () => {
+    vi.mocked(createAdminClient).mockReturnValue({
+      from: (table: string) => {
+        if (table === "organizations") return orgMissingBuilder();
+        throw new Error(`não deveria chegar em ${table}`);
+      },
+    } as never);
+
+    const { PATCH } = await import("./route");
+    const res = await PATCH(patchReq({ plan_id: NEW_PLAN_ID }), { params: Promise.resolve({ id: ORG_ID }) });
+    expect(res.status).toBe(404);
+    const body = (await res.json()) as { error: { code: string } };
+    expect(body.error.code).toBe("not_found");
+  });
+
+  it("insert falha depois do close ter sucesso → reabre a linha antiga e devolve 500 com o estado registrado", async () => {
+    let closedId: string | null = null;
+    let reopenedId: string | null = null;
+
+    vi.mocked(createAdminClient).mockReturnValue({
+      from: (table: string) => {
+        if (table === "organizations") return orgExistsBuilder();
+        if (table === "plans") {
+          return { select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: { id: NEW_PLAN_ID, display_name: "Agente Médio", is_active: true }, error: null }) }) }) };
+        }
+        if (table === "organization_subscriptions") {
+          return {
+            select: () => ({
+              eq: () => ({
+                is: () => ({ maybeSingle: async () => ({ data: { id: OLD_SUB_ID }, error: null }) }),
+              }),
+            }),
+            update: (v: unknown) => ({
+              eq: () => {
+                const patch = v as { ended_at: string | null };
+                if (patch.ended_at !== null) {
+                  closedId = OLD_SUB_ID;
+                } else {
+                  reopenedId = OLD_SUB_ID;
+                }
+                return { then: (r: (x: unknown) => unknown) => Promise.resolve({ error: null }).then(r) };
+              },
+            }),
+            insert: () => ({
+              select: () => ({
+                single: async () => ({ data: null, error: { message: "insert falhou de propósito" } }),
+              }),
+            }),
+          };
+        }
+        throw new Error(`tabela não simulada: ${table}`);
+      },
+    } as never);
+
+    const { PATCH } = await import("./route");
+    const res = await PATCH(patchReq({ plan_id: NEW_PLAN_ID }), { params: Promise.resolve({ id: ORG_ID }) });
+    expect(res.status).toBe(500);
+    expect(closedId).toBe(OLD_SUB_ID);
+    expect(reopenedId).toBe(OLD_SUB_ID);
+
+    const body = (await res.json()) as { error: { code: string; details?: unknown } };
+    expect(body.error.code).toBe("internal_error");
+    // Reopen (compensação) teve sucesso aqui — details fica só a mensagem
+    // crua do insert. O objeto {insert_error, reopen_error, ...} só aparece
+    // quando a PRÓPRIA compensação falha (não mascarar estado inconsistente).
+    expect(body.error.details).toBe("insert falhou de propósito");
   });
 });
