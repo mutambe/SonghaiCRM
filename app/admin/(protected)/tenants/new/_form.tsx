@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useCreateTenant } from "@/hooks/useCreateTenant";
+import { usePlans } from "@/hooks/usePlans";
 import { ApiError } from "@/lib/api/types";
 
 // ---------------------------------------------------------------------------
@@ -32,7 +33,7 @@ const formSchema = z.object({
     .regex(/^[a-z0-9-]+$/, "Apenas letras minúsculas, números e hífens"),
   legal_name: z.string().min(2).max(255).optional().or(z.literal("")),
   nuit: z.string().optional().or(z.literal("")),
-  plan: z.enum(["standard", "pro", "enterprise"]),
+  plan_id: z.string().uuid("Selecione um pacote"),
   owner_email: z.string().email("E-mail inválido"),
 });
 
@@ -74,6 +75,8 @@ function maskNuit(value: string): string {
 export function NewTenantForm() {
   const router = useRouter();
   const createTenant = useCreateTenant();
+  const { data: plansData } = usePlans();
+  const plans = plansData?.data ?? [];
   const [slugLocked, setSlugLocked] = useState(false);
 
   const form = useForm<FormValues>({
@@ -83,7 +86,7 @@ export function NewTenantForm() {
       slug: "",
       legal_name: "",
       nuit: "",
-      plan: "standard",
+      plan_id: "",
       owner_email: "",
     },
   });
@@ -121,7 +124,7 @@ export function NewTenantForm() {
         slug: values.slug,
         legal_name: values.legal_name || undefined,
         nuit: values.nuit || undefined,
-        plan: values.plan,
+        plan_id: values.plan_id,
         owner_email: values.owner_email,
       });
 
@@ -129,7 +132,7 @@ export function NewTenantForm() {
       router.push(`/admin/tenants/${result.data.id}`);
     } catch (err) {
       if (err instanceof ApiError) {
-        if (err.code === "conflict") {
+        if (err.code === "tenant_already_exists") {
           form.setError("slug", { message: "Este slug já está em uso" });
           return;
         }
@@ -139,8 +142,6 @@ export function NewTenantForm() {
       }
     }
   });
-
-  const planValue = watch("plan");
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
@@ -229,24 +230,27 @@ export function NewTenantForm() {
 
             {/* plan */}
             <div className="space-y-1.5">
-              <Label htmlFor="plan">Plano</Label>
+              <Label htmlFor="plan_id">Pacote</Label>
               <Select
-                value={planValue}
-                onValueChange={(v) =>
-                  setValue("plan", v as "standard" | "pro" | "enterprise")
-                }
+                value={watch("plan_id")}
+                onValueChange={(v) => setValue("plan_id", v, { shouldValidate: true })}
               >
-                <SelectTrigger id="plan" aria-label="Plano">
-                  <SelectValue />
+                <SelectTrigger id="plan_id" aria-label="Pacote">
+                  <SelectValue placeholder="Selecione um pacote" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="standard">Standard</SelectItem>
-                  <SelectItem value="pro">Pro</SelectItem>
-                  <SelectItem value="enterprise">Enterprise</SelectItem>
+                  {plans.map((plan) => (
+                    <SelectItem key={plan.id} value={plan.id}>
+                      {plan.display_name}
+                      {plan.price_cents != null
+                        ? ` — ${(plan.price_cents / 100).toLocaleString("pt-MZ")} ${plan.currency}/mês`
+                        : " — sob consulta"}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
-              {errors.plan && (
-                <p className="text-xs text-error-fg">{errors.plan.message}</p>
+              {errors.plan_id && (
+                <p className="text-xs text-error-fg">{errors.plan_id.message}</p>
               )}
             </div>
 
