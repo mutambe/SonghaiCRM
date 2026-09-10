@@ -14,6 +14,7 @@ import { ok, fail } from "@/lib/api/wrappers";
 import { loadAuthUser, resolveActiveOrg } from "@/lib/auth/server";
 import { requireRole } from "@/lib/auth/require-role";
 import { ARCHIVED_AT, queryTolerantToMissingArchived } from "@/lib/channels/archived";
+import { limitesDoTenant } from "@/lib/plans/limiteDoTenant";
 import { createChannelSchema } from "@/lib/schemas/channels";
 import { createClient } from "@/lib/supabase/server";
 import { getWahaClient, wahaFriendlyError } from "@/lib/waha/client";
@@ -66,6 +67,42 @@ export async function POST(req: NextRequest): Promise<Response> {
   if (!authz.ok) return authz.response;
   const { user, org: activeOrg } = authz;
 
+  const supabase = await createClient();
+
+  // Enforcement de max_whatsapp_connections do plano vigente. `limitesDoTenant`
+  // retorna `null` quando não há assinatura vigente — nesse caso não bloqueia
+  // (estado do self-host sem billing configurado; bloquear ali travaria toda
+  // instalação nova). Só conta canais vivos — arquivados foram excluídos pelo
+  // usuário e não ocupam vaga do plano (ver lib/channels/archived).
+  const limites = await limitesDoTenant(activeOrg.orgId);
+  if (limites) {
+    const countBase = () =>
+      supabase
+        .from("channel_sessions")
+        .select("*", { count: "exact", head: true })
+        .eq("organization_id", activeOrg.orgId);
+    const { count, error: countErr } = await queryTolerantToMissingArchived(
+      () => countBase().is(ARCHIVED_AT, null),
+      () => countBase(),
+    );
+    if (countErr) return fail("internal_error", countErr.message, 500, { requestId });
+    if ((count ?? 0) >= limites.maxWhatsappConnections) {
+      return fail(
+        "plan_limit_reached",
+        `O pacote ${limites.planDisplayName} permite até ${limites.maxWhatsappConnections} conexão(ões) WhatsApp. Fale com o suporte para fazer upgrade.`,
+        403,
+        {
+          requestId,
+          details: {
+            limit: "max_whatsapp_connections",
+            current: count ?? 0,
+            max: limites.maxWhatsappConnections,
+          },
+        },
+      );
+    }
+  }
+
   const waha = getWahaClient();
   if (!waha) {
     return fail(
@@ -90,7 +127,6 @@ export async function POST(req: NextRequest): Promise<Response> {
     });
   }
 
-  const supabase = await createClient();
   // Nome de sessão único por canal — o hardcode `org_<8>` era 1 número por org.
   const sessionName = `org_${activeOrg.orgId.slice(0, 8)}_${randomUUID().replace(/-/g, "").slice(0, 6)}`;
 
