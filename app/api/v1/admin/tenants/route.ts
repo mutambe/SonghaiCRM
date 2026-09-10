@@ -1,5 +1,6 @@
 import { type NextRequest } from "next/server";
 import { z } from "zod";
+import { env } from "@/lib/env";
 import { requirePlatformAdmin } from "@/lib/auth/requirePlatformAdmin";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { ok, fail } from "@/lib/api/wrappers";
@@ -211,7 +212,7 @@ export async function POST(req: NextRequest) {
   // provisionar uma organization nova para este usuário.
   const { data: invited, error: inviteError } = await admin.auth.admin.inviteUserByEmail(
     owner_email,
-    { redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/confirm?type=invite` },
+    { redirectTo: `${env.NEXT_PUBLIC_APP_URL}/auth/confirm?type=invite` },
   );
   if (inviteError || !invited?.user) {
     return fail(
