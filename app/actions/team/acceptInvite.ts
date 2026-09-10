@@ -16,10 +16,21 @@ import { audit } from "@/lib/audit";
 import { verifyInviteToken } from "@/lib/auth/invite-token";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { limitesDoTenant } from "@/lib/plans/limiteDoTenant";
 
 export type AcceptInviteResult =
   | { ok: true }
-  | { ok: false; error: "invalid_or_expired" | "email_mismatch" | "not_authenticated" | "internal_error"; message?: string; expectedEmail?: string };
+  | {
+      ok: false;
+      error:
+        | "invalid_or_expired"
+        | "email_mismatch"
+        | "not_authenticated"
+        | "internal_error"
+        | "plan_limit_reached";
+      message?: string;
+      expectedEmail?: string;
+    };
 
 export async function acceptInviteAction(token: string): Promise<AcceptInviteResult> {
   const payload = verifyInviteToken(token);
@@ -51,6 +62,35 @@ export async function acceptInviteAction(token: string): Promise<AcceptInviteRes
     .maybeSingle();
   if (fetchErr) {
     return { ok: false, error: "internal_error", message: fetchErr.message };
+  }
+
+  // Reconta max_users NO MOMENTO DO ACEITE, não só no envio (Task 10). O envio
+  // só via o snapshot de assentos ocupados naquele instante — um admin a
+  // 19/20 podia disparar 20 convites individuais (cada um passa "19+1<=20"
+  // isolado) e todos aceitarem, estourando o pacote. Um aceite que REATIVA
+  // uma membership revogada ou CRIA uma nova consome um assento de verdade;
+  // um aceite que só reafirma uma membership já ativa (revoked_at null) não
+  // consome nada a mais — não bloqueia esse caso.
+  const consomeAssentoNovo = !existing?.id || !!existing.revoked_at;
+  if (consomeAssentoNovo) {
+    const limites = await limitesDoTenant(payload.organization_id);
+    if (limites) {
+      const { count, error: countErr } = await db
+        .from("user_organizations")
+        .select("id", { count: "exact", head: true })
+        .eq("organization_id", payload.organization_id)
+        .is("revoked_at", null);
+      if (countErr) {
+        return { ok: false, error: "internal_error", message: countErr.message };
+      }
+      if ((count ?? 0) >= limites.maxUsers) {
+        return {
+          ok: false,
+          error: "plan_limit_reached",
+          message: `O pacote ${limites.planDisplayName} permite até ${limites.maxUsers} usuários. Fale com o admin do tenant.`,
+        };
+      }
+    }
   }
 
   const nowIso = new Date().toISOString();

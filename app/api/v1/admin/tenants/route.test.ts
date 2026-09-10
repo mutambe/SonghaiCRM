@@ -112,4 +112,135 @@ describe("POST /api/v1/admin/tenants", () => {
     const body = (await res.json()) as { error: { code: string } };
     expect(body.error.code).toBe("tenant_already_exists");
   });
+
+  it("owner_email já pertence a usuário confirmado → resolve o user_id existente em vez de 500", async () => {
+    const inviteUserByEmail = vi.fn(async () => ({
+      data: { user: null },
+      error: { message: "A user with this email address has already been registered", code: "email_exists", status: 422 },
+    }));
+    const listUsers = vi.fn(async () => ({
+      data: { users: [{ id: OWNER_ID, email: "maria@example.com" }] },
+      error: null,
+    }));
+    const insertedOrg = { id: ORG_ID, slug: "loja-da-maria", display_name: "Loja da Maria" };
+    let insertedMembership: unknown = null;
+    let insertedSubscription: unknown = null;
+
+    vi.mocked(createAdminClient).mockReturnValue({
+      auth: { admin: { inviteUserByEmail, listUsers } },
+      from: (table: string) => {
+        if (table === "plans") {
+          return { select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: { id: PLAN_ID, is_active: true }, error: null }) }) }) };
+        }
+        if (table === "organizations") {
+          return { insert: () => ({ select: () => ({ single: async () => ({ data: insertedOrg, error: null }) }) }) };
+        }
+        if (table === "user_organizations") {
+          return { insert: (v: unknown) => { insertedMembership = v; return { then: (r: (x: unknown) => unknown) => Promise.resolve({ error: null }).then(r) }; } };
+        }
+        if (table === "organization_subscriptions") {
+          return { insert: (v: unknown) => { insertedSubscription = v; return { then: (r: (x: unknown) => unknown) => Promise.resolve({ error: null }).then(r) }; } };
+        }
+        throw new Error(`tabela não simulada: ${table}`);
+      },
+    } as never);
+
+    const { POST } = await import("./route");
+    const res = await POST(postReq(bodyDe()));
+    expect(res.status).toBe(201);
+    expect(listUsers).toHaveBeenCalled();
+    expect(insertedMembership).toMatchObject({ organization_id: ORG_ID, user_id: OWNER_ID, role: "admin" });
+    expect(insertedSubscription).toMatchObject({ organization_id: ORG_ID, plan_id: PLAN_ID, status: "active" });
+  });
+
+  it("owner_email 'já existe' mas não é encontrado no diretório → 500 internal_error (não inventa user_id)", async () => {
+    const inviteUserByEmail = vi.fn(async () => ({
+      data: { user: null },
+      error: { message: "already registered", code: "email_exists", status: 422 },
+    }));
+    const listUsers = vi.fn(async () => ({ data: { users: [] }, error: null }));
+
+    vi.mocked(createAdminClient).mockReturnValue({
+      auth: { admin: { inviteUserByEmail, listUsers } },
+      from: (table: string) => {
+        if (table === "plans") {
+          return { select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: { id: PLAN_ID, is_active: true }, error: null }) }) }) };
+        }
+        throw new Error(`não deveria chegar em ${table}`);
+      },
+    } as never);
+
+    const { POST } = await import("./route");
+    const res = await POST(postReq(bodyDe()));
+    expect(res.status).toBe(500);
+    const body = (await res.json()) as { error: { code: string } };
+    expect(body.error.code).toBe("internal_error");
+  });
+
+  it("membership falha após organization criada → organization é desfeita (compensação), 500 claro", async () => {
+    const inviteUserByEmail = vi.fn(async () => ({ data: { user: { id: OWNER_ID } }, error: null }));
+    const insertedOrg = { id: ORG_ID, slug: "loja-da-maria", display_name: "Loja da Maria" };
+    let deletedOrgId: unknown = null;
+
+    vi.mocked(createAdminClient).mockReturnValue({
+      auth: { admin: { inviteUserByEmail } },
+      from: (table: string) => {
+        if (table === "plans") {
+          return { select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: { id: PLAN_ID, is_active: true }, error: null }) }) }) };
+        }
+        if (table === "organizations") {
+          return {
+            insert: () => ({ select: () => ({ single: async () => ({ data: insertedOrg, error: null }) }) }),
+            delete: () => ({ eq: async (_col: string, val: unknown) => { deletedOrgId = val; return { error: null }; } }),
+          };
+        }
+        if (table === "user_organizations") {
+          return { insert: () => ({ then: (r: (x: unknown) => unknown) => Promise.resolve({ error: { message: "boom" } }).then(r) }) };
+        }
+        throw new Error(`não deveria chegar em ${table}`);
+      },
+    } as never);
+
+    const { POST } = await import("./route");
+    const res = await POST(postReq(bodyDe()));
+    expect(res.status).toBe(500);
+    expect(deletedOrgId).toBe(ORG_ID);
+    const body = (await res.json()) as { error: { code: string } };
+    expect(body.error.code).toBe("internal_error");
+  });
+
+  it("subscription falha após organization e membership criadas → organization é desfeita (compensação), 500 claro", async () => {
+    const inviteUserByEmail = vi.fn(async () => ({ data: { user: { id: OWNER_ID } }, error: null }));
+    const insertedOrg = { id: ORG_ID, slug: "loja-da-maria", display_name: "Loja da Maria" };
+    let deletedOrgId: unknown = null;
+
+    vi.mocked(createAdminClient).mockReturnValue({
+      auth: { admin: { inviteUserByEmail } },
+      from: (table: string) => {
+        if (table === "plans") {
+          return { select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: { id: PLAN_ID, is_active: true }, error: null }) }) }) };
+        }
+        if (table === "organizations") {
+          return {
+            insert: () => ({ select: () => ({ single: async () => ({ data: insertedOrg, error: null }) }) }),
+            delete: () => ({ eq: async (_col: string, val: unknown) => { deletedOrgId = val; return { error: null }; } }),
+          };
+        }
+        if (table === "user_organizations") {
+          return { insert: () => ({ then: (r: (x: unknown) => unknown) => Promise.resolve({ error: null }).then(r) }) };
+        }
+        if (table === "organization_subscriptions") {
+          return { insert: () => ({ then: (r: (x: unknown) => unknown) => Promise.resolve({ error: { message: "boom" } }).then(r) }) };
+        }
+        throw new Error(`não deveria chegar em ${table}`);
+      },
+    } as never);
+
+    const { POST } = await import("./route");
+    const res = await POST(postReq(bodyDe()));
+    expect(res.status).toBe(500);
+    expect(deletedOrgId).toBe(ORG_ID);
+    const body = (await res.json()) as { error: { code: string } };
+    expect(body.error.code).toBe("internal_error");
+  });
 });

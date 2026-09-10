@@ -1,5 +1,6 @@
 import { type NextRequest } from "next/server";
 import { z } from "zod";
+import { type SupabaseClient } from "@supabase/supabase-js";
 import { env } from "@/lib/env";
 import { requirePlatformAdmin } from "@/lib/auth/requirePlatformAdmin";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -50,6 +51,38 @@ function decodeCursor(cursor: string): CursorPayload | null {
   } catch {
     return null;
   }
+}
+
+// ---------------------------------------------------------------------------
+// Resolve user_id existente por e-mail (fallback de "convite recusado por já
+// existir")
+// ---------------------------------------------------------------------------
+
+// Esta versão de @supabase/auth-js (GoTrueAdminApi.listUsers) não aceita
+// filtro por e-mail no server — só pagina o diretório inteiro (mesma limitação
+// documentada em app/api/v1/admin/users/route.ts). Aqui o caso é raro (admin
+// criando tenant com e-mail que já tem conta) e não está no caminho quente, mas
+// ainda assim varre com teto: uma página vazia OU o teto (o diretório pode ser
+// grande) encerra a busca sem achar.
+const RESOLVE_MAX_PAGES = 50;
+const RESOLVE_PER_PAGE = 1000;
+
+async function resolveUserIdByEmail(
+  admin: SupabaseClient,
+  email: string,
+): Promise<string | null> {
+  const alvo = email.toLowerCase();
+  for (let page = 1; page <= RESOLVE_MAX_PAGES; page++) {
+    const { data, error } = await admin.auth.admin.listUsers({
+      page,
+      perPage: RESOLVE_PER_PAGE,
+    });
+    if (error || !data?.users?.length) return null;
+    const found = data.users.find((u) => u.email?.toLowerCase() === alvo);
+    if (found) return found.id;
+    if (data.users.length < RESOLVE_PER_PAGE) return null; // última página
+  }
+  return null;
 }
 
 // ---------------------------------------------------------------------------
@@ -214,23 +247,39 @@ export async function POST(req: NextRequest) {
     owner_email,
     { redirectTo: `${env.NEXT_PUBLIC_APP_URL}/auth/confirm?type=invite` },
   );
-  if (inviteError || !invited?.user) {
-    return fail(
-      "internal_error",
-      "Falha ao convidar o responsável pelo tenant",
-      500,
-      { requestId, details: inviteError?.message },
-    );
-  }
-  const ownerId = invited.user.id;
 
-  void audit({
-    action: "tenant.owner_invited",
-    actorUserId: adminCtx.user.id,
-    actingAsPlatformAdmin: true,
-    requestId,
-    metadata: { owner_email_hash: hashEmail(owner_email) },
-  });
+  let ownerId: string;
+  if (invited?.user) {
+    ownerId = invited.user.id;
+    void audit({
+      action: "tenant.owner_invited",
+      actorUserId: adminCtx.user.id,
+      actingAsPlatformAdmin: true,
+      requestId,
+      metadata: { owner_email_hash: hashEmail(owner_email) },
+    });
+  } else {
+    // Spec (docs/superpowers/specs/2026-09-09-licenciamento-por-tenant-design.md,
+    // "Tratamento de erros e casos-limite"): e-mail que já é dono de outra conta
+    // não é uma falha — GoTrue recusa reconvidar um usuário já confirmado
+    // (`email_exists`, normalmente HTTP 422). Nesse caso resolve o user_id
+    // existente e segue o fluxo como "adicionar membership", em vez de 500.
+    const emailJaExiste =
+      inviteError?.code === "email_exists" || inviteError?.status === 422;
+    const existingUserId = emailJaExiste
+      ? await resolveUserIdByEmail(admin, owner_email)
+      : null;
+
+    if (!existingUserId) {
+      return fail(
+        "internal_error",
+        "Falha ao convidar o responsável pelo tenant",
+        500,
+        { requestId, details: inviteError?.message },
+      );
+    }
+    ownerId = existingUserId;
+  }
 
   // 3) Organization
   const { data: org, error: insertError } = await admin
@@ -256,8 +305,12 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  // 4) Membership do owner (role admin) — não bloqueia a resposta 201 se
-  // falhar isoladamente aqui seria pior (org sem dono), então propaga erro.
+  // 4) Membership do owner (role admin). Sem transação SQL disponível via
+  // client Supabase — se este passo falhar depois da organization já criada,
+  // ela ficaria órfã (sem dono) e o slug "tomado" pra sempre (retry bateria
+  // em tenant_already_exists). Compensa desfazendo a organization
+  // (best-effort) antes de devolver o erro, mesmo padrão do PATCH
+  // .../subscription (Task 9).
   const { error: memberError } = await admin.from("user_organizations").insert({
     organization_id: org.id,
     user_id: ownerId,
@@ -265,13 +318,26 @@ export async function POST(req: NextRequest) {
     accepted_at: null,
   });
   if (memberError) {
-    return fail("internal_error", "Tenant criado mas falhou ao vincular o responsável", 500, {
+    const { error: compensateError } = await admin
+      .from("organizations")
+      .delete()
+      .eq("id", org.id);
+    return fail("internal_error", "Falha ao vincular o responsável pelo tenant", 500, {
       requestId,
-      details: memberError.message,
+      details: compensateError
+        ? {
+            member_error: memberError.message,
+            compensate_error: compensateError.message,
+            inconsistent_organization_id: org.id,
+          }
+        : memberError.message,
     });
   }
 
-  // 5) Assinatura inicial
+  // 5) Assinatura inicial. Mesma lógica de compensação: se falhar aqui, a
+  // organization (e sua membership, via ON DELETE CASCADE) é desfeita — sem
+  // isso a org sobreviveria SEM assinatura, e `limitesDoTenant()` devolve
+  // `null` pra ela, isentando-a de qualquer limite de plano (fail-open).
   const { error: subError } = await admin.from("organization_subscriptions").insert({
     organization_id: org.id,
     plan_id,
@@ -279,9 +345,19 @@ export async function POST(req: NextRequest) {
     assigned_by: adminCtx.user.id,
   });
   if (subError) {
-    return fail("internal_error", "Tenant criado mas falhou ao atribuir o plano", 500, {
+    const { error: compensateError } = await admin
+      .from("organizations")
+      .delete()
+      .eq("id", org.id);
+    return fail("internal_error", "Falha ao atribuir o plano ao tenant", 500, {
       requestId,
-      details: subError.message,
+      details: compensateError
+        ? {
+            sub_error: subError.message,
+            compensate_error: compensateError.message,
+            inconsistent_organization_id: org.id,
+          }
+        : subError.message,
     });
   }
 

@@ -161,7 +161,12 @@ Layout pai: `/app` (sidebar global, header com vocabulary do pipeline atual, bel
 | `/app/settings/tenant/vocabulary` | P3 (manager+) | autenticada | idem | P1 | não |
 | `/app/settings/tenant/branding` | P3 (admin) | autenticada | idem | P2 | não |
 | `/app/settings/api-tokens` | P3 (admin) | autenticada | `/app/settings` | P1 | não |
-| `/app/settings/billing` | P3 (admin) | autenticada | `/app/settings` | P2 (Fase 2) | não |
+
+> **`/app/settings/billing` foi removida (2026-09-09, decisão do dono do produto).** O produto
+> pivotou de licenciamento por instalação self-host (uma assinatura PaySuite por tenant, com gate
+> de mutação `403 license_required`) para instância central multi-tenant — a tela de billing por
+> tenant e o gate que a acompanhava saíram do código por completo (commit `ca8c9495`). Ver
+> `docs/superpowers/specs/2026-09-09-licenciamento-por-tenant-design.md`.
 
 ## 4. Super-admin de plataforma (`/admin`, subdomínio `admin.deskcomm.com`)
 

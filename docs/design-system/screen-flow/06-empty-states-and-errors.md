@@ -143,7 +143,13 @@ date: 2026-04-28
 - Ícone: `CreditCard`
 - Headline: **Assinatura expirada**
 - Sub-copy: Reative a assinatura pra continuar atendendo. Suas conversas estão preservadas.
-- Primária: `Atualizar pagamento` → `/app/settings/billing`
+- Primária: `Atualizar pagamento` → ~~`/app/settings/billing`~~ **rota removida (2026-09-09)**: o
+  produto pivotou de licenciamento por instalação self-host (billing por tenant, dentro do próprio
+  app do tenant) para instância central multi-tenant — a assinatura agora é administrada pelo
+  platform admin em `/admin/tenants/[id]` (`PATCH /api/v1/admin/tenants/[id]/subscription`), não
+  pelo admin do tenant. Este empty state (B7) inteiro é candidato a redesenho ou remoção quando
+  `billing_mode = 'paysuite_managed'` for implementado — ver
+  `docs/superpowers/specs/2026-09-09-licenciamento-por-tenant-design.md`.
 - Secundária: `Falar com suporte`
 
 ### B8. Realtime reconnecting — banner inline (Sub-PRD 04 §3.12)
