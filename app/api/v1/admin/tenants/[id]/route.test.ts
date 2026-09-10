@@ -88,6 +88,7 @@ function contadorVazio() {
   builder.then = (resolve: (v: unknown) => unknown) =>
     Promise.resolve({ count: 0, data: [], error: null }).then(resolve);
   builder.single = async () => ({ data: ORG, error: null });
+  builder.maybeSingle = async () => ({ data: null, error: null });
   return builder;
 }
 

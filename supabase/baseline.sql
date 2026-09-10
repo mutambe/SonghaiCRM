@@ -14009,8 +14009,29 @@ grant execute on function public.fn_lgpd_cascade_redact_contact(uuid, uuid, uuid
 grant execute on function public.fn_update_budget_consumption() to service_role;
 
 -- ---- licenciamento self-host via PaySuite (migration 0173) ----
+--
+-- Renomeadas para "_deprecated_licensing_*" pela migration 0176 (2026-09-09):
+-- modelo de licenciamento por instalação foi substituído por licenciamento por
+-- tenant (`plans` + `organization_subscriptions`, ver bloco no fim do arquivo).
+-- As renomeações precisam ficar ANTES destes "create table if not exists" —
+-- não no fim do arquivo, junto do bloco 0176 — porque a reaplicação do
+-- baseline (update.sh, ou o teste de idempotência) roda este arquivo inteiro
+-- de novo: se o "create if not exists" do nome antigo viesse primeiro, a
+-- segunda passada recriaria uma "licensing_installs" em branco (o rename da
+-- primeira passada já a tinha esvaziado do nome antigo) e o rename mais
+-- adiante colidiria com o "_deprecated_licensing_installs" já existente. Com
+-- o rename ANTES do create, as três situações fecham: instalação fresca (nada
+-- existe, rename é no-op, create cria em branco sob o nome novo), primeira
+-- atualização de quem já tinha dado (rename move os dados, create vira no-op
+-- porque o nome novo passou a existir) e reaplicações seguintes (rename
+-- no-op, create no-op — nada muda).
+alter table if exists public.licensing_installs rename to _deprecated_licensing_installs;
+alter table if exists public.licensing_licenses rename to _deprecated_licensing_licenses;
+alter table if exists public.licensing_payments rename to _deprecated_licensing_payments;
+alter table if exists public.licensing_client_state rename to _deprecated_licensing_client_state;
+alter table if exists public.licensing_paysuite_credentials rename to _deprecated_licensing_paysuite_credentials;
 
-create table if not exists public.licensing_installs (
+create table if not exists public._deprecated_licensing_installs (
   id uuid primary key default gen_random_uuid(),
   customer_name text not null,
   contact_email text not null,
@@ -14018,13 +14039,13 @@ create table if not exists public.licensing_installs (
   created_at timestamp with time zone not null default now()
 );
 
-alter table public.licensing_installs enable row level security;
-revoke all on public.licensing_installs from anon, authenticated;
-grant select, insert, update on public.licensing_installs to service_role;
+alter table public._deprecated_licensing_installs enable row level security;
+revoke all on public._deprecated_licensing_installs from anon, authenticated;
+grant select, insert, update on public._deprecated_licensing_installs to service_role;
 
-create table if not exists public.licensing_licenses (
+create table if not exists public._deprecated_licensing_licenses (
   id uuid primary key default gen_random_uuid(),
-  install_id uuid not null references public.licensing_installs(id) on delete cascade,
+  install_id uuid not null references public._deprecated_licensing_installs(id) on delete cascade,
   license_key text not null unique,
   status text not null default 'trial' check (status in ('trial', 'active', 'revoked')),
   plan_amount_cents bigint not null check (plan_amount_cents > 0),
@@ -14036,19 +14057,19 @@ create table if not exists public.licensing_licenses (
 );
 
 create index if not exists licensing_licenses_install_idx
-  on public.licensing_licenses using btree (install_id);
+  on public._deprecated_licensing_licenses using btree (install_id);
 
-alter table public.licensing_licenses enable row level security;
-revoke all on public.licensing_licenses from anon, authenticated;
-grant select, insert, update on public.licensing_licenses to service_role;
+alter table public._deprecated_licensing_licenses enable row level security;
+revoke all on public._deprecated_licensing_licenses from anon, authenticated;
+grant select, insert, update on public._deprecated_licensing_licenses to service_role;
 
 create or replace trigger trg_licensing_licenses_updated_at
-  before update on public.licensing_licenses
+  before update on public._deprecated_licensing_licenses
   for each row execute function public.fn_set_updated_at();
 
-create table if not exists public.licensing_payments (
+create table if not exists public._deprecated_licensing_payments (
   id uuid primary key default gen_random_uuid(),
-  license_id uuid not null references public.licensing_licenses(id) on delete cascade,
+  license_id uuid not null references public._deprecated_licensing_licenses(id) on delete cascade,
   paysuite_payment_id text not null unique,
   amount_cents bigint not null check (amount_cents > 0),
   status text not null default 'pending' check (status in ('pending', 'success', 'failed')),
@@ -14058,30 +14079,33 @@ create table if not exists public.licensing_payments (
 );
 
 create index if not exists licensing_payments_license_idx
-  on public.licensing_payments using btree (license_id);
+  on public._deprecated_licensing_payments using btree (license_id);
 
-alter table public.licensing_payments enable row level security;
-revoke all on public.licensing_payments from anon, authenticated;
-grant select, insert, update on public.licensing_payments to service_role;
+alter table public._deprecated_licensing_payments enable row level security;
+revoke all on public._deprecated_licensing_payments from anon, authenticated;
+grant select, insert, update on public._deprecated_licensing_payments to service_role;
 
-create table if not exists public.licensing_client_state (
+create table if not exists public._deprecated_licensing_client_state (
   id text primary key default 'singleton' check (id = 'singleton'),
   token text,
   fetched_at timestamp with time zone,
   updated_at timestamp with time zone not null default now()
 );
 
-alter table public.licensing_client_state enable row level security;
-revoke all on public.licensing_client_state from anon, authenticated;
-grant select, insert, update on public.licensing_client_state to service_role;
+alter table public._deprecated_licensing_client_state enable row level security;
+revoke all on public._deprecated_licensing_client_state from anon, authenticated;
+grant select, insert, update on public._deprecated_licensing_client_state to service_role;
 
 create or replace trigger trg_licensing_client_state_updated_at
-  before update on public.licensing_client_state
+  before update on public._deprecated_licensing_client_state
   for each row execute function public.fn_set_updated_at();
 
 -- ---- credencial PaySuite da instância central (migration 0174) ----
+--
+-- Também renomeada para "_deprecated_licensing_paysuite_credentials" —
+-- ver nota acima sobre a 0173.
 
-create table if not exists public.licensing_paysuite_credentials (
+create table if not exists public._deprecated_licensing_paysuite_credentials (
   id text primary key default 'singleton' check (id = 'singleton'),
   api_token_encrypted bytea not null,
   webhook_secret_encrypted bytea not null,
@@ -14090,11 +14114,88 @@ create table if not exists public.licensing_paysuite_credentials (
   updated_at timestamp with time zone not null default now()
 );
 
-alter table public.licensing_paysuite_credentials enable row level security;
-revoke all on public.licensing_paysuite_credentials from anon, authenticated;
-grant select, insert, update on public.licensing_paysuite_credentials to service_role;
+alter table public._deprecated_licensing_paysuite_credentials enable row level security;
+revoke all on public._deprecated_licensing_paysuite_credentials from anon, authenticated;
+grant select, insert, update on public._deprecated_licensing_paysuite_credentials to service_role;
 
 create or replace trigger trg_licensing_paysuite_credentials_updated_at
-  before update on public.licensing_paysuite_credentials
+  before update on public._deprecated_licensing_paysuite_credentials
   for each row execute function public.fn_set_updated_at();
 
+-- ---- licenciamento por tenant, substitui modelo por instalacao (migration 0176) ----
+
+create table if not exists public.plans (
+  id uuid primary key default gen_random_uuid(),
+  slug text not null unique check (slug in ('agente_simples', 'agente_medio', 'agente_avancado', 'enterprise')),
+  display_name text not null,
+  price_cents integer,
+  setup_fee_cents integer,
+  currency text not null default 'MZN',
+  limits jsonb not null default '{}'::jsonb,
+  is_active boolean not null default true,
+  created_at timestamptz not null default now()
+);
+
+insert into public.plans (slug, display_name, price_cents, setup_fee_cents, limits)
+values
+  ('agente_simples', 'Agente Simples', 500000, 200000, '{"max_users": 20, "max_whatsapp_connections": 1}'),
+  ('agente_medio', 'Agente Médio', 800000, 300000, '{"max_users": 50, "max_whatsapp_connections": 2}'),
+  ('agente_avancado', 'Agente Avançado', 1200000, 400000, '{"max_users": 200, "max_whatsapp_connections": 5}'),
+  ('enterprise', 'Enterprise', null, null, '{}')
+on conflict (slug) do nothing;
+
+alter table public.plans enable row level security;
+revoke all on public.plans from anon, authenticated;
+grant select on public.plans to authenticated;
+grant select, insert, update on public.plans to service_role;
+
+drop policy if exists "plans_select_authenticated" on public.plans;
+create policy "plans_select_authenticated" on public.plans
+  for select to authenticated using (true);
+
+-- Cobrança Songhai -> tenant (licença/plano). NÃO confundir com o módulo
+-- comercial do tenant (PaySuite que a organization usa para cobrar os
+-- próprios leads/clientes) — esse módulo não é tocado por esta migration.
+create table if not exists public.organization_subscriptions (
+  id uuid primary key default gen_random_uuid(),
+  organization_id uuid not null references public.organizations(id) on delete cascade,
+  plan_id uuid not null references public.plans(id),
+  status text not null check (status in ('active', 'suspended', 'cancelled')),
+  billing_mode text not null default 'manual' check (billing_mode in ('manual', 'paysuite_managed')),
+  assigned_by uuid references auth.users(id),
+  notes text,
+  started_at timestamptz not null default now(),
+  ended_at timestamptz,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists organization_subscriptions_org_idx
+  on public.organization_subscriptions using btree (organization_id);
+
+create unique index if not exists uq_organization_subscriptions_one_current
+  on public.organization_subscriptions (organization_id)
+  where ended_at is null;
+
+alter table public.organization_subscriptions enable row level security;
+revoke all on public.organization_subscriptions from anon, authenticated;
+grant select on public.organization_subscriptions to authenticated;
+grant select, insert, update on public.organization_subscriptions to service_role;
+
+drop policy if exists "organization_subscriptions_tenant_select" on public.organization_subscriptions;
+create policy "organization_subscriptions_tenant_select" on public.organization_subscriptions
+  for select using (
+    (organization_id in (select public.fn_user_org_ids())) or public.fn_is_platform_admin()
+  );
+
+-- Descontinuação do modelo de licenciamento por instalação (0173/0174):
+-- renomeia em vez de apagar, para preservar histórico de trials/pagamentos
+-- já emitidos. Os `alter table ... rename` já foram movidos para ANTES dos
+-- `create table if not exists` dos blocos 0173/0174 (ver comentário lá) —
+-- aqui no bloco 0176, os cinco renames ficariam permanentemente redundantes
+-- (o nome antigo já não existe quando esta linha do arquivo é alcançada,
+-- em nenhum dos três cenários: instalação fresca, primeira atualização de
+-- quem tinha dado, ou reaplicação seguinte), então não são repetidos.
+-- O arquivo de migration standalone (`supabase/migrations/20260909140000_
+-- 0176_licenciamento_por_tenant.sql`, aplicado via Supabase CLI em ordem
+-- sequencial) mantém os renames na posição literal do Step 1 — lá não há o
+-- mesmo risco de reaplicação do arquivo inteiro.

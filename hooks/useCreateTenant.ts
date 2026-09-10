@@ -11,7 +11,7 @@ export interface CreateTenantPayload {
   slug: string;
   legal_name?: string;
   nuit?: string;
-  plan?: "standard" | "pro" | "enterprise";
+  plan_id: string;
   owner_email: string;
 }
 

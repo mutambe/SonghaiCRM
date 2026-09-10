@@ -15,20 +15,6 @@ export const PUBLIC_PATHS: RegExp[] = [
   /^\/api\/v1\/health$/,
   /^\/api\/v1\/webhooks\//,
   /^\/api\/v1\/cron\//,
-  // Licenciamento self-host (PaySuite) — chamadas de servidor-a-servidor, sem
-  // cookie de sessão: instalações de CLIENTE chamam /verify e /renew (via
-  // lib/licensing/central-client.ts, do cron licensing-refresh e do botão
-  // "Renovar agora"), e o PaySuite chama o webhook. Cada uma valida a si
-  // mesma por dentro (license_key desconhecida → 404; assinatura HMAC errada
-  // → 401) — não é a mesma coisa que "sem autenticação nenhuma". As rotas
-  // administrativas (`/api/v1/licensing/admin`, `/paysuite-credentials`) NÃO
-  // entram aqui de propósito: essas são só a Central, pela tela, com sessão.
-  // Achado em produção: sem isto, o webhook e o verify/renew devolviam 401
-  // "Authentication required" pra QUALQUER chamador — o mecanismo inteiro de
-  // licenciamento nunca teria funcionado.
-  /^\/api\/v1\/licensing\/verify$/,
-  /^\/api\/v1\/licensing\/renew$/,
-  /^\/api\/v1\/licensing\/webhooks\/paysuite$/,
   // Heartbeat do agente do host (bearer INTERNAL_SECRET/INTERNAL_CRON_SECRET,
   // checado dentro da própria rota) — sem cookie de sessão, igual /cron/.
   /^\/api\/v1\/system\/agent$/,

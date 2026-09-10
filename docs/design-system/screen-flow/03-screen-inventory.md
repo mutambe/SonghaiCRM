@@ -269,6 +269,7 @@ não.
 - `/app/settings/security/mfa` (#66)
 - `/app/settings/security/sessions` (#67)
 - `/app/settings/tenant/vocabulary` (#69)
+- `/app/settings/billing` (#72) — removida do escopo: o produto pivotou de licenciamento por instalação self-host para instância central multi-tenant (decisão do dono do produto, 2026-09-09), e a tela de billing por tenant (junto do gate de licença que a acompanhava) foi removida por completo
 - `/admin/tenants/[id]/team` (#80)
 - `/admin/tenants/[id]/usage` (#81)
 - `/admin/lgpd/requests` (#83) — só o detalhe existe (`/admin/lgpd/requests/[id]`), alcançado de `/admin/lgpd`

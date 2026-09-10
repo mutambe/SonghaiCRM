@@ -59,6 +59,7 @@ export async function GET(
     lgpdRes,
     aiRes,
     wahaRes,
+    subscriptionRes,
   ] = await Promise.all([
     admin
       .from("user_organizations")
@@ -109,6 +110,12 @@ export async function GET(
       .from("channel_sessions")
       .select("*", { count: "exact", head: true })
       .eq("organization_id", id),
+    admin
+      .from("organization_subscriptions")
+      .select("plan_id, status, started_at, plans(display_name, price_cents, currency)")
+      .eq("organization_id", id)
+      .is("ended_at", null)
+      .maybeSingle(),
   ]);
 
   const counts = {
@@ -135,5 +142,20 @@ export async function GET(
     metadata: { tenant_slug: org.slug },
   });
 
-  return ok({ organization: org, counts }, { requestId });
+  const subscriptionPlan = subscriptionRes.data
+    ? (Array.isArray(subscriptionRes.data.plans)
+        ? subscriptionRes.data.plans[0]
+        : subscriptionRes.data.plans)
+    : null;
+  const subscription =
+    subscriptionRes.data && subscriptionPlan
+      ? {
+          plan_id: subscriptionRes.data.plan_id,
+          plan_display_name: subscriptionPlan.display_name,
+          status: subscriptionRes.data.status,
+          started_at: subscriptionRes.data.started_at,
+        }
+      : null;
+
+  return ok({ organization: org, counts, subscription }, { requestId });
 }

@@ -1,7 +1,7 @@
 "use client";
 import { Badge } from "@/components/ui/badge";
 import { Warning } from "@/lib/ui/icons";
-import type { TenantOrganization, TenantCounts } from "@/hooks/useTenantDetail";
+import type { TenantOrganization, TenantCounts, TenantSubscription } from "@/hooks/useTenantDetail";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -49,15 +49,14 @@ function StatCard({ label, value, warning }: { label: string; value: number; war
 interface TenantOverviewProps {
   organization: TenantOrganization;
   counts: TenantCounts;
+  subscription: TenantSubscription | null;
 }
 
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
-export function TenantOverview({ organization, counts }: TenantOverviewProps) {
-  const plan = (organization.settings as { plan?: string } | null)?.plan ?? "—";
-
+export function TenantOverview({ organization, counts, subscription }: TenantOverviewProps) {
   return (
     <div className="space-y-6">
       {/* Info card */}
@@ -66,7 +65,16 @@ export function TenantOverview({ organization, counts }: TenantOverviewProps) {
           Informações
         </h2>
         <div>
-          <InfoRow label="Plano" value={<Badge variant="neutral" className="capitalize">{plan}</Badge>} />
+          <InfoRow
+            label="Plano"
+            value={
+              subscription ? (
+                <Badge variant="neutral">{subscription.plan_display_name}</Badge>
+              ) : (
+                <span className="text-muted-foreground">Sem assinatura</span>
+              )
+            }
+          />
           <InfoRow label="Razão social" value={organization.legal_name} />
           <InfoRow label="NUIT" value={organization.nuit} />
           <InfoRow label="Onboarding concluído" value={formatDate(organization.onboarded_at)} />

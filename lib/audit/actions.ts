@@ -324,6 +324,12 @@ export const AUDIT_ACTIONS = [
   "appointment.rescheduled",
   "appointment.status_changed",
   "licensing.license_issued",
+  // Licenciamento por tenant (0176): convite real do owner na criação do
+  // tenant (antes o owner_email era descartado) e as duas mutações da
+  // assinatura versionada — criação inicial e troca de plano.
+  "tenant.owner_invited",
+  "tenant.subscription_assigned",
+  "tenant.subscription_changed",
 ] as const;
 
 /** Um código de auditoria. Derivado de `AUDIT_ACTIONS` — não redigite a lista. */

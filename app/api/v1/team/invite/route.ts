@@ -23,6 +23,7 @@ import { signInviteToken, INVITE_TTL_SECONDS } from "@/lib/auth/invite-token";
 import { buildInviteEmail } from "@/lib/email/templates/invite";
 import { sendEmail } from "@/lib/email/resend";
 import { marcaDaSaida } from "@/lib/branding/saida";
+import { limitesDoTenant } from "@/lib/plans/limiteDoTenant";
 
 export const dynamic = "force-dynamic";
 
@@ -84,6 +85,27 @@ export async function POST(req: NextRequest): Promise<Response> {
       const { data: u } = await admin.auth.admin.getUserById(m.user_id as string);
       const memberEmail = u?.user?.email?.trim().toLowerCase();
       if (memberEmail) memberEmails.add(memberEmail);
+    }
+  }
+
+  // Enforcement de max_users do plano vigente. `limitesDoTenant` retorna
+  // `null` quando não há assinatura vigente — nesse caso não bloqueia (é o
+  // estado do self-host sem billing configurado, e bloquear ali travaria toda
+  // instalação nova). Só convites REALMENTE novos contam — quem já é membro
+  // ativo é reenvio, não usuário a mais.
+  const limites = await limitesDoTenant(activeOrg.orgId);
+  if (limites) {
+    const novosConvites = input.invitations.filter(
+      (inv) => !memberEmails.has(inv.email.trim().toLowerCase()),
+    ).length;
+    const totalApos = memberEmails.size + novosConvites;
+    if (totalApos > limites.maxUsers) {
+      return fail(
+        "plan_limit_reached",
+        `O pacote ${limites.planDisplayName} permite até ${limites.maxUsers} usuários. Fale com o suporte para fazer upgrade.`,
+        403,
+        { requestId, details: { limit: "max_users", current: memberEmails.size, max: limites.maxUsers } },
+      );
     }
   }
 

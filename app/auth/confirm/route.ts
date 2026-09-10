@@ -10,9 +10,10 @@ import { env } from "@/lib/env";
 /**
  * GET /auth/confirm — troca o token do e-mail por uma sessão.
  *
- * É o destino único dos links de e-mail do GoTrue: confirmação de signup E
- * redefinição de senha. Dois formatos de link chegam aqui, dependendo de como
- * o projeto Supabase está configurado:
+ * É o destino único dos links de e-mail do GoTrue: confirmação de signup,
+ * redefinição de senha E convite do owner de um tenant (`type=invite`, ver
+ * POST /api/v1/admin/tenants). Dois formatos de link chegam aqui, dependendo
+ * de como o projeto Supabase está configurado:
  *
  * - `token_hash` + `type`: template de e-mail customizado (supabase/templates/,
  *   subidos por `self-host-kit/marca-emails.sh`) linkando direto pro app.
@@ -101,6 +102,21 @@ export async function GET(request: NextRequest) {
   }
 
   if (type === "recovery") {
+    return redirectTo("/login/reset");
+  }
+
+  if (type === "invite") {
+    // O owner de um tenant criado por POST /api/v1/admin/tenants — a
+    // organization e a membership JÁ existem (criadas naquele handler).
+    // Cair no branch de signup abaixo chamaria ensureTenantForUser e criaria
+    // uma SEGUNDA organization para este usuário. Convite aceito = só falta
+    // definir senha; reusa a mesma tela de "nova senha" da recuperação.
+    void audit({
+      action: "auth.signup_confirmed",
+      actorUserId: data.user.id,
+      metadata: { via: "tenant_owner_invite" },
+      requestId,
+    });
     return redirectTo("/login/reset");
   }
 
