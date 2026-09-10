@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { SuspendDialog } from "./SuspendDialog";
 import { ReactivateDialog } from "./ReactivateDialog";
+import { ChangePlanDialog } from "./ChangePlanDialog";
 import { ImpersonateButton } from "@/components/admin/ImpersonateButton";
 
 // ---------------------------------------------------------------------------
@@ -13,6 +14,7 @@ interface TenantActionsProps {
   organizationId: string;
   status: "active" | "suspended" | "redacted";
   displayName: string;
+  currentPlanId?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -23,9 +25,11 @@ export function TenantActions({
   organizationId,
   status,
   displayName,
+  currentPlanId,
 }: TenantActionsProps) {
   const [suspendOpen, setSuspendOpen] = useState(false);
   const [reactivateOpen, setReactivateOpen] = useState(false);
+  const [changePlanOpen, setChangePlanOpen] = useState(false);
 
   const canSuspend = status === "active";
   const isSuspended = status === "suspended";
@@ -47,6 +51,16 @@ export function TenantActions({
             isRedacted ? "Tenant redigido — ação não disponível" : undefined
           }
         />
+
+        {/* Change plan */}
+        <Button
+          className="w-full"
+          variant="outline"
+          onClick={() => setChangePlanOpen(true)}
+          aria-label="Alterar plano"
+        >
+          Alterar plano
+        </Button>
 
         {/* Suspend */}
         {canSuspend && (
@@ -89,6 +103,13 @@ export function TenantActions({
         open={reactivateOpen}
         onClose={() => setReactivateOpen(false)}
         organizationId={organizationId}
+      />
+
+      <ChangePlanDialog
+        open={changePlanOpen}
+        onClose={() => setChangePlanOpen(false)}
+        organizationId={organizationId}
+        currentPlanId={currentPlanId}
       />
     </>
   );

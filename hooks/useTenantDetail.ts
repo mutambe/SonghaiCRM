@@ -32,10 +32,18 @@ export interface TenantCounts {
   waha_sessions_count: number;
 }
 
+export interface TenantSubscription {
+  plan_id: string;
+  plan_display_name: string;
+  status: "active" | "suspended" | "cancelled";
+  started_at: string;
+}
+
 export interface TenantDetailResponse {
   data: {
     organization: TenantOrganization;
     counts: TenantCounts;
+    subscription: TenantSubscription | null;
   };
 }
 
