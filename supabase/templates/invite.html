@@ -1,0 +1,39 @@
+<!--
+  MODELO — os `__PLACEHOLDER__` são substituídos por self-host-kit/marca-emails.sh.
+  Ver o cabeçalho de confirmation.html para o par de cores, para o caminho do
+  GoTrue self-hosted (`--render-em`) e para quem faz a substituição.
+
+  Este é o modelo de CONVITE do owner de um tenant criado por
+  POST /api/v1/admin/tenants (admin.auth.admin.inviteUserByEmail). Diferente
+  de confirmation/recovery — que o próprio usuário dispara —, este e-mail é
+  disparado pela plataforma quando alguém provisiona uma instalação nova para
+  um cliente; quem recebe nunca visitou o produto antes.
+
+  `&`, nunca `?`: `.RedirectTo` já chega com `?type=invite` embutido
+  (app/api/v1/admin/tenants/route.ts, no `redirectTo` passado a
+  `inviteUserByEmail`) — é o que sobrevive ao hop pelo GoTrue quando o link
+  chega via PKCE (`code`) em vez de token_hash. Usar `?` aqui duplica o
+  separador (`...?type=invite?token_hash=...`), o parser de URL do browser
+  para de reconhecer `token_hash` como parâmetro (vira parte do valor de
+  `type`), e /auth/confirm redireciona pra `/login?error=link_invalido` mesmo
+  com o link correto — mesmo mecanismo medido em recovery.html.
+
+  Sem nome de organização: o GoTrue não expõe metadata custom do convite
+  dentro do template estático (só `.RedirectTo`/`.TokenHash`/`.Email` e afins
+  do pacote padrão) — por isso o texto fica genérico, à altura do que o
+  template realmente tem disponível.
+-->
+<html>
+  <body style="font-family: sans-serif; color: #1c1a16; background: #faf9f6; max-width: 480px; margin: 0 auto; padding: 24px;">
+    <h2 style="font-size: 18px;">Você foi convidado</h2>
+    <p>Você foi convidado para fazer parte de uma organização no __APP_NAME__. Clique no botão abaixo para aceitar o convite e definir sua senha:</p>
+    <p style="margin: 24px 0;">
+      <a
+        href="{{ .RedirectTo }}&token_hash={{ .TokenHash }}"
+        style="background: #008069; background: __ACCENT__; color: #ffffff; color: __ACCENT_FG__; padding: 10px 20px; border-radius: 6px; text-decoration: none; display: inline-block;"
+        >Aceitar convite e definir senha</a
+      >
+    </p>
+    <p style="font-size: 12px; color: #7d786c;">Se você não esperava este convite, ignore este e-mail.</p>
+  </body>
+</html>

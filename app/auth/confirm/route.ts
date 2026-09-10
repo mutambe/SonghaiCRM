@@ -10,9 +10,10 @@ import { env } from "@/lib/env";
 /**
  * GET /auth/confirm — troca o token do e-mail por uma sessão.
  *
- * É o destino único dos links de e-mail do GoTrue: confirmação de signup E
- * redefinição de senha. Dois formatos de link chegam aqui, dependendo de como
- * o projeto Supabase está configurado:
+ * É o destino único dos links de e-mail do GoTrue: confirmação de signup,
+ * redefinição de senha E convite do owner de um tenant (`type=invite`, ver
+ * POST /api/v1/admin/tenants). Dois formatos de link chegam aqui, dependendo
+ * de como o projeto Supabase está configurado:
  *
  * - `token_hash` + `type`: template de e-mail customizado (supabase/templates/,
  *   subidos por `self-host-kit/marca-emails.sh`) linkando direto pro app.

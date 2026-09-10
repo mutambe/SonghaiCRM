@@ -67,6 +67,10 @@ content_path = "./supabase/templates/confirmation.html"
 subject = "Redefinir senha — SonghaiCRM"
 content_path = "./supabase/templates/recovery.html"
 
+[auth.email.template.invite]
+subject = "Você foi convidado — SonghaiCRM"
+content_path = "./supabase/templates/invite.html"
+
 [auth.mfa]
 max_enrolled_factors = 10
 

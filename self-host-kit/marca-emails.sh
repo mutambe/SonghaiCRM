@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 #
-# Sobe os e-mails de ACESSO (criar conta e recuperar senha) com a marca da
+# Sobe os e-mails de ACESSO (criar conta, recuperar senha e convite de owner
+# de tenant) com a marca da
 # instalação — assunto, corpo, cor do botão — e configura Site URL / Redirect
 # URLs, que são pré-requisito do link funcionar.
 #
@@ -84,7 +85,7 @@ instrua_e_saia() {
   c_dim "    1. Authentication → URL Configuration"
   c_dim "         Site URL:      ${APP_URL:-https://SEU_DOMINIO}"
   c_dim "         Redirect URLs: ${APP_URL:-https://SEU_DOMINIO}/auth/confirm"
-  c_dim "    2. Authentication → Email Templates → Confirm signup / Reset password"
+  c_dim "    2. Authentication → Email Templates → Confirm signup / Reset password / Invite user"
   c_dim "         <a href=\"{{ .RedirectTo }}&token_hash={{ .TokenHash }}\">Confirmar</a>"
   c_dim "         ⚠ o separador é & — um ? aqui quebra o link (vira ?type=x?token_hash=y)"
   printf '\n' >&2
@@ -217,6 +218,7 @@ renderizar() {  # renderizar <arquivo>
 
 HTML_CONFIRM="$(renderizar "$PROJ_DIR/supabase/templates/confirmation.html")" || instrua_e_saia "não achei supabase/templates/ — rode de dentro do repositório."
 HTML_RECOVERY="$(renderizar "$PROJ_DIR/supabase/templates/recovery.html")" || instrua_e_saia "não achei supabase/templates/ — rode de dentro do repositório."
+HTML_INVITE="$(renderizar "$PROJ_DIR/supabase/templates/invite.html")" || instrua_e_saia "não achei supabase/templates/ — rode de dentro do repositório."
 
 if [ -n "$RENDER_EM" ]; then
   # O caminho de quem roda GoTrue self-hosted: lá não existe Management API, e
@@ -225,8 +227,9 @@ if [ -n "$RENDER_EM" ]; then
   mkdir -p "$RENDER_EM" || instrua_e_saia "não consegui escrever em $RENDER_EM"
   printf '%s\n' "$HTML_CONFIRM"  > "$RENDER_EM/confirmation.html"
   printf '%s\n' "$HTML_RECOVERY" > "$RENDER_EM/recovery.html"
+  printf '%s\n' "$HTML_INVITE"   > "$RENDER_EM/invite.html"
   c_grn "✓ modelos renderizados em $RENDER_EM (marca: $APP_NOME, accent: $ACCENT)"
-  c_dim "  GoTrue self-hosted: aponte GOTRUE_MAILER_TEMPLATES_CONFIRMATION/RECOVERY para eles."
+  c_dim "  GoTrue self-hosted: aponte GOTRUE_MAILER_TEMPLATES_CONFIRMATION/RECOVERY/INVITE para eles."
   exit 0
 fi
 
@@ -315,8 +318,10 @@ fi
 corpo="{
   \"mailer_subjects_confirmation\": \"$(json_escape "Confirme seu e-mail — $APP_NOME")\",
   \"mailer_subjects_recovery\": \"$(json_escape "Redefinir senha — $APP_NOME")\",
+  \"mailer_subjects_invite\": \"$(json_escape "Convite para administrar — $APP_NOME")\",
   \"mailer_templates_confirmation_content\": \"$(json_escape "$HTML_CONFIRM")\",
   \"mailer_templates_recovery_content\": \"$(json_escape "$HTML_RECOVERY")\",
+  \"mailer_templates_invite_content\": \"$(json_escape "$HTML_INVITE")\",
   \"site_url\": \"$(json_escape "$SITE_NOVO")\",
   \"uri_allow_list\": \"$(json_escape "$ALLOW_NOVO")\"
 }"
