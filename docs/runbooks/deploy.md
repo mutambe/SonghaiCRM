@@ -169,3 +169,80 @@ migration, então não era necessário.
       `docker service update --force` futuro sem `--image` reaplica a imagem
       local em vez da oficial** (Swarm não sabe que ela é "provisória").
 
+---
+
+## 7. Deploy manual de 2026-09-11 — PR #14 + retenção da fila/auditoria + wallpaper do Inbox
+
+Mesma causa raiz da seção 5/6: billing do GitHub bloqueado impede CI e merge
+normal. Três branches integradas manualmente e levadas à VPS SEM passar por
+`main`, porque o dono do produto pediu para não esperar o billing:
+
+- `feat/gerir-tenant-editar-deletar-resetar-acesso` (PR #14, `a1ee89e7`) —
+  editar/deletar/gerir acesso do responsável de um tenant no admin.
+- `worktree-retencao-fila-e-auditoria` (`21947876`, não tem PR — branch só
+  empurrada pro GitHub pra a VPS conseguir buscá-la) — poda de `job_queue` +
+  expurgo de `api_audit_log` (migration `0177`), 4 rotas de cron antigas
+  passam a auditar só quando houve efeito.
+- `feat/inbox-wallpaper-whatsapp` (PR #15, `7752ec18`) — fundo do Inbox com
+  padrão de doodles próprio, tons do WhatsApp, claro e escuro.
+
+**Achado durante a integração:** outra sessão tinha, no mesmo checkout
+compartilhado, uma migration NÃO commitada também numerada `0177`
+(`catalogo_groq`). Resolvido por aviso direto entre sessões — a outra
+renumerou para `0178` antes de commitar. Registrado aqui porque é o tipo de
+colisão que só aparece quando duas sessões trabalham a mesma branch ao mesmo
+tempo; não há gate automático pra isto.
+
+**Como foi feito** (worktree isolado `/root/songhaicrm-deploy-tmp`, removido
+depois — o checkout principal `/root/songhaicrm` nunca foi tocado):
+
+```bash
+cd /root/songhaicrm
+git fetch origin +refs/heads/<branch>:refs/remotes/origin/<branch>   # 3x
+git worktree add -b deploy-integracao-2026-09-11 /root/songhaicrm-deploy-tmp origin/main
+cd /root/songhaicrm-deploy-tmp
+git merge --no-edit origin/feat/gerir-tenant-editar-deletar-resetar-acesso   # fast-forward
+git merge --no-edit origin/worktree-retencao-fila-e-auditoria               # 1 conflito trivial em lib/audit/actions.ts, auto-merge
+git merge --no-edit origin/feat/inbox-wallpaper-whatsapp                    # limpo
+
+# imagens (só app e scheduler mudaram — worker não tem diff em nenhuma das 3 branches)
+APP_IMAGE=deskcomm-app:local APP_VERSION=<sha> docker compose -f docker-compose.prod.yml -f docker-compose.build.yml --env-file /root/songhaicrm/.env build app
+APP_IMAGE=deskcomm-scheduler:local APP_VERSION=<sha> docker compose -f docker-compose.prod.yml -f docker-compose.build.yml --env-file /root/songhaicrm/.env build scheduler
+# (o compose ignora APP_IMAGE pro scheduler — a var certa é SCHEDULER_IMAGE;
+#  a imagem saiu com o nome default e foi re-taggeada: docker tag ghcr.io/mutambe/deskcomm-scheduler:latest deskcomm-scheduler:local)
+
+docker service update --image deskcomm-app:local --with-registry-auth --force songhaicrm_app
+docker service update --image deskcomm-scheduler:local --with-registry-auth --force songhaicrm_scheduler
+
+# migration 0177 — mesmo mecanismo do update.sh oficial (linha 131 do script)
+set -a; source /root/songhaicrm/.env; set +a
+docker run --rm postgres:17-alpine psql "$SUPABASE_DB_URL" -c "create extension if not exists vector with schema public; create extension if not exists citext with schema public; create extension if not exists pg_trgm with schema public;"
+docker run --rm -i -v "$(pwd)/supabase/baseline.sql:/b.sql:ro" postgres:17-alpine psql "$SUPABASE_DB_URL" -f /b.sql
+
+git worktree remove /root/songhaicrm-deploy-tmp --force
+```
+
+**Verificado:** os dois serviços `converged` e `healthy`; `curl` no domínio
+devolve `307`; `fn_podar_fila_de_jobs`/`fn_expurgar_auditoria_vencida` existem
+e `has_function_privilege` confirma `service_role` pode executar e `anon` não.
+
+**O que NÃO foi provado antes deste deploy:** `pnpm test:db` nunca correu com
+sucesso contra a migration `0177` — o ambiente do agente que a implementou não
+tinha Docker. Risco aceite conscientemente (a migration só adiciona
+função/índice, não remove nada) — mas fica registrado que a prova de
+idempotência install+update do `baseline.sql` continua em falta pra esta
+migration especificamente.
+
+**Tarefa pendente — igual à seção 5/6, agora com 3 branches em vez de 1:**
+
+- [ ] Resolver o billing do GitHub.
+- [ ] Mergear PR #14 e PR #15 na `main` (a retenção não tem PR — abrir uma a
+      partir de `worktree-retencao-fila-e-auditoria` antes, ou mergear direto).
+- [ ] Confirmar os 5 checks obrigatórios verdes nos merges — cobre `test:db`
+      (a lacuna acima) e `e2e`, que este deploy manual pulou.
+- [ ] Rodar `pnpm test:db` explicitamente antes ou durante o merge da
+      retenção — é o único gate que ainda não tocou a migration `0177`.
+- [ ] Na VPS: `bash self-host-kit/deploy-swarm-latest.sh` pra trocar as
+      imagens `:local` pelas oficiais do GHCR, fechando a dívida (mesmo aviso
+      da seção 5: sem isto, um `--force` futuro sem `--image` reaplica a local).
+
