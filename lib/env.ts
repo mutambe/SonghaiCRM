@@ -181,6 +181,13 @@ const schema = z.object({
   LGPD_EXPORT_EXPIRES_HOURS: z.string().optional().default("72"),
   LGPD_DPO_EMAIL: z.string().optional().default(""),
 
+  // Poda de job_queue / expurgo de api_audit_log (cron data-retention).
+  // z.string() de propósito, nunca z.coerce.number(): o piso de verdade mora
+  // DENTRO de fn_podar_fila_de_jobs/fn_expurgar_auditoria_vencida, e um valor
+  // digitado errado aqui não pode derrubar o boot — lib/retencao/politica.ts
+  // interpreta o texto cru e cai pro padrão quando é lixo.
+  JOB_QUEUE_RETENTION_DAYS: z.string().optional().default(""),
+  AUDIT_LOG_RETENTION_DAYS: z.string().optional().default(""),
 
   // App URLs
   NEXT_PUBLIC_APP_URL: z
