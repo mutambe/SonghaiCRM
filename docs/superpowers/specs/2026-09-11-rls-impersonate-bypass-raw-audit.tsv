@@ -1,0 +1,143 @@
+agent_case_events~tenant_isolation_agent_case_events_select~SELECT~(organization_id IN ( SELECT fn_user_org_ids() AS fn_user_org_ids))~
+agent_cases~tenant_isolation_agent_cases_all~ALL~(organization_id IN ( SELECT fn_user_org_ids() AS fn_user_org_ids))~(organization_id IN ( SELECT fn_user_org_ids() AS fn_user_org_ids))
+agent_inbox_items~tenant_isolation_agent_inbox_items_all~ALL~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))
+ai_agent_runs~tenant_isolation_ai_agent_runs_all~ALL~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))
+ai_agent_versions~tenant_isolation_ai_agent_versions_select~SELECT~(organization_id IN ( SELECT fn_user_org_ids() AS fn_user_org_ids))~
+ai_agent_versions~tenant_isolation_ai_agent_versions_write~ALL~((organization_id IN ( SELECT fn_user_org_ids() AS fn_user_org_ids)) AND fn_role_at_least(organization_id, 'admin'::text))~((organization_id IN ( SELECT fn_user_org_ids() AS fn_user_org_ids)) AND fn_role_at_least(organization_id, 'admin'::text))
+ai_faq_items~ai_faq_items_select~SELECT~(organization_id IN ( SELECT fn_user_org_ids() AS fn_user_org_ids))~
+ai_faq_items~ai_faq_items_write~ALL~((organization_id IN ( SELECT fn_user_org_ids() AS fn_user_org_ids)) AND fn_role_at_least(organization_id, 'manager'::text))~((organization_id IN ( SELECT fn_user_org_ids() AS fn_user_org_ids)) AND fn_role_at_least(organization_id, 'manager'::text))
+ai_provider_credentials~tenant_isolation_ai_provider_credentials_write~ALL~((organization_id IN ( SELECT fn_user_org_ids() AS fn_user_org_ids)) AND fn_role_at_least(organization_id, 'admin'::text))~((organization_id IN ( SELECT fn_user_org_ids() AS fn_user_org_ids)) AND fn_role_at_least(organization_id, 'admin'::text))
+ai_purpose_bindings~tenant_isolation_ai_purpose_bindings_select~SELECT~(organization_id IN ( SELECT fn_user_org_ids() AS fn_user_org_ids))~
+ai_purpose_bindings~tenant_isolation_ai_purpose_bindings_write~ALL~((organization_id IN ( SELECT fn_user_org_ids() AS fn_user_org_ids)) AND fn_role_at_least(organization_id, 'admin'::text))~((organization_id IN ( SELECT fn_user_org_ids() AS fn_user_org_ids)) AND fn_role_at_least(organization_id, 'admin'::text))
+ai_router_decisions~tenant_isolation_ai_router_decisions_all~ALL~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))
+ai_router_members~tenant_isolation_ai_router_members_select~SELECT~(organization_id IN ( SELECT fn_user_org_ids() AS fn_user_org_ids))~
+ai_router_members~tenant_isolation_ai_router_members_write~ALL~((organization_id IN ( SELECT fn_user_org_ids() AS fn_user_org_ids)) AND fn_role_at_least(organization_id, 'admin'::text))~((organization_id IN ( SELECT fn_user_org_ids() AS fn_user_org_ids)) AND fn_role_at_least(organization_id, 'admin'::text))
+ai_routers~tenant_isolation_ai_routers_select~SELECT~(organization_id IN ( SELECT fn_user_org_ids() AS fn_user_org_ids))~
+ai_routers~tenant_isolation_ai_routers_write~ALL~((organization_id IN ( SELECT fn_user_org_ids() AS fn_user_org_ids)) AND fn_role_at_least(organization_id, 'admin'::text))~((organization_id IN ( SELECT fn_user_org_ids() AS fn_user_org_ids)) AND fn_role_at_least(organization_id, 'admin'::text))
+before_send_traces~tenant_isolation_before_send_traces_all~ALL~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))
+channel_knobs~tenant_isolation_channel_knobs_all~ALL~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))
+channel_session_health~tenant_isolation_channel_session_health_all~ALL~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))
+contact_field_proposals~tenant_isolation_contact_field_proposals_all~ALL~(organization_id IN ( SELECT fn_user_org_ids() AS fn_user_org_ids))~(organization_id IN ( SELECT fn_user_org_ids() AS fn_user_org_ids))
+conversation_notes~conversation_notes_write~ALL~((organization_id IN ( SELECT fn_user_org_ids() AS fn_user_org_ids)) AND fn_role_at_least(organization_id, 'agent'::text))~((organization_id IN ( SELECT fn_user_org_ids() AS fn_user_org_ids)) AND fn_role_at_least(organization_id, 'agent'::text))
+crm_lead_reactivations~tenant_isolation_crm_lead_reactivations_all~ALL~(organization_id IN ( SELECT fn_user_org_ids() AS fn_user_org_ids))~(organization_id IN ( SELECT fn_user_org_ids() AS fn_user_org_ids))
+crm_lead_risk_states~tenant_isolation_crm_lead_risk_states_all~ALL~(organization_id IN ( SELECT fn_user_org_ids() AS fn_user_org_ids))~(organization_id IN ( SELECT fn_user_org_ids() AS fn_user_org_ids))
+crm_lead_scores~tenant_isolation_crm_lead_scores_all~ALL~(organization_id IN ( SELECT fn_user_org_ids() AS fn_user_org_ids))~(organization_id IN ( SELECT fn_user_org_ids() AS fn_user_org_ids))
+cron_jobs~tenant_isolation_cron_jobs_all~ALL~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))
+demanda_conversas~tenant_isolation_demanda_conversas_all~ALL~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))
+demandas~tenant_isolation_demandas_all~ALL~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))
+disclosure_template_pointers~tenant_isolation_disclosure_template_pointers_all~ALL~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))
+disclosure_template_versions~tenant_isolation_disclosure_template_versions_all~ALL~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))
+flywheel_distiller_proposals~tenant_isolation_flywheel_distiller_proposals_all~ALL~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))
+flywheel_judge_verdicts~tenant_isolation_flywheel_judge_verdicts_all~ALL~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))
+followup_enrollment_events~tenant_isolation_followup_enrollment_events_all~ALL~(organization_id IN ( SELECT fn_user_org_ids() AS fn_user_org_ids))~(organization_id IN ( SELECT fn_user_org_ids() AS fn_user_org_ids))
+followup_enrollments~tenant_isolation_followup_enrollments_all~ALL~(organization_id IN ( SELECT fn_user_org_ids() AS fn_user_org_ids))~(organization_id IN ( SELECT fn_user_org_ids() AS fn_user_org_ids))
+followup_flow_pointers~tenant_isolation_followup_flow_pointers_all~ALL~(organization_id IN ( SELECT fn_user_org_ids() AS fn_user_org_ids))~(organization_id IN ( SELECT fn_user_org_ids() AS fn_user_org_ids))
+followup_flow_versions~tenant_isolation_followup_flow_versions_all~ALL~(organization_id IN ( SELECT fn_user_org_ids() AS fn_user_org_ids))~(organization_id IN ( SELECT fn_user_org_ids() AS fn_user_org_ids))
+idempotency_keys~idempotency_tenant~ALL~(organization_id IN ( SELECT fn_user_org_ids() AS fn_user_org_ids))~(organization_id IN ( SELECT fn_user_org_ids() AS fn_user_org_ids))
+job_queue~tenant_isolation_job_queue_all~ALL~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))
+judge_alignment_pool~tenant_isolation_judge_alignment_pool_all~ALL~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))
+knowledge_searches~tenant_isolation_knowledge_searches_all~ALL~(organization_id IN ( SELECT fn_user_org_ids() AS fn_user_org_ids))~(organization_id IN ( SELECT fn_user_org_ids() AS fn_user_org_ids))
+lead_checkpoints~tenant_isolation_lead_checkpoints_all~ALL~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))
+lead_notes~tenant_isolation_lead_notes_all~ALL~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))
+lead_state~tenant_isolation_lead_state_all~ALL~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))
+lead_state_transitions~tenant_isolation_lead_state_transitions_all~ALL~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))
+llm_calls~tenant_isolation_llm_calls_all~ALL~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))
+message_templates~message_templates_write~ALL~((organization_id IN ( SELECT fn_user_org_ids() AS fn_user_org_ids)) AND (((owner_user_id = auth.uid()) AND fn_role_at_least(organization_id, 'agent'::text)) OR ((owner_user_id IS NULL) AND fn_role_at_least(organization_id, 'manager'::text))))~((organization_id IN ( SELECT fn_user_org_ids() AS fn_user_org_ids)) AND (((owner_user_id = auth.uid()) AND fn_role_at_least(organization_id, 'agent'::text)) OR ((owner_user_id IS NULL) AND fn_role_at_least(organization_id, 'manager'::text))))
+meta_templates~tenant_isolation_meta_templates_all~ALL~(organization_id IN ( SELECT fn_user_org_ids() AS fn_user_org_ids))~(organization_id IN ( SELECT fn_user_org_ids() AS fn_user_org_ids))
+metrics~tenant_isolation_metrics_all~ALL~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))
+org_memory_entries~tenant_isolation_org_memory_entries_all~ALL~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))
+org_memory_pointers~tenant_isolation_org_memory_pointers_all~ALL~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))
+org_memory_versions~tenant_isolation_org_memory_versions_all~ALL~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))
+outbound_copies~tenant_isolation_outbound_copies_all~ALL~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))
+pacing_ledger~tenant_isolation_pacing_ledger_all~ALL~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))
+playbook_pointers~tenant_isolation_playbook_pointers_all~ALL~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))
+playbook_versions~tenant_isolation_playbook_versions_all~ALL~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))
+promise_table_pointers~tenant_isolation_promise_table_pointers_all~ALL~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))
+promise_table_versions~tenant_isolation_promise_table_versions_all~ALL~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))
+reentry_knob_pointers~tenant_isolation_reentry_knob_pointers_all~ALL~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))
+reentry_knob_versions~tenant_isolation_reentry_knob_versions_all~ALL~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))
+reentry_template_pointers~tenant_isolation_reentry_template_pointers_all~ALL~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))
+reentry_template_versions~tenant_isolation_reentry_template_versions_all~ALL~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))
+send_ledger~tenant_isolation_send_ledger_all~ALL~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))
+skill_activations~tenant_isolation_skill_activations_all~ALL~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))
+skill_pointers~tenant_isolation_skill_pointers_all~ALL~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))
+skill_versions~tenant_isolation_skill_versions_all~ALL~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))
+storage_redaction_queue~tenant_isolation_storage_redaction_queue_all~ALL~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))~(organization_id IN ( SELECT fn_user_org_ids.fn_user_org_ids
+   FROM fn_user_org_ids() fn_user_org_ids(fn_user_org_ids)))
