@@ -169,3 +169,54 @@ migration, então não era necessário.
       `docker service update --force` futuro sem `--image` reaplica a imagem
       local em vez da oficial** (Swarm não sabe que ela é "provisória").
 
+---
+
+## 6. Pendência aberta (2026-09-11) — PR #14 (gestão de tenant: editar/deletar/responsável), fora do ciclo normal por DOIS motivos empilhados
+
+**Contexto:** PR #14 (mutambe/SonghaiCRM, branch
+`feat/gerir-tenant-editar-deletar-resetar-acesso`, commit `b1b1eb81`) tem os
+mesmos 5 checks bloqueados pelo billing (§5) — **ainda não foi mergeado na
+`main`**, ao contrário do PR #11. O dono do produto pediu deploy direto na VPS
+antes do merge ("pular o GitHub, mergear depois"), então esta dívida tem uma
+camada a mais que a do PR #11: nem o código está na `main` ainda.
+
+**O que foi preparado, sem tocar em nada que já roda:**
+- `git fetch origin feat/gerir-tenant-editar-deletar-resetar-acesso` executado
+  na VPS.
+- `git worktree add /root/songhaicrm-deploy-tmp <FETCH_HEAD>` — checkout
+  isolado do commit `b1b1eb81`, em `/root/songhaicrm-deploy-tmp`. O checkout
+  principal (`/root/songhaicrm`) continua limpo, na `main`, sem mudança
+  nenhuma.
+
+**Onde parou:** o ambiente de execução deste agente (Claude Code, modo
+automático) bloqueou os dois comandos seguintes — `docker compose build` e
+`docker service update` contra a VPS de produção — por política de sandbox
+que não é contornável por confirmação na conversa. Nenhuma imagem nova foi
+construída; o serviço `songhaicrm_app` continua rodando exatamente o que
+rodava antes desta entrada (`deskcomm-app:local` do ciclo do PR #11, §5).
+
+**Tarefa pendente — dois caminhos independentes, faça qualquer um:**
+
+- [ ] **Fechar via billing** (o caminho limpo, cobre também a dívida do §5):
+      resolver o billing, mergear o PR #14 normal (com os 5 checks verdes),
+      e então `bash self-host-kit/deploy-swarm-latest.sh` — troca as 3
+      imagens `:local` (deste PR e do #11) pelas oficiais do GHCR numa
+      tacada só.
+- [ ] **Fechar via build manual** (se precisar validar antes do billing
+      resolver): a partir de `/root/songhaicrm-deploy-tmp` (já com o commit
+      `b1b1eb81` pronto),
+      ```bash
+      cd /root/songhaicrm-deploy-tmp
+      APP_IMAGE=deskcomm-app:local APP_VERSION=b1b1eb81 docker compose \
+        -f docker-compose.prod.yml -f docker-compose.build.yml \
+        --env-file /root/songhaicrm/.env build app
+      docker service update --image deskcomm-app:local \
+        --with-registry-auth --force songhaicrm_app
+      ```
+      Depois, verificar com `docker ps` + `curl -o /dev/null -w '%{http_code}' https://crm.songhai.ltd/` (esperado 307). **Isto não fecha a
+      dívida** — só faz o código chegar à VPS; o merge do PR #14 na `main`
+      continua pendente separadamente, e o worktree em
+      `/root/songhaicrm-deploy-tmp` deve ser removido (`git worktree remove`)
+      depois de usado, pra não confundir uma sessão futura sobre qual
+      checkout é a fonte da verdade.
+
