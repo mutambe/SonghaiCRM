@@ -14199,3 +14199,94 @@ create policy "organization_subscriptions_tenant_select" on public.organization_
 -- 0176_licenciamento_por_tenant.sql`, aplicado via Supabase CLI em ordem
 -- sequencial) mantém os renames na posição literal do Step 1 — lá não há o
 -- mesmo risco de reaplicação do arquivo inteiro.
+
+-- ---- poda da fila e expurgo do audit (migration 0177) ----
+create index if not exists idx_job_queue_poda
+  on public.job_queue (created_at)
+  where status in ('done', 'failed', 'dead');
+
+create index if not exists idx_audit_expurgo_created_at
+  on public.api_audit_log (created_at);
+
+create index if not exists idx_agent_inbox_items_ref_aberto
+  on public.agent_inbox_items (ref_kind, ref_id)
+  where status = 'open';
+
+create or replace function public.fn_podar_fila_de_jobs(
+  p_retencao_dias int default null,
+  p_limite int default null
+) returns int
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+declare
+  v_dias int := greatest(coalesce(p_retencao_dias, 90), 7);
+  v_limite int := least(greatest(coalesce(p_limite, 1000), 1), 10000);
+  v_apagados int;
+begin
+  with candidatos as (
+    select j.id
+      from public.job_queue j
+     where j.status in ('done', 'failed', 'dead')
+       and j.created_at < now() - make_interval(days => v_dias)
+       and not exists (
+         select 1
+           from public.agent_inbox_items i
+          where i.ref_kind = 'job_queue'
+            and i.ref_id = j.id
+            and i.status = 'open'
+       )
+     order by j.created_at
+     limit v_limite
+  )
+  delete from public.job_queue j
+   using candidatos c
+   where j.id = c.id;
+  get diagnostics v_apagados = row_count;
+  return v_apagados;
+end;
+$$;
+
+create or replace function public.fn_expurgar_auditoria_vencida(
+  p_retencao_dias int default null,
+  p_limite int default null
+) returns int
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+declare
+  v_dias int := greatest(coalesce(p_retencao_dias, 1825), 90);
+  v_limite int := least(greatest(coalesce(p_limite, 1000), 1), 10000);
+  v_apagadas int;
+begin
+  with vencidas as (
+    select a.id
+      from public.api_audit_log a
+     where a.created_at < now() - make_interval(days => v_dias)
+     order by a.created_at
+     limit v_limite
+  )
+  delete from public.api_audit_log a
+   using vencidas v
+   where a.id = v.id;
+  get diagnostics v_apagadas = row_count;
+  return v_apagadas;
+end;
+$$;
+
+revoke execute on function public.fn_podar_fila_de_jobs(int, int)
+  from public, anon, authenticated;
+grant execute on function public.fn_podar_fila_de_jobs(int, int) to service_role;
+
+revoke execute on function public.fn_expurgar_auditoria_vencida(int, int)
+  from public, anon, authenticated;
+grant execute on function public.fn_expurgar_auditoria_vencida(int, int) to service_role;
+
+comment on table public.api_audit_log is
+  'L-10: append-only (sem GRANT de UPDATE/DELETE a ninguém). Retenção default 5 anos, '
+  'expurgada por public.fn_expurgar_auditoria_vencida (piso de 90 dias) a partir do cron '
+  'app/api/v1/cron/data-retention. Não há camada cold/S3.';
+
+notify pgrst, 'reload schema';
