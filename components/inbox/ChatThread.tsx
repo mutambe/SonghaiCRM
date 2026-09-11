@@ -4,6 +4,7 @@ import { format, isToday, isYesterday } from "date-fns";
 import { pt as ptBR } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 import { MessageBubble } from "./MessageBubble";
 import { NoteCard } from "./NoteCard";
 import { useMessagesRealtime } from "@/hooks/inbox/useMessagesRealtime";
@@ -18,6 +19,15 @@ import type { Message, Note } from "@/lib/types/messaging";
 interface Props {
   conversationId: string | null;
 }
+
+/**
+ * Fundo da conversa, estilo WhatsApp (bege claro / grafite escuro), com um
+ * padrão de doodles próprio (não é o ficheiro da Meta — ver public/chat-wallpaper-*.svg).
+ * Aplicado em todo return de ChatThread para não trocar de fundo entre os
+ * estados de loading/erro/vazio e a lista de mensagens.
+ */
+const CHAT_WALLPAPER_CLASS =
+  "bg-[#efeae2] dark:bg-[#0b141a] bg-repeat bg-[length:220px_220px] bg-[url('/chat-wallpaper-light.svg')] dark:bg-[url('/chat-wallpaper-dark.svg')]";
 
 /** Onda 5.2: union de item do thread — mensagem real ou nota interna (nunca vai ao cliente). */
 export type ThreadItem =
@@ -104,7 +114,7 @@ export function ChatThread({ conversationId }: Props) {
 
   if (!conversationId) {
     return (
-      <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+      <div className={cn(CHAT_WALLPAPER_CLASS, "flex h-full items-center justify-center text-sm text-muted-foreground")}>
         Selecione uma conversa
       </div>
     );
@@ -112,7 +122,7 @@ export function ChatThread({ conversationId }: Props) {
 
   if (q.isLoading) {
     return (
-      <div className="space-y-3 p-4">
+      <div className={cn(CHAT_WALLPAPER_CLASS, "space-y-3 p-4")}>
         {[1, 2, 3, 4].map((i) => (
           <Skeleton key={i} className="h-12 w-2/3" />
         ))}
@@ -122,7 +132,12 @@ export function ChatThread({ conversationId }: Props) {
 
   if (q.isError) {
     return (
-      <div className="flex h-full flex-col items-center justify-center gap-2 text-sm text-muted-foreground">
+      <div
+        className={cn(
+          CHAT_WALLPAPER_CLASS,
+          "flex h-full flex-col items-center justify-center gap-2 text-sm text-muted-foreground",
+        )}
+      >
         <p>Erro ao carregar mensagens.</p>
         <Button size="sm" variant="outline" onClick={() => q.refetch()}>
           Tentar novamente
@@ -133,7 +148,7 @@ export function ChatThread({ conversationId }: Props) {
 
   if (items.length === 0) {
     return (
-      <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+      <div className={cn(CHAT_WALLPAPER_CLASS, "flex h-full items-center justify-center text-sm text-muted-foreground")}>
         Nenhuma mensagem nesta conversa.
       </div>
     );
@@ -150,7 +165,7 @@ export function ChatThread({ conversationId }: Props) {
   }
 
   return (
-    <div className="flex h-full flex-col">
+    <div className={cn(CHAT_WALLPAPER_CLASS, "flex h-full flex-col")}>
       <div ref={scrollerRef} className="flex-1 overflow-y-auto py-2">
         {q.hasNextPage && (
           <div className="flex justify-center py-2">
