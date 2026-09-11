@@ -144,8 +144,8 @@ owner: Songhai, Lda
 ### L-10 — Audit log é append-only e retém 5 anos
 - **Origem**: Sub-PRD 01 §3.5
 - **Tipo**: Hard constraint
-- **Regra**: GIVEN tabela `api_audit_log`; WHEN qualquer operação UPDATE/DELETE é tentada via API ou ORM; THEN retorna 405. Retenção em hot storage 90 dias; cold storage S3 com lifecycle policy de 5 anos.
-- **Enforcement**: DB (sem RLS de UPDATE/DELETE; permission revogada do role da app) + worker de archive.
+- **Regra**: GIVEN tabela `api_audit_log`; WHEN qualquer operação UPDATE/DELETE é tentada via API ou ORM; THEN retorna 405 (nenhum role tem GRANT de UPDATE/DELETE — nem `service_role`). Retenção default 1825 dias (5 anos), piso de 90 dias — não há camada hot/cold nem lifecycle S3 (um self-host não tem para onde arquivar; ver `comment on table public.api_audit_log` no `baseline.sql` para o texto vivo).
+- **Enforcement**: DB (sem GRANT de UPDATE/DELETE a ninguém) + expurgo por `public.fn_expurgar_auditoria_vencida` (`security definer`, piso de 90 dias embutido no corpo — não configurável abaixo disso), acionado pelo cron `app/api/v1/cron/data-retention`. Verificar knob ativo: `grep AUDIT_LOG_RETENTION_DAYS .env`.
 - **Exceção**: DBA pode deletar manualmente apenas com double-confirmation e audit duplo (raro: erro de coleta de PII que precisa ser purgado).
 
 ---
