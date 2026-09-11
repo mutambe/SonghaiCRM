@@ -163,22 +163,68 @@ sem quebrar nada.
 `GOTRUE_DISABLE_SIGNUP=false`, `GOTRUE_MAILER_AUTOCONFIRM=false`,
 `GOTRUE_SITE_URL=https://SEU_DOMINIO`,
 `GOTRUE_URI_ALLOW_LIST=https://SEU_DOMINIO/auth/confirm`,
-`GOTRUE_SMTP_{HOST,PORT,USER,PASS}` e
-`GOTRUE_MAILER_TEMPLATES_{CONFIRMATION,RECOVERY}` apontando para os templates
-de `supabase/templates/` (mesmo link `token_hash` acima).
+`GOTRUE_SMTP_{HOST,PORT,USER,PASS,ADMIN_EMAIL,SENDER_NAME}` e
+`GOTRUE_MAILER_TEMPLATES_{CONFIRMATION,RECOVERY,INVITE}` apontando para os
+templates de `supabase/templates/` (mesmo link `token_hash` acima; `INVITE` é
+usado pelo convite real do owner de tenant, `POST /api/v1/admin/tenants`).
 
 ⚠️ **Não aponte para os arquivos do repositório direto.** Eles são MODELOS: o
 nome da marca e a cor do botão são `__APP_NAME__` / `__ACCENT__`, e o cliente
-receberia isso literalmente. Renderize antes e aponte para o resultado:
+receberia isso literalmente. Renderize antes:
 
 ```bash
 bash self-host-kit/marca-emails.sh --render-em /opt/deskcomm/emails
-# GOTRUE_MAILER_TEMPLATES_CONFIRMATION=/opt/deskcomm/emails/confirmation.html
-# GOTRUE_MAILER_TEMPLATES_RECOVERY=/opt/deskcomm/emails/recovery.html
 ```
 
+⚠️ **`GOTRUE_MAILER_TEMPLATES_*` exige uma URL HTTP, não um caminho de
+arquivo.** Medido em produção (2026-09-11): apontar para
+`/opt/deskcomm/emails/confirmation.html` (caminho local, mesmo com o arquivo
+montado e legível dentro do container) faz o GoTrue cair silenciosamente no
+template padrão em inglês — sem nenhum erro no log, em nenhum nível,
+incluindo `debug`. A [documentação oficial do supabase/auth](https://github.com/supabase/auth)
+confirma: esses três campos são **template URLs**, buscadas via HTTP a cada
+envio (há inclusive cache: `GOTRUE_MAILER_TEMPLATE_MAX_AGE`,
+`TEMPLATE_RELOADING_ENABLED`). Um caminho de disco não é uma URL válida e o
+fetch falha em silêncio.
+
+O caminho que funciona é subir os 3 arquivos renderizados atrás de um
+servidor HTTP mínimo, na mesma rede que o GoTrue enxerga, e apontar para lá:
+
+```bash
+# exemplo com docker compose (adapte a rede ao seu setup — precisa ser a
+# mesma rede que o serviço do GoTrue usa)
+docker run -d --name deskcomm-email-templates \
+  --network <rede-do-gotrue> \
+  -v /opt/deskcomm/emails:/usr/share/nginx/html:ro \
+  --restart unless-stopped \
+  nginx:alpine
+
+# GOTRUE_MAILER_TEMPLATES_CONFIRMATION=http://deskcomm-email-templates/confirmation.html
+# GOTRUE_MAILER_TEMPLATES_RECOVERY=http://deskcomm-email-templates/recovery.html
+# GOTRUE_MAILER_TEMPLATES_INVITE=http://deskcomm-email-templates/invite.html
+```
+
+Em Docker Swarm, use `docker service create --network <rede-do-gotrue> --mount
+type=bind,source=/opt/deskcomm/emails,destination=/usr/share/nginx/html,readonly
+nginx:alpine` (com `--constraint-add node.hostname==<nó-com-o-bind>` se o
+Swarm tiver mais de um nó, já que um bind mount só existe naquele nó
+específico).
+
 Num Supabase próprio não existe Management API, então este é o único caminho —
-e é preciso repetir o comando quando a marca mudar.
+e é preciso repetir o `--render-em` (e reiniciar o container do servidor de
+templates, ou simplesmente deixá-lo servir os arquivos atualizados no mesmo
+lugar) quando a marca mudar.
+
+⚠️ **Resend em modo sandbox (sem domínio verificado) só envia para o e-mail
+da própria conta.** Medido em produção (2026-09-11): com
+`onboarding@resend.dev` como remetente, qualquer destinatário que não seja o
+e-mail que criou a conta Resend volta `550 You can only send testing emails
+to your own email address`. Mesmo para o e-mail permitido, esse remetente
+partilhado tem reputação fraca o suficiente para o Gmail aceitar a mensagem
+via SMTP (o Resend mostra "Delivered" no painel) e descartá-la depois, sem
+cair no spam — some. **Verifique um domínio em resend.com/domains** (registros
+SPF/DKIM/MX) antes de considerar o SMTP "funcionando" — só testar com o
+próprio e-mail e ver a mensagem chegar não descarta esse modo de falha.
 
 ## 4. Conectar o WhatsApp
 

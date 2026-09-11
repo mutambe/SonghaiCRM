@@ -119,6 +119,7 @@ acessibilidade).
 | [`runbooks/custo-e-cota-do-supabase.md`](runbooks/custo-e-cota-do-supabase.md) | **“Meu Supabase estourou a cota”** — como medir a origem do consumo, os dois intervalos da fila e as duas tabelas que só crescem |
 | [`runbooks/waha-vps.md`](runbooks/waha-vps.md) | Runbook do WAHA em produção |
 | [`runbooks/ai-credentials-rotation.md`](runbooks/ai-credentials-rotation.md) | Rotação de credenciais de IA |
+| [`runbooks/smtp-gotrue-producao.md`](runbooks/smtp-gotrue-producao.md) | **SMTP/templates de e-mail do GoTrue em produção** — configuração viva do Swarm (não versionada), o achado de que `GOTRUE_MAILER_TEMPLATES_*` exige URL HTTP (não caminho de arquivo), e a armadilha do modo sandbox do Resend |
 | [`../SECURITY.md`](../SECURITY.md) | Política de reporte de vulnerabilidade |
 
 ## 7. Testes e QA
