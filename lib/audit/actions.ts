@@ -190,6 +190,7 @@ export const AUDIT_ACTIONS = [
   "demanda.proximo_passo_definido",
   "routing.worker_run",
   "attendant.heartbeat_swept",
+  "retention.sweep_run",
   "webhook.source_created",
   "webhook.source_updated",
   "webhook.source_deleted",
