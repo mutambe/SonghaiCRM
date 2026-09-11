@@ -40,13 +40,25 @@ async function handle(req: NextRequest): Promise<Response> {
     return fail("internal_error", detail, 500, { requestId });
   }
 
-  void audit({
-    action: "routing.worker_run",
-    organizationId: null,
-    bypassedRls: true,
-    metadata: { batch_size: summary.batch_size, outcomes: summary.outcomes, errors: summary.errors.length },
-    requestId,
-  });
+  // Varredura que não drenou nada e não errou não é mutação — mesmo critério
+  // do snooze-watcher e do recover-stuck-messages. `errors.length > 0` entra
+  // porque `runRoutingWorker` devolve `batch_size: 0` com o erro DENTRO quando
+  // o `select` do event_log falha: sem esta cláusula, o tick em que o banco
+  // não respondeu ficaria idêntico, na trilha, ao tick de uma instalação sem
+  // nada a fazer.
+  if (summary.batch_size > 0 || summary.errors.length > 0) {
+    void audit({
+      action: "routing.worker_run",
+      organizationId: null,
+      bypassedRls: true,
+      metadata: {
+        batch_size: summary.batch_size,
+        outcomes: summary.outcomes,
+        errors: summary.errors.length,
+      },
+      requestId,
+    });
+  }
 
   return ok(
     { batch_size: summary.batch_size, outcomes: summary.outcomes, errors: summary.errors },

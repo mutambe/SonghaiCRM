@@ -97,19 +97,28 @@ export async function GET(req: NextRequest): Promise<Response> {
     }
   }
 
-  await audit({
-    action: "rag.conversations_batch_run",
-    organizationId: null,
-    metadata: {
-      orgs_processed: orgsProcessed,
-      total_processed: totalProcessed,
-      total_flagged: totalFlagged,
-      total_skipped: totalSkipped,
-      failures: failures.length,
-      since_ts: sinceTs.toISOString(),
-    },
-    requestId,
-  });
+  // `orgsProcessed` NÃO entra na condição: ele conta organizações VISITADAS, e
+  // visitar uma organização sem conversa nova é exatamente o nada que esta
+  // guarda existe para não registrar. `failures` entra: uma rodada em que toda
+  // organização estourou tem os três contadores em zero, e sem esta cláusula
+  // ficaria idêntica, na trilha, à rodada de uma instalação sem conversa nenhuma.
+  const houveEfeito =
+    totalProcessed > 0 || totalFlagged > 0 || totalSkipped > 0 || failures.length > 0;
+  if (houveEfeito) {
+    await audit({
+      action: "rag.conversations_batch_run",
+      organizationId: null,
+      metadata: {
+        orgs_processed: orgsProcessed,
+        total_processed: totalProcessed,
+        total_flagged: totalFlagged,
+        total_skipped: totalSkipped,
+        failures: failures.length,
+        since_ts: sinceTs.toISOString(),
+      },
+      requestId,
+    });
+  }
 
   return ok(
     {
