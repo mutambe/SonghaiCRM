@@ -330,6 +330,14 @@ export const AUDIT_ACTIONS = [
   "tenant.owner_invited",
   "tenant.subscription_assigned",
   "tenant.subscription_changed",
+  // Editar/deletar tenant + gerir acesso do owner do painel de plataforma —
+  // até aqui só existiam suspend/reactivate/change-plan (S-11.08); criar um
+  // tenant com e-mail errado do owner não tinha conserto sem SQL manual.
+  "tenant.updated_by_platform_admin",
+  "tenant.deleted_by_platform_admin",
+  "tenant.owner_invite_resent",
+  "tenant.owner_changed_by_platform_admin",
+  "tenant.owner_password_reset_sent",
 ] as const;
 
 /** Um código de auditoria. Derivado de `AUDIT_ACTIONS` — não redigite a lista. */

@@ -1,7 +1,13 @@
 "use client";
 import { Badge } from "@/components/ui/badge";
 import { Warning } from "@/lib/ui/icons";
-import type { TenantOrganization, TenantCounts, TenantSubscription } from "@/hooks/useTenantDetail";
+import { TenantOwnerCard } from "./TenantOwnerCard";
+import type {
+  TenantOrganization,
+  TenantCounts,
+  TenantSubscription,
+  TenantOwner,
+} from "@/hooks/useTenantDetail";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -50,15 +56,22 @@ interface TenantOverviewProps {
   organization: TenantOrganization;
   counts: TenantCounts;
   subscription: TenantSubscription | null;
+  owner: TenantOwner;
 }
 
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
-export function TenantOverview({ organization, counts, subscription }: TenantOverviewProps) {
+export function TenantOverview({ organization, counts, subscription, owner }: TenantOverviewProps) {
   return (
     <div className="space-y-6">
+      <TenantOwnerCard
+        organizationId={organization.id}
+        owner={owner}
+        disabled={organization.status === "redacted"}
+      />
+
       {/* Info card */}
       <div className="rounded-lg border bg-card p-5">
         <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
