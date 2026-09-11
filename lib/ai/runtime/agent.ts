@@ -32,6 +32,7 @@ import { generateText, stepCountIs, type LanguageModel, type StopCondition, type
 import {
   OPENROUTER_ENDPOINT,
   NVIDIA_ENDPOINT,
+  GROQ_ENDPOINT,
   OLLAMA_DEFAULT_ENDPOINT,
   DEEPSEEK_ENDPOINT,
   QWEN_ENDPOINT,
@@ -183,6 +184,8 @@ export function buildModel(provider: string, apiKey: string, modelId: string): L
       return createOpenAI({ apiKey, baseURL: OPENROUTER_ENDPOINT })(modelId);
     case "nvidia":
       return createOpenAI({ apiKey, baseURL: NVIDIA_ENDPOINT })(modelId);
+    case "groq":
+      return createOpenAI({ apiKey, baseURL: GROQ_ENDPOINT })(modelId);
     // Sem baseUrl aqui (a assinatura de `buildModel` não recebe um — é o
     // runtime de ENSAIO, que só faz smoke-test do switch). Em produção real o
     // `ollama` sempre chega com `baseUrl` próprio via `createDefaultRegistry`;

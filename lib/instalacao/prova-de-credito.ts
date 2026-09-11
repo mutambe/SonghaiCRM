@@ -22,6 +22,7 @@ import { normalizarErro } from "@/lib/agent-engine/edge/llm/run-model-call";
 import {
   OPENROUTER_ENDPOINT,
   NVIDIA_ENDPOINT,
+  GROQ_ENDPOINT,
   OLLAMA_DEFAULT_ENDPOINT,
   DEEPSEEK_ENDPOINT,
   QWEN_ENDPOINT,
@@ -84,6 +85,7 @@ export function montarRequisicaoDeProva(
     // de verdade (é local), mas passa pela mesma geração mínima: o objetivo
     // aqui também é provar que o endpoint responde, não só que existe.
     case "nvidia":
+    case "groq":
     case "ollama":
     case "deepseek":
     case "qwen":
@@ -91,6 +93,7 @@ export function montarRequisicaoDeProva(
     case "moonshot": {
       const padrao = {
         nvidia: NVIDIA_ENDPOINT,
+        groq: GROQ_ENDPOINT,
         ollama: OLLAMA_DEFAULT_ENDPOINT,
         deepseek: DEEPSEEK_ENDPOINT,
         qwen: QWEN_ENDPOINT,

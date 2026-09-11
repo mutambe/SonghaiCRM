@@ -169,6 +169,7 @@ function validadorEstiloOpenAI(baseUrl: string) {
   };
 }
 
+export const validateGroqKey = validadorEstiloOpenAI("https://api.groq.com/openai/v1");
 export const validateNvidiaKey = validadorEstiloOpenAI("https://integrate.api.nvidia.com/v1");
 export const validateDeepSeekKey = validadorEstiloOpenAI("https://api.deepseek.com/v1");
 export const validateQwenKey = validadorEstiloOpenAI("https://dashscope.aliyuncs.com/compatible-mode/v1");
@@ -213,6 +214,8 @@ export function validateProviderKey(
       return validateOpenRouterKey(apiKey);
     case "nvidia":
       return validateNvidiaKey(apiKey);
+    case "groq":
+      return validateGroqKey(apiKey);
     case "ollama":
       return validateOllamaEndpoint(apiKey);
     case "deepseek":
