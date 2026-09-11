@@ -12,6 +12,7 @@ import { logger } from "@/lib/logger";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { empresaExigeMfa, exigeCadastroDeMfa } from "@/lib/auth/politica-mfa";
+import { IMPERSONATE_COOKIE_NAME, verifyImpersonateCookie } from "@/lib/impersonate/cookie";
 import type { AuthUser, Role, UserOrgMembership, ActiveOrg } from "./types";
 
 const ACTIVE_ORG_COOKIE = "active_org";
@@ -182,12 +183,41 @@ export async function loadAuthUser(): Promise<AuthUser | null> {
 
 /**
  * Resolves the active organization for the current request.
- * Priority: cookie `active_org` (if member of) → first membership.
- * Returns null if user has zero memberships.
+ * Priority: cookie `deskcomm-impersonate` (S-11.07, platform admin acting as
+ * tenant) → cookie `active_org` (if member of) → first membership.
+ * Returns null if user has zero memberships and isn't impersonating.
+ *
+ * O cookie de impersonate PRECISA vencer o de membership: o platform admin que
+ * acabou de clicar "Impersonate" quase nunca é membro real do tenant (não tem
+ * linha em `user_organizations`), e sem esta checagem primeiro esta função caía
+ * direto no fallback — devolvendo a org do próprio admin (ou `null`) enquanto o
+ * banner dizia "atuando como X". A tela mostrava dados errados com o rótulo
+ * certo. Ver `lib/impersonate/cookie.ts` para o formato/verificação do cookie.
  */
 export async function resolveActiveOrg(authUser: AuthUser): Promise<ActiveOrg | null> {
-  if (authUser.organizations.length === 0) return null;
   const store = await cookies();
+
+  const impCookie = store.get(IMPERSONATE_COOKIE_NAME)?.value;
+  if (impCookie) {
+    const result = verifyImpersonateCookie(impCookie);
+    // `platformAdminId` do payload precisa bater com o usuário autenticado —
+    // o cookie é HttpOnly e só o endpoint de impersonate o emite (atrás de
+    // `requirePlatformAdmin`), mas confirmar aqui evita que um cookie válido
+    // sobre-escreva a organização de outra sessão num browser compartilhado.
+    if (result.valid && result.payload && result.payload.platformAdminId === authUser.id) {
+      const admin = createAdminClient();
+      const { data: org } = await admin
+        .from("organizations")
+        .select("id, display_name")
+        .eq("id", result.payload.tenantId)
+        .maybeSingle();
+      if (org) {
+        return { orgId: org.id, name: org.display_name, role: "admin" };
+      }
+    }
+  }
+
+  if (authUser.organizations.length === 0) return null;
   const cookieOrg = store.get(ACTIVE_ORG_COOKIE)?.value;
   if (cookieOrg) {
     const found = authUser.organizations.find((o) => o.organization_id === cookieOrg);
