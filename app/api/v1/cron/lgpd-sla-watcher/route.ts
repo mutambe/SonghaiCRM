@@ -24,6 +24,7 @@ import { triggerSlaAlarm } from "@/lib/lgpd/sla-alarm";
 import { marcaDaSaida, type MarcaDeSaida } from "@/lib/branding/saida";
 import type { LgpdRequest } from "@/lib/lgpd/types";
 import type { AlarmThreshold } from "@/lib/lgpd/sla-alarm";
+import { internalSurfaceRateLimited } from "@/lib/auth/internal-rate-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -39,6 +40,13 @@ type RequestWithOrg = LgpdRequest & OrgRow;
 
 export async function GET(req: NextRequest): Promise<Response> {
   const requestId = randomUUID();
+
+  if (await internalSurfaceRateLimited(req, "cron", 30, 60)) {
+    return fail("rate_limited", "Muitas requisições.", 429, {
+      requestId,
+      headers: { "Retry-After": "60" },
+    });
+  }
   const startedAt = Date.now();
 
   // ────────────────────────────────────────────────────────────────────────

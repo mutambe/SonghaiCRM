@@ -1,0 +1,14 @@
+# Config do gitleaks pro pre-commit (scripts/scan-secrets.mjs delega pra ele
+# quando está instalado). Estende o ruleset default do gitleaks — não
+# reescreve regra nenhuma, só isenta os fixtures de teste já auditados.
+title = "SonghaiCRM"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Fixtures de teste com JWT/token inventado, auditados em 2026-09-21"
+paths = [
+  '''lib/audit/service-role-configured\.test\.ts''',
+  '''tests/sonda-radar-isolamento-orgs\.ts''',
+]

@@ -20,6 +20,10 @@ build/
 !.env.example
 !.env.selfhost.example
 
+# husky — `_` é o bootstrap interno, regenerado por `pnpm install` (script
+# `prepare`); só `.husky/pre-commit` (o hook em si) é versionado.
+.husky/_
+
 # Testing & coverage
 coverage/
 .nyc_output/

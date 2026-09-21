@@ -9,6 +9,7 @@
     "node": ">=22"
   },
   "scripts": {
+    "prepare": "husky",
     "dev": "next dev",
     "dev:webpack": "next dev",
     "build": "next build",
@@ -108,6 +109,7 @@
     "autoprefixer": "^10.5.4",
     "eslint": "^9.12.0",
     "eslint-config-next": "^16.2.10",
+    "husky": "^9.1.7",
     "jsdom": "^30.0.1",
     "postcss": "^8.5.26",
     "prettier": "^3.9.6",
