@@ -181,7 +181,15 @@ describe("0150 — o segredo cifrado some da superfície do browser", () => {
 const DIVIDA_RBAC_CONHECIDA = new Set([
   "agent_cases", "agent_inbox_items", "ai_agent_runs", "ai_chunks", "ai_faq_items",
   "ai_invocations", "ai_knowledge_sources", "ai_knowledge_versions", "ai_router_decisions",
-  "before_send_traces", "channel_knobs", "channel_session_health", "channel_session_warmup",
+  "before_send_traces",
+  // calendar_connection_calendars/calendar_oauth_nonces (migration 0181):
+  // a policy ALL aqui é `fn_is_platform_admin()` sozinho — mais restritiva
+  // que "só tenancy", não menos: nem manager do tenant escreve via RLS,
+  // só a rota (service role) e o platform admin. O grep procura a
+  // substring `role_at_least`, que não aparece porque a policy nem
+  // PRECISA dela — está mais apertada que o padrão que o gate cobra.
+  "calendar_connection_calendars", "calendar_oauth_nonces",
+  "channel_knobs", "channel_session_health", "channel_session_warmup",
   "contact_field_proposals", "contacts", "crm_lead_reactivations", "crm_lead_risk_states",
   "crm_lead_scores", "cron_jobs", "demanda_conversas", "demandas",
   "disclosure_template_pointers", "disclosure_template_versions",
