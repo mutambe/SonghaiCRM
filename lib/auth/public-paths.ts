@@ -13,6 +13,11 @@ export const PUBLIC_PATHS: RegExp[] = [
   /^\/500$/,
   /^\/503$/,
   /^\/api\/v1\/health$/,
+  // Volta do consentimento do Google (agenda). O cookie de sessão é
+  // SameSite=Strict e não viaja na navegação cross-site de volta do
+  // consentimento — a rota valida identidade por state assinado + vínculo
+  // (lib/agenda/google/estado.ts, vinculo.ts), não por sessão.
+  /^\/api\/v1\/agenda\/google\/callback$/,
   /^\/api\/v1\/webhooks\//,
   /^\/api\/v1\/cron\//,
   // Heartbeat do agente do host (bearer INTERNAL_SECRET/INTERNAL_CRON_SECRET,
