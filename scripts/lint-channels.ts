@@ -102,6 +102,10 @@ const KNOWN_DEBT: { reason: string; files: string[] }[] = [
       "app/api/v1/admin/tenants/[id]/health/route.ts",
       // (#118) Emite `waha_sessions_count` na resposta do admin.
       "app/api/v1/admin/tenants/[id]/route.ts",
+      // O contador de `waha_sessions_count` foi extraído do arquivo acima
+      // pra `lib/admin/tenant-counts.ts` (reuso pelo guard de DELETE de
+      // tenant) — mesmo campo, mesma dívida, só de casa nova.
+      "lib/admin/tenant-counts.ts",
       "app/design/sections/SectionPatterns.tsx",
       "app/onboarding/connect-whatsapp/_client.tsx",
       "components/admin/dashboard/AlertItem.tsx",
