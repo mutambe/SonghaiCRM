@@ -338,6 +338,12 @@ export const AUDIT_ACTIONS = [
   "tenant.owner_invite_resent",
   "tenant.owner_changed_by_platform_admin",
   "tenant.owner_password_reset_sent",
+  // Integração com Google Calendar (Fase 1) — conectar/desconectar a agenda
+  // pessoal do atendente. Ver lib/agenda/google/.
+  "agenda.google.conexao_iniciada",
+  "agenda.google.conexao_falhou",
+  "agenda.google.conexao_concluida",
+  "agenda.google.desconectada",
 ] as const;
 
 /** Um código de auditoria. Derivado de `AUDIT_ACTIONS` — não redigite a lista. */

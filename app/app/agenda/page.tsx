@@ -1,7 +1,9 @@
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 
 import { requireAuth, resolveActiveOrg } from "@/lib/auth/server";
 import { AgendaClient } from "./_client";
+import { GoogleCalendarCard } from "./_google-calendar-card";
 
 export const dynamic = "force-dynamic";
 
@@ -19,6 +21,11 @@ export default async function AgendaPage() {
           o botão &quot;Marcar horário&quot;.
         </p>
       </header>
+      {/* `useSearchParams` (dentro do card) exige um limite de Suspense — sem
+          isto o build falha com "should be wrapped in a suspense boundary". */}
+      <Suspense fallback={null}>
+        <GoogleCalendarCard />
+      </Suspense>
       <AgendaClient />
     </div>
   );

@@ -192,6 +192,12 @@ const schema = z.object({
     .url()
     .default("http://localhost:3000"),
 
+  // Agenda — integração com Google Calendar (lib/agenda/google/). Opcional:
+  // sem as duas, o módulo de Agenda funciona inteiro e só some o botão
+  // "Conectar Google" — ver lib/agenda/google/config.ts.
+  GOOGLE_CALENDAR_CLIENT_ID: z.string().optional().default(""),
+  GOOGLE_CALENDAR_CLIENT_SECRET: z.string().optional().default(""),
+
   // Marca da instalação (white-label) — ver lib/branding.ts.
   // Sem prefixo NEXT_PUBLIC_ de propósito: essas seriam queimadas no bundle
   // durante o build da imagem, e o self-hoster roda uma imagem pré-buildada.
