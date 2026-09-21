@@ -12,6 +12,7 @@ describe("createDefaultRegistry", () => {
     // toda chamada recusaria. O par é vigiado por provedores-x-registry.test.ts.
     const reg = createDefaultRegistry();
     expect(Object.keys(reg).sort()).toEqual([
+      "9router",
       "anthropic",
       "deepseek",
       "google",

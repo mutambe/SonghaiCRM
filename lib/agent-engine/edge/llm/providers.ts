@@ -60,6 +60,10 @@ export const DEEPSEEK_ENDPOINT = 'https://api.deepseek.com/v1';
 export const QWEN_ENDPOINT = 'https://dashscope.aliyuncs.com/compatible-mode/v1';
 export const ZHIPU_ENDPOINT = 'https://open.bigmodel.cn/api/paas/v4';
 export const MOONSHOT_ENDPOINT = 'https://api.moonshot.cn/v1';
+/** Sem endpoint hospedado por nós — é o default da porta padrão do instalador
+ *  (`9router` via npm). O operador roda a própria instância; `baseUrl` do
+ *  painel sobrescreve quando ela não está no host:porta padrão. */
+export const NOVE_ROUTER_DEFAULT_ENDPOINT = 'http://localhost:20128/v1';
 
 /**
  * Providers reais do lançamento. Sonnet (Anthropic) é o default RECOMENDADO —
@@ -134,6 +138,10 @@ export function createDefaultRegistry(opts?: { allowedHosts?: string[] }): Provi
     },
     moonshot: (apiKey, modelId, baseUrl) => {
       const endpoint = baseUrl ?? MOONSHOT_ENDPOINT;
+      return createOpenAI({ apiKey, baseURL: endpoint, fetch: contain(endpoint) })(modelId);
+    },
+    '9router': (apiKey, modelId, baseUrl) => {
+      const endpoint = baseUrl ?? NOVE_ROUTER_DEFAULT_ENDPOINT;
       return createOpenAI({ apiKey, baseURL: endpoint, fetch: contain(endpoint) })(modelId);
     },
   };

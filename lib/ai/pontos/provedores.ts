@@ -152,6 +152,18 @@ export const PROVEDORES = [
     catalogoSincronizavel: false,
     ondePegarAChave: "https://platform.moonshot.cn/console/api-keys",
   },
+  {
+    id: "9router",
+    rotulo: "9Router (local)",
+    quandoUsar:
+      "Gateway de IA que o próprio operador roda (na VPS ou na máquina), na frente de várias assinaturas/provedores — bom para quem já tem o 9Router configurado e quer que o CRM fale com ele em vez de bater direto em cada provedor.",
+    aceitaEndpointProprio: true,
+    catalogoSincronizavel: false,
+    // Não tem endpoint hospedado por nós — é a documentação do projeto do
+    // operador, não uma página de billing. `local: true` avisa a tela disso.
+    ondePegarAChave: "https://9router.github.io/en/",
+    local: true,
+  },
 ] as const satisfies readonly ProvedorSuportado[];
 // `as const satisfies` e não anotação de tipo: a anotação apagaria os literais
 // e `Provider` viraria `string`, deixando o compilador aceitar qualquer texto

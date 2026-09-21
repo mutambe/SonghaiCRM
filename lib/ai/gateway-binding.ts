@@ -38,6 +38,7 @@ import {
   QWEN_ENDPOINT,
   ZHIPU_ENDPOINT,
   MOONSHOT_ENDPOINT,
+  NOVE_ROUTER_DEFAULT_ENDPOINT,
 } from "@/lib/agent-engine/edge/llm/providers";
 
 import { OPENROUTER_BASE_URL, resolveLanguageModel, type ModelId } from "./gateway";
@@ -200,6 +201,8 @@ function instanciar(
       return createOpenAI({ apiKey, baseURL: baseUrl ?? ZHIPU_ENDPOINT })(modelId);
     case "moonshot":
       return createOpenAI({ apiKey, baseURL: baseUrl ?? MOONSHOT_ENDPOINT })(modelId);
+    case "9router":
+      return createOpenAI({ apiKey, baseURL: baseUrl ?? NOVE_ROUTER_DEFAULT_ENDPOINT })(modelId);
     default:
       return null;
   }

@@ -177,6 +177,18 @@ export const validateZhipuKey = validadorEstiloOpenAI("https://open.bigmodel.cn/
 export const validateMoonshotKey = validadorEstiloOpenAI("https://api.moonshot.cn/v1");
 
 /**
+ * 9Router: mesma forma de discovery dos seis acima (`GET /models` com Bearer).
+ * Diferente do Ollama, o 9Router EXIGE chave real (emitida no dashboard dele) —
+ * então o campo único da tela de Credenciais continua sendo a CHAVE, igual aos
+ * outros provedores "estilo OpenAI". O endpoint tem um default (porta padrão
+ * do instalador `9router` via npm), mas é sobrescrevível por ponto na tela de
+ * Pontos de IA (`ai_purpose_bindings.base_url`), porque o operador roda a
+ * instância dele onde quiser — não há endpoint hospedado por nós.
+ */
+export const NOVE_ROUTER_DEFAULT_ENDPOINT = "http://localhost:20128/v1";
+export const validate9RouterKey = validadorEstiloOpenAI(NOVE_ROUTER_DEFAULT_ENDPOINT);
+
+/**
  * Ollama não tem "chave" — o que existe pra validar é se o endpoint local
  * responde. `apiKey` aqui é, na prática, o `baseUrl` que o operador digitou
  * na tela (o painel de Credenciais não tem campo de endpoint separado do de
@@ -226,6 +238,8 @@ export function validateProviderKey(
       return validateZhipuKey(apiKey);
     case "moonshot":
       return validateMoonshotKey(apiKey);
+    case "9router":
+      return validate9RouterKey(apiKey);
     default: {
       // Sem `never` aqui: `Provider` agora é derivado de PROVEDORES, e a lista
       // cresce sem que este arquivo saiba. Provedor novo cadastrado antes de

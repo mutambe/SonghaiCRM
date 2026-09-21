@@ -28,6 +28,7 @@ import {
   QWEN_ENDPOINT,
   ZHIPU_ENDPOINT,
   MOONSHOT_ENDPOINT,
+  NOVE_ROUTER_DEFAULT_ENDPOINT,
 } from "@/lib/agent-engine/edge/llm/providers";
 
 export type ResultadoDaProva =
@@ -90,7 +91,8 @@ export function montarRequisicaoDeProva(
     case "deepseek":
     case "qwen":
     case "zhipu":
-    case "moonshot": {
+    case "moonshot":
+    case "9router": {
       const padrao = {
         nvidia: NVIDIA_ENDPOINT,
         groq: GROQ_ENDPOINT,
@@ -99,6 +101,7 @@ export function montarRequisicaoDeProva(
         qwen: QWEN_ENDPOINT,
         zhipu: ZHIPU_ENDPOINT,
         moonshot: MOONSHOT_ENDPOINT,
+        "9router": NOVE_ROUTER_DEFAULT_ENDPOINT,
       }[provider];
       return {
         url: `${baseUrl ?? padrao}/chat/completions`,
