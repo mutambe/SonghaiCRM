@@ -37,6 +37,7 @@ import {
   QWEN_ENDPOINT,
   ZHIPU_ENDPOINT,
   MOONSHOT_ENDPOINT,
+  NOVE_ROUTER_DEFAULT_ENDPOINT,
 } from "@/lib/agent-engine/edge/llm/providers";
 import { CredentialUnavailableError, loadCredential } from "@/lib/ai/credentials";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -197,6 +198,11 @@ export function buildModel(provider: string, apiKey: string, modelId: string): L
       return createOpenAI({ apiKey, baseURL: ZHIPU_ENDPOINT })(modelId);
     case "moonshot":
       return createOpenAI({ apiKey, baseURL: MOONSHOT_ENDPOINT })(modelId);
+    // Mesma nota do `ollama`: sem `baseUrl` aqui, o default é só o que evita
+    // lançar por falta de host no smoke-test do ensaio. Em produção o
+    // `createDefaultRegistry` sempre recebe o `baseUrl` real do painel.
+    case "9router":
+      return createOpenAI({ apiKey, baseURL: NOVE_ROUTER_DEFAULT_ENDPOINT })(modelId);
     default:
       throw new Error(`unsupported_provider: ${provider}`);
   }
