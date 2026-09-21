@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 /**
  * Rate limit nas superfícies internas (issue do Tier 2 — /api/mcp,
