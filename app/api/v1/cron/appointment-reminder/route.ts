@@ -50,6 +50,7 @@ import { getRequestPool } from "@/lib/agent-engine/db/request-pool";
 import { crmEdgeConfigFromEnv } from "@/lib/agent-engine/edge/crm/mcp-client";
 import { defaultChannelAdapter } from "@/lib/channels/pre-seam-adapter";
 import type { ChannelAdapter } from "@/lib/agent-engine/channel-adapter";
+import { internalSurfaceRateLimited } from "@/lib/auth/internal-rate-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -208,6 +209,13 @@ async function sendOneReminder(
 
 async function handle(req: NextRequest): Promise<Response> {
   const requestId = randomUUID();
+
+  if (await internalSurfaceRateLimited(req, "cron", 30, 60)) {
+    return fail("rate_limited", "Muitas requisições.", 429, {
+      requestId,
+      headers: { "Retry-After": "60" },
+    });
+  }
   const auth = req.headers.get("authorization") ?? "";
   const provided = auth.startsWith("Bearer ") ? auth.slice("Bearer ".length).trim() : "";
   const accepted = [env.INTERNAL_CRON_SECRET, env.INTERNAL_SECRET].filter(Boolean);

@@ -17,6 +17,7 @@ import { z } from "zod";
 
 import { runAgent } from "@/lib/ai/runtime/agent";
 import { ok, fail } from "@/lib/api/wrappers";
+import { internalSurfaceRateLimited } from "@/lib/auth/internal-rate-limit";
 import { env } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
@@ -58,6 +59,13 @@ function authorize(req: NextRequest): boolean {
 
 export async function POST(req: NextRequest): Promise<Response> {
   const requestId = randomUUID();
+
+  if (await internalSurfaceRateLimited(req, "internal_agents_run", 60, 60)) {
+    return fail("rate_limited", "Muitas requisições.", 429, {
+      requestId,
+      headers: { "Retry-After": "60" },
+    });
+  }
 
   if (!authorize(req)) {
     return fail("unauthenticated", "Internal secret missing or invalid.", 401, {

@@ -43,7 +43,7 @@ export interface AuthRateLimits {
  * `null` em vez de uma string sentinela: "não sei de onde veio" precisa ser
  * inexprimível como se fosse uma origem, senão vira balde compartilhado.
  */
-async function clientIp(): Promise<string | null> {
+export async function clientIp(): Promise<string | null> {
   const hdrs = await headers();
   const encaminhado = hdrs.get("x-forwarded-for")?.split(",")[0]?.trim();
   if (encaminhado) return encaminhado;
@@ -51,7 +51,7 @@ async function clientIp(): Promise<string | null> {
   return real || null;
 }
 
-function opaque(value: string): string {
+export function opaque(value: string): string {
   return createHash("sha256").update(value.trim().toLowerCase()).digest("hex").slice(0, 32);
 }
 

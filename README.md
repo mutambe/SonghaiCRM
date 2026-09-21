@@ -270,6 +270,11 @@ cd DeskcommCRM
 
 nvm use                     # Node 22
 npm install -g pnpm && pnpm install
+# ^ também instala o hook de pre-commit (husky) que barra segredo commitado
+#   por engano. Cobertura melhor com `gitleaks` no PATH (opcional):
+#   scoop install gitleaks / brew install gitleaks / go install
+#   github.com/gitleaks/gitleaks/v8@latest — sem ele, cai num scanner por
+#   regex embutido (menos preciso, mas não exige instalar nada).
 
 cp .env.example .env.local  # guia completo em docs/SETUP.md
 

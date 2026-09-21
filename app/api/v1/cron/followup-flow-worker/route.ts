@@ -30,6 +30,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseAdminClient, runFollowupTick, type FollowupJobRequest } from "@/lib/followup/engine";
 import { createSupabaseFollowupGateDb } from "@/lib/followup/agent-followup-gate";
 import { createSupabaseSilenceSweepDb, runSilenceSweep } from "@/lib/followup/silence-sweep";
+import { internalSurfaceRateLimited } from "@/lib/auth/internal-rate-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -48,6 +49,13 @@ async function enqueueJob(job: FollowupJobRequest): Promise<void> {
 
 async function handle(req: NextRequest): Promise<Response> {
   const requestId = randomUUID();
+
+  if (await internalSurfaceRateLimited(req, "cron", 30, 60)) {
+    return fail("rate_limited", "Muitas requisições.", 429, {
+      requestId,
+      headers: { "Retry-After": "60" },
+    });
+  }
 
   const auth = req.headers.get("authorization") ?? "";
   const bearer = auth.startsWith("Bearer ") ? auth.slice("Bearer ".length).trim() : "";

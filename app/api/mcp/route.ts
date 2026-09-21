@@ -15,12 +15,13 @@ import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/
 
 import { createMcpServer } from "@/lib/mcp/server";
 import { McpAuthError, validateBearerToken } from "@/lib/mcp/auth";
+import { internalSurfaceRateLimited } from "@/lib/auth/internal-rate-limit";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 export const maxDuration = 300;
 
-function jsonRpcError(code: number, message: string, status: number): Response {
+function jsonRpcError(code: number, message: string, status: number, headers?: HeadersInit): Response {
   return new Response(
     JSON.stringify({
       jsonrpc: "2.0",
@@ -29,13 +30,18 @@ function jsonRpcError(code: number, message: string, status: number): Response {
     }),
     {
       status,
-      headers: { "content-type": "application/json" },
+      headers: { "content-type": "application/json", ...headers },
     },
   );
 }
 
 async function handle(req: NextRequest): Promise<Response> {
   const requestId = randomUUID();
+
+  if (await internalSurfaceRateLimited(req, "mcp", 120, 60)) {
+    return jsonRpcError(-32000, "Too many requests.", 429, { "Retry-After": "60" });
+  }
+
   let auth;
   try {
     auth = await validateBearerToken(req.headers.get("authorization"));

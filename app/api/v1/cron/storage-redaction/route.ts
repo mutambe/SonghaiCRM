@@ -14,6 +14,7 @@ import type { NextRequest } from "next/server";
 import { ok, fail } from "@/lib/api/wrappers";
 import { env } from "@/lib/env";
 import { drainStorageRedactionQueue } from "@/lib/lgpd/storage-redaction-queue";
+import { internalSurfaceRateLimited } from "@/lib/auth/internal-rate-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -22,6 +23,13 @@ const MAX_LIMIT = 200;
 
 export async function GET(req: NextRequest): Promise<Response> {
   const requestId = randomUUID();
+
+  if (await internalSurfaceRateLimited(req, "cron", 30, 60)) {
+    return fail("rate_limited", "Muitas requisições.", 429, {
+      requestId,
+      headers: { "Retry-After": "60" },
+    });
+  }
 
   const auth = req.headers.get("authorization") ?? "";
   const provided = auth.startsWith("Bearer ") ? auth.slice("Bearer ".length).trim() : "";

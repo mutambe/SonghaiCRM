@@ -50,6 +50,7 @@ import {
 import { env } from "@/lib/env";
 import { logger } from "@/lib/logger";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { internalSurfaceRateLimited } from "@/lib/auth/internal-rate-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -134,6 +135,13 @@ function autorizado(req: NextRequest): boolean {
 
 async function handler(req: NextRequest): Promise<Response> {
   const requestId = randomUUID();
+
+  if (await internalSurfaceRateLimited(req, "cron", 30, 60)) {
+    return fail("rate_limited", "Muitas requisições.", 429, {
+      requestId,
+      headers: { "Retry-After": "60" },
+    });
+  }
   if (!autorizado(req)) {
     return fail("unauthorized", "cron secret ausente ou inválido", 401, { requestId });
   }
