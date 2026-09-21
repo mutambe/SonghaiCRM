@@ -22,10 +22,14 @@ vi.mock("next/headers", () => ({
   }),
 }));
 
-vi.mock("@/lib/impersonate/cookie", () => ({
-  IMPERSONATE_COOKIE_NAME: "deskcomm-impersonate",
-  verifyImpersonateCookie: vi.fn(),
-}));
+vi.mock("@/lib/impersonate/cookie", async () => {
+  const actual =
+    await vi.importActual<typeof import("@/lib/impersonate/cookie")>("@/lib/impersonate/cookie");
+  return {
+    IMPERSONATE_COOKIE_NAME: actual.IMPERSONATE_COOKIE_NAME,
+    verifyImpersonateCookie: vi.fn(),
+  };
+});
 
 const orgLookup: { data: { id: string; display_name: string } | null; error: unknown } = {
   data: null,
@@ -45,7 +49,7 @@ vi.mock("@/lib/supabase/admin", () => ({
 }));
 
 const { resolveActiveOrg } = await import("@/lib/auth/server");
-const { verifyImpersonateCookie } = await import("@/lib/impersonate/cookie");
+const { verifyImpersonateCookie, IMPERSONATE_COOKIE_NAME } = await import("@/lib/impersonate/cookie");
 import type { AuthUser } from "@/lib/auth/types";
 
 const PLATFORM_ADMIN_ID = "11111111-1111-4111-8111-111111111111";
@@ -73,7 +77,7 @@ beforeEach(() => {
 
 describe("resolveActiveOrg — impersonate (S-11.07) vence membership", () => {
   it("cookie de impersonate válido devolve o TENANT, mesmo sem o admin ser membro", async () => {
-    cookieJar.set("deskcomm-impersonate", "token-valido");
+    cookieJar.set(IMPERSONATE_COOKIE_NAME, "token-valido");
     vi.mocked(verifyImpersonateCookie).mockReturnValue({
       valid: true,
       payload: { tenantId: TENANT_ID, platformAdminId: PLATFORM_ADMIN_ID, exp: 9999999999 },
@@ -86,7 +90,7 @@ describe("resolveActiveOrg — impersonate (S-11.07) vence membership", () => {
   });
 
   it("impersonate vence até um active_org cookie apontando pra outra org", async () => {
-    cookieJar.set("deskcomm-impersonate", "token-valido");
+    cookieJar.set(IMPERSONATE_COOKIE_NAME, "token-valido");
     cookieJar.set("active_org", OWN_ORG_ID);
     vi.mocked(verifyImpersonateCookie).mockReturnValue({
       valid: true,
@@ -104,7 +108,7 @@ describe("resolveActiveOrg — impersonate (S-11.07) vence membership", () => {
   });
 
   it("cookie com platformAdminId de OUTRO usuário é ignorado (browser compartilhado)", async () => {
-    cookieJar.set("deskcomm-impersonate", "token-de-outro-admin");
+    cookieJar.set(IMPERSONATE_COOKIE_NAME, "token-de-outro-admin");
     vi.mocked(verifyImpersonateCookie).mockReturnValue({
       valid: true,
       payload: { tenantId: TENANT_ID, platformAdminId: "outro-admin-id", exp: 9999999999 },
@@ -116,7 +120,7 @@ describe("resolveActiveOrg — impersonate (S-11.07) vence membership", () => {
   });
 
   it("cookie inválido (expirado/adulterado) cai pro fluxo normal", async () => {
-    cookieJar.set("deskcomm-impersonate", "token-expirado");
+    cookieJar.set(IMPERSONATE_COOKIE_NAME, "token-expirado");
     vi.mocked(verifyImpersonateCookie).mockReturnValue({ valid: false, reason: "expired" });
 
     const result = await resolveActiveOrg(
@@ -139,7 +143,7 @@ describe("resolveActiveOrg — impersonate (S-11.07) vence membership", () => {
   });
 
   it("tenant do cookie foi deletado/não existe mais → cai pro fluxo normal em vez de vazar null", async () => {
-    cookieJar.set("deskcomm-impersonate", "token-valido");
+    cookieJar.set(IMPERSONATE_COOKIE_NAME, "token-valido");
     vi.mocked(verifyImpersonateCookie).mockReturnValue({
       valid: true,
       payload: { tenantId: TENANT_ID, platformAdminId: PLATFORM_ADMIN_ID, exp: 9999999999 },

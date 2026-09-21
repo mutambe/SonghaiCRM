@@ -36,7 +36,13 @@ export interface ZernioCredentials {
  * outro lugar sem editar código.
  */
 export function zernioBaseUrl(): string {
-  return process.env.ZERNIO_API_BASE_URL ?? "https://zernio.com/api";
+  // `??` sozinho não basta: o `.env.example` documenta "vazio usa a produção
+  // do provedor", e quem copia o exemplo herda a linha `ZERNIO_API_BASE_URL=`
+  // — uma STRING VAZIA, não ausente. `??` só cai no default para `null`/
+  // `undefined`; com a env definida e vazia, o fetch saía para um path
+  // relativo (`/v1/inbox/conversations`, sem host) em vez da API real.
+  const v = process.env.ZERNIO_API_BASE_URL;
+  return v && v.trim() !== "" ? v : "https://zernio.com/api";
 }
 
 /**
