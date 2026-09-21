@@ -221,7 +221,7 @@ export const apiClient = {
   put<T>(path: string, body: unknown, opts?: RequestOpts): Promise<T> {
     return request<T>("PUT", path, body, opts);
   },
-  delete<T>(path: string, opts?: RequestOpts): Promise<T> {
-    return request<T>("DELETE", path, undefined, opts);
+  delete<T>(path: string, body?: unknown, opts?: RequestOpts): Promise<T> {
+    return request<T>("DELETE", path, body, opts);
   },
 };

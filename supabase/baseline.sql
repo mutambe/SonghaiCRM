@@ -14199,3 +14199,139 @@ create policy "organization_subscriptions_tenant_select" on public.organization_
 -- 0176_licenciamento_por_tenant.sql`, aplicado via Supabase CLI em ordem
 -- sequencial) mantém os renames na posição literal do Step 1 — lá não há o
 -- mesmo risco de reaplicação do arquivo inteiro.
+
+-- ---- catálogo curado do Groq (migration 0178) ----
+--
+-- Provedor "manual" (catalogoSincronizavel: false) sem nenhum seed em
+-- `ai_models` fazia `ModelPicker.tsx` mostrar "Nenhum modelo disponível" para
+-- quem cadastra uma chave Groq — a chave valida, mas não dá pra escolher
+-- nenhum modelo para o agente. `llama-3.3-70b-versatile`/`llama-3.1-8b-instant`
+-- ficaram de fora: a doc do provedor lista o preço deles como "Contact Sales"
+-- (sem número público), e inventar preço quebraria o teto de orçamento. Ver o
+-- cabeçalho completo em `supabase/migrations/20260911150000_0178_catalogo_groq.sql`.
+
+insert into public.ai_models
+  (provider, model_id, display_name, description,
+   context_window, input_price_per_million_cents, output_price_per_million_cents, supports_tools)
+values
+  ('groq', 'openai/gpt-oss-120b', 'GPT-OSS 120B (Groq)',
+   'Modelo open-weight da OpenAI, hospedado no Groq com inferência muito rápida (LPU).',
+   131072, 15, 60, true),
+  ('groq', 'openai/gpt-oss-20b', 'GPT-OSS 20B (Groq)',
+   'Versão menor do GPT-OSS, hospedado no Groq — mais barato para tarefas simples.',
+   131072, 8, 30, true),
+  ('groq', 'groq/compound', 'Groq Compound',
+   'Sistema agêntico do próprio Groq com ferramentas embutidas — gratuito para avaliação conforme a documentação do provedor; pode virar pago sem aviso.',
+   null, 0, 0, false),
+  ('groq', 'groq/compound-mini', 'Groq Compound Mini',
+   'Versão menor do Compound — gratuito para avaliação conforme a documentação do provedor; pode virar pago sem aviso.',
+   null, 0, 0, false)
+on conflict (provider, model_id) do update set
+  display_name = excluded.display_name,
+  description = excluded.description,
+  context_window = excluded.context_window,
+  input_price_per_million_cents = excluded.input_price_per_million_cents,
+  output_price_per_million_cents = excluded.output_price_per_million_cents,
+  supports_tools = excluded.supports_tools;
+
+update public.ai_models set is_default_for_provider = false
+ where provider = 'groq' and is_default_for_provider;
+
+update public.ai_models set is_default_for_provider = true
+ where provider = 'groq' and model_id = 'openai/gpt-oss-120b';
+
+-- ---- catálogo curado do NVIDIA NIM (migration 0179) ----
+--
+-- mesmo bug do 0178 acima, provedor diferente: `nvidia` sem nenhum seed em
+-- `ai_models` fazia `ModelPicker.tsx` mostrar "Nenhum modelo disponível" para
+-- quem cadastra uma chave NVIDIA NIM — a chave valida, mas não dá pra
+-- escolher nenhum modelo para o agente. build.nvidia.com não publica preço
+-- por token para o catálogo hospedado (a própria página do provedor anuncia
+-- "Free inference with leading models" — evaluation tier por créditos, não
+-- billing por token); preço `0` aqui é um zero CONHECIDO, não ausência de
+-- dado. Ver o cabeçalho completo em
+-- `supabase/migrations/20260911160000_0179_catalogo_nvidia.sql`.
+
+insert into public.ai_models
+  (provider, model_id, display_name, description,
+   context_window, input_price_per_million_cents, output_price_per_million_cents, supports_tools)
+values
+  ('nvidia', 'meta/llama-3.3-70b-instruct', 'Llama 3.3 70B (NVIDIA NIM)',
+   'Modelo Llama 3.3 hospedado pela NVIDIA, com function calling — o mais capaz do catálogo hospedado gratuito.',
+   131072, 0, 0, true),
+  ('nvidia', 'meta/llama-3.1-8b-instruct', 'Llama 3.1 8B (NVIDIA NIM)',
+   'Versão menor do Llama, hospedada pela NVIDIA — mais rápido para tarefas simples.',
+   131072, 0, 0, true),
+  ('nvidia', 'nvidia/llama-3.1-nemotron-70b-instruct', 'Nemotron 70B (NVIDIA NIM)',
+   'Llama 3.1 70B ajustado pela própria NVIDIA (Nemotron), otimizado para seguir instrução com precisão.',
+   131072, 0, 0, true)
+on conflict (provider, model_id) do update set
+  display_name = excluded.display_name,
+  description = excluded.description,
+  context_window = excluded.context_window,
+  input_price_per_million_cents = excluded.input_price_per_million_cents,
+  output_price_per_million_cents = excluded.output_price_per_million_cents,
+  supports_tools = excluded.supports_tools;
+
+update public.ai_models set is_default_for_provider = false
+ where provider = 'nvidia' and is_default_for_provider;
+
+update public.ai_models set is_default_for_provider = true
+ where provider = 'nvidia' and model_id = 'meta/llama-3.3-70b-instruct';
+
+-- ---- catálogo curado de DeepSeek, Qwen, Zhipu AI e Moonshot AI (migration 0180) ----
+--
+-- mesmo bug do 0178/0179, quatro provedores "manuais" de uma vez: sem seed em
+-- `ai_models`, `ModelPicker.tsx` mostrava "Nenhum modelo disponível" pra quem
+-- cadastra e valida uma chave DeepSeek/Qwen/Zhipu/Moonshot. Zhipu entra só com
+-- o modelo gratuito confirmado (glm-4.7-flash) — os pagos ficaram de fora por
+-- falta de tabela de preço oficial em texto (mesmo critério do "Contact
+-- Sales" do Groq na 0178). Ver o cabeçalho completo em
+-- `supabase/migrations/20260911170000_0180_catalogo_deepseek_qwen_zhipu_moonshot.sql`.
+
+insert into public.ai_models
+  (provider, model_id, display_name, description,
+   context_window, input_price_per_million_cents, output_price_per_million_cents, supports_tools)
+values
+  ('deepseek', 'deepseek-v4-pro', 'DeepSeek V4 Pro',
+   'Modelo principal da DeepSeek, forte em raciocínio e código. Preço no pior caso (horário de pico + cache miss) para não subestimar o orçamento.',
+   1048576, 132, 396, true),
+  ('deepseek', 'deepseek-flash', 'DeepSeek Flash',
+   'Versão mais rápida e barata da DeepSeek. Preço no pior caso (horário de pico + cache miss).',
+   1048576, 30, 120, true),
+  ('qwen', 'qwen3.8-max', 'Qwen3.8 Max',
+   'Modelo flagship da Alibaba Cloud — o mais capaz da família Qwen3.8, com function calling e 1M de contexto.',
+   1000000, 165, 496, true),
+  ('qwen', 'qwen3.7-plus', 'Qwen3.7 Plus',
+   'Meio-termo de custo/capacidade da família Qwen, faixa de contexto até 256K.',
+   1000000, 28, 111, true),
+  ('qwen', 'qwen3.8-flash', 'Qwen3.8 Flash',
+   'Versão mais barata e rápida da família Qwen3.8, ainda com 1M de contexto e function calling.',
+   1000000, 12, 39, true),
+  ('zhipu', 'glm-4.7-flash', 'GLM-4.7 Flash (gratuito)',
+   'Modelo gratuito da Zhipu AI para uso comum — gratuito conforme a documentação do provedor; pode virar pago sem aviso. Modelos GLM pagos (glm-5, glm-4.7, etc.) ainda não entraram no catálogo por falta de tabela de preço oficial confiável em texto.',
+   200000, 0, 0, true),
+  ('moonshot', 'kimi-k3', 'Kimi K3',
+   'Modelo flagship da Moonshot AI, 1M de contexto e tool calling — preço no pior caso (cache miss).',
+   1048576, 300, 1500, true),
+  ('moonshot', 'kimi-k2.6', 'Kimi K2.6',
+   'Modelo de propósito geral mais barato da Moonshot AI — preço no pior caso (cache miss).',
+   262144, 95, 400, true)
+on conflict (provider, model_id) do update set
+  display_name = excluded.display_name,
+  description = excluded.description,
+  context_window = excluded.context_window,
+  input_price_per_million_cents = excluded.input_price_per_million_cents,
+  output_price_per_million_cents = excluded.output_price_per_million_cents,
+  supports_tools = excluded.supports_tools;
+
+update public.ai_models set is_default_for_provider = false
+ where provider in ('deepseek', 'qwen', 'zhipu', 'moonshot') and is_default_for_provider;
+
+update public.ai_models set is_default_for_provider = true
+ where (provider, model_id) in (
+   ('deepseek', 'deepseek-v4-pro'),
+   ('qwen', 'qwen3.8-max'),
+   ('zhipu', 'glm-4.7-flash'),
+   ('moonshot', 'kimi-k3')
+ );

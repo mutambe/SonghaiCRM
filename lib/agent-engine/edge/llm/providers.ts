@@ -50,6 +50,7 @@ export const OPENROUTER_ENDPOINT = 'https://openrouter.ai/api/v1';
  * que permite proxy/gateway próprio, e é OBRIGATÓRIO para `ollama`, que não
  * tem endpoint hospedado: o cliente aponta pra própria VPS/máquina.
  */
+export const GROQ_ENDPOINT = 'https://api.groq.com/openai/v1';
 export const NVIDIA_ENDPOINT = 'https://integrate.api.nvidia.com/v1';
 /** Sem endpoint hospedado — é só o default sugerido pela tela quando o
  *  operador ainda não digitou o seu. Nunca usado sem `baseUrl` explícito em
@@ -100,6 +101,10 @@ export function createDefaultRegistry(opts?: { allowedHosts?: string[] }): Provi
     },
     nvidia: (apiKey, modelId, baseUrl) => {
       const endpoint = baseUrl ?? NVIDIA_ENDPOINT;
+      return createOpenAI({ apiKey, baseURL: endpoint, fetch: contain(endpoint) })(modelId);
+    },
+    groq: (apiKey, modelId, baseUrl) => {
+      const endpoint = baseUrl ?? GROQ_ENDPOINT;
       return createOpenAI({ apiKey, baseURL: endpoint, fetch: contain(endpoint) })(modelId);
     },
     /**

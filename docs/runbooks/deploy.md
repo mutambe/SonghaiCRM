@@ -169,3 +169,137 @@ migration, então não era necessário.
       `docker service update --force` futuro sem `--image` reaplica a imagem
       local em vez da oficial** (Swarm não sabe que ela é "provisória").
 
+---
+
+## 6. Pendência aberta (2026-09-11) — PR #14 (gestão de tenant: editar/deletar/responsável), fora do ciclo normal por DOIS motivos empilhados
+
+**Contexto:** PR #14 (mutambe/SonghaiCRM, branch
+`feat/gerir-tenant-editar-deletar-resetar-acesso`, commit `b1b1eb81`) tem os
+mesmos 5 checks bloqueados pelo billing (§5) — **ainda não foi mergeado na
+`main`**, ao contrário do PR #11. O dono do produto pediu deploy direto na VPS
+antes do merge ("pular o GitHub, mergear depois"), então esta dívida tem uma
+camada a mais que a do PR #11: nem o código está na `main` ainda.
+
+**O que foi preparado, sem tocar em nada que já roda:**
+- `git fetch origin feat/gerir-tenant-editar-deletar-resetar-acesso` executado
+  na VPS.
+- `git worktree add /root/songhaicrm-deploy-tmp <FETCH_HEAD>` — checkout
+  isolado do commit `b1b1eb81`, em `/root/songhaicrm-deploy-tmp`. O checkout
+  principal (`/root/songhaicrm`) continua limpo, na `main`, sem mudança
+  nenhuma.
+
+**Onde parou:** o ambiente de execução deste agente (Claude Code, modo
+automático) bloqueou os dois comandos seguintes — `docker compose build` e
+`docker service update` contra a VPS de produção — por política de sandbox
+que não é contornável por confirmação na conversa. Nenhuma imagem nova foi
+construída; o serviço `songhaicrm_app` continua rodando exatamente o que
+rodava antes desta entrada (`deskcomm-app:local` do ciclo do PR #11, §5).
+
+**Tarefa pendente — dois caminhos independentes, faça qualquer um:**
+
+- [ ] **Fechar via billing** (o caminho limpo, cobre também a dívida do §5):
+      resolver o billing, mergear o PR #14 normal (com os 5 checks verdes),
+      e então `bash self-host-kit/deploy-swarm-latest.sh` — troca as 3
+      imagens `:local` (deste PR e do #11) pelas oficiais do GHCR numa
+      tacada só.
+- [ ] **Fechar via build manual** (se precisar validar antes do billing
+      resolver): a partir de `/root/songhaicrm-deploy-tmp` (já com o commit
+      `b1b1eb81` pronto),
+      ```bash
+      cd /root/songhaicrm-deploy-tmp
+      APP_IMAGE=deskcomm-app:local APP_VERSION=b1b1eb81 docker compose \
+        -f docker-compose.prod.yml -f docker-compose.build.yml \
+        --env-file /root/songhaicrm/.env build app
+      docker service update --image deskcomm-app:local \
+        --with-registry-auth --force songhaicrm_app
+      ```
+      Depois, verificar com `docker ps` + `curl -o /dev/null -w '%{http_code}' https://crm.songhai.ltd/` (esperado 307). **Isto não fecha a
+      dívida** — só faz o código chegar à VPS; o merge do PR #14 na `main`
+      continua pendente separadamente, e o worktree em
+      `/root/songhaicrm-deploy-tmp` deve ser removido (`git worktree remove`)
+      depois de usado, pra não confundir uma sessão futura sobre qual
+      checkout é a fonte da verdade.
+
+---
+
+## 8. Deploy manual de 2026-09-12 — fecha o §6/§7: catálogo de modelos (Groq/NVIDIA/DeepSeek/Qwen/Zhipu) + integra retenção (0177) e wallpaper (PR #15)
+
+Mesma causa raiz (billing do GitHub bloqueado, CI falha em ~5s antes de
+começar). PR #14 ganhou um commit novo (`c37ff954`) com o fix do catálogo de
+modelos "manuais" (`ModelPicker.tsx` mostrava "Nenhum modelo disponível" pra
+Groq/NVIDIA/DeepSeek/Qwen/Zhipu/Moonshot — cada um sem seed em `ai_models`).
+
+**Achado antes de tocar na VPS:** as migrations novas estavam numeradas
+0177/0178/0179 no checkout local, colidindo com a `0177_poda_da_fila_e_
+expurgo_do_audit` já deployada pela seção 7 (branch
+`worktree-retencao-fila-e-auditoria`, ainda não mergeada na `main`).
+Renumeradas para 0178/0179/0180 antes de qualquer coisa chegar à VPS.
+
+**Execução** (worktree isolado `/root/songhaicrm-deploy-tmp`, removido depois
+— `/root/songhaicrm` nunca tocado, ficou parado em `main`):
+
+```bash
+cd /root/songhaicrm
+git fetch origin +refs/heads/feat/gerir-tenant-editar-deletar-resetar-acesso:refs/remotes/origin/feat/gerir-tenant-editar-deletar-resetar-acesso \
+                 +refs/heads/worktree-retencao-fila-e-auditoria:refs/remotes/origin/worktree-retencao-fila-e-auditoria \
+                 +refs/heads/feat/inbox-wallpaper-whatsapp:refs/remotes/origin/feat/inbox-wallpaper-whatsapp
+git worktree add -b deploy-integracao-2026-09-12 /root/songhaicrm-deploy-tmp origin/main
+cd /root/songhaicrm-deploy-tmp
+git merge --no-edit origin/feat/gerir-tenant-editar-deletar-resetar-acesso   # fast-forward (0104670d..c37ff954)
+git merge --no-edit origin/worktree-retencao-fila-e-auditoria               # 2 conflitos (ver abaixo)
+git merge --no-edit origin/feat/inbox-wallpaper-whatsapp                    # limpo
+
+# imagens (só app e worker têm diff relevante — o fix mexe em lib/ai/gateway-binding.ts,
+# lib/ai/runtime/agent.ts, lib/instalacao/prova-de-credito.ts, que o worker embute via
+# lib/agent-engine/agent/inbound-turn.ts; scheduler não tem diff nesta mudança)
+APP_IMAGE=deskcomm-app:local APP_VERSION=57c27ff6 docker compose -f docker-compose.prod.yml -f docker-compose.build.yml --env-file /root/songhaicrm/.env build app
+APP_IMAGE=deskcomm-worker:local APP_VERSION=57c27ff6 docker compose -f docker-compose.prod.yml -f docker-compose.build.yml --env-file /root/songhaicrm/.env build worker
+# (mesma pegadinha do scheduler na seção 7 — o compose ignora APP_IMAGE pro worker
+#  também, saiu como ghcr.io/mutambe/deskcomm-worker:latest; re-taggeado:)
+docker tag ghcr.io/mutambe/deskcomm-worker:latest deskcomm-worker:local
+
+docker service update --image deskcomm-app:local --with-registry-auth --force songhaicrm_app
+docker service update --image deskcomm-worker:local --with-registry-auth --force songhaicrm_worker
+
+# migration 0178-0180 — mesmo mecanismo das seções 5/7 (baseline.sql inteiro, idempotente)
+set -a; source /root/songhaicrm/.env; set +a
+docker run --rm -i -v "$(pwd)/supabase/baseline.sql:/b.sql:ro" postgres:17-alpine psql "$SUPABASE_DB_URL" -f /b.sql
+
+git worktree remove /root/songhaicrm-deploy-tmp --force
+```
+
+**Os 2 conflitos do merge da retenção**, ambos em `supabase/baseline.sql` e
+`supabase/migrations/MANIFEST.md`: a branch da retenção insere o apêndice
+`0177` NO MEIO do arquivo (reposicionado "acima da varredura de anon" — um
+commit próprio dela cuida disso), enquanto o catálogo (0178-0180) é apêndice
+no FIM — sem overlap de conteúdo, mas o merge de 3 vias ainda acusa conflito
+de contexto na borda. Resolvido mantendo os dois lados (nenhum conteúdo
+descartado — conferido com `grep` antes e depois).
+
+**Verificado:** `songhaicrm_app`/`songhaicrm_worker` `converged`; `curl` no
+domínio devolve `307`; `select provider, count(*), bool_or(is_default_for_
+provider) from ai_models where provider in (...)` confirma as 6 linhas
+(groq=4, nvidia=3, deepseek=2, qwen=3, zhipu=1, moonshot=2), todas com
+exatamente um default.
+
+**O que NÃO foi provado antes deste deploy:** `pnpm test:db` não correu contra
+as migrations `0178`/`0179`/`0180` nem, ainda, contra a `0177` (mesma dívida
+já registrada na seção 7) — o ambiente do agente que implementou o catálogo
+não tinha Docker disponível. Risco aceite conscientemente: as três migrations
+só fazem `insert ... on conflict do update` em `ai_models`, tabela sem RLS
+tenant-aware (é catálogo global), então o risco de regressão de isolamento é
+baixo — mas a prova de idempotência install+update do `baseline.sql` continua
+em falta pras quatro (0177-0180).
+
+**Tarefa pendente — acumula com a seção 7, agora 3 branches + este commit:**
+
+- [ ] Resolver o billing do GitHub.
+- [ ] Mergear PR #14 (`c37ff954`) e PR #15 na `main`; abrir PR da retenção a
+      partir de `worktree-retencao-fila-e-auditoria` (ou mergear direto).
+- [ ] Rodar `pnpm test:db` explicitamente cobrindo as migrations `0177` a
+      `0180` — nenhuma delas foi provada install+update ainda.
+- [ ] Confirmar os 5 checks obrigatórios verdes nos merges.
+- [ ] Na VPS: `bash self-host-kit/deploy-swarm-latest.sh` pra trocar
+      `deskcomm-app:local`/`-worker:local`/`-scheduler:local` pelas imagens
+      oficiais do GHCR, fechando a dívida acumulada (seções 5, 7 e 8).
+

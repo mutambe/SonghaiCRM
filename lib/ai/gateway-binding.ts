@@ -32,6 +32,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 
 import {
   NVIDIA_ENDPOINT,
+  GROQ_ENDPOINT,
   OLLAMA_DEFAULT_ENDPOINT,
   DEEPSEEK_ENDPOINT,
   QWEN_ENDPOINT,
@@ -185,6 +186,8 @@ function instanciar(
       return createOpenAI({ apiKey, baseURL: baseUrl ?? OPENROUTER_BASE_URL })(modelId);
     case "nvidia":
       return createOpenAI({ apiKey, baseURL: baseUrl ?? NVIDIA_ENDPOINT })(modelId);
+    case "groq":
+      return createOpenAI({ apiKey, baseURL: baseUrl ?? GROQ_ENDPOINT })(modelId);
     case "ollama":
       return createOpenAI({ apiKey: apiKey || "ollama", baseURL: baseUrl ?? OLLAMA_DEFAULT_ENDPOINT })(
         modelId,

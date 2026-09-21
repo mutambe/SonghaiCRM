@@ -9,6 +9,12 @@ vi.mock("@/lib/audit", () => ({
   audit: vi.fn(async () => undefined),
   hashEmail: vi.fn((email: string) => `hash:${email}`),
 }));
+// lib/admin/invite-tenant-owner.ts importa @/lib/env (redirectTo do convite) —
+// sem isto o teste depende do .env.local local estar bem preenchido, que não
+// é garantia num ambiente de teste (CI seta placeholders via
+// tests/setup/vitest.setup.ts; local pode ter valor vazio numa var opcional
+// e derrubar a suíte inteira num erro de import, não de asserção).
+vi.mock("@/lib/env", () => ({ env: { NEXT_PUBLIC_APP_URL: "https://crm.exemplo.com.br" } }));
 
 const ADMIN_ID = "11111111-1111-4111-8111-111111111111";
 const PLAN_ID = "33333333-3333-4333-8333-333333333333";

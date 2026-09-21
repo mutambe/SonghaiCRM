@@ -39,11 +39,18 @@ export interface TenantSubscription {
   started_at: string;
 }
 
+export interface TenantOwner {
+  status: "none" | "pending" | "accepted";
+  email: string | null;
+  accepted_at: string | null;
+}
+
 export interface TenantDetailResponse {
   data: {
     organization: TenantOrganization;
     counts: TenantCounts;
     subscription: TenantSubscription | null;
+    owner: TenantOwner;
   };
 }
 

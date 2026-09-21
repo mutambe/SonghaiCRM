@@ -1,11 +1,10 @@
 import { type NextRequest } from "next/server";
 import { z } from "zod";
-import { type SupabaseClient } from "@supabase/supabase-js";
-import { env } from "@/lib/env";
 import { requirePlatformAdmin } from "@/lib/auth/requirePlatformAdmin";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { ok, fail } from "@/lib/api/wrappers";
 import { audit, hashEmail } from "@/lib/audit";
+import { inviteOrResolveOwner } from "@/lib/admin/invite-tenant-owner";
 import { randomUUID } from "node:crypto";
 
 // ---------------------------------------------------------------------------
@@ -51,38 +50,6 @@ function decodeCursor(cursor: string): CursorPayload | null {
   } catch {
     return null;
   }
-}
-
-// ---------------------------------------------------------------------------
-// Resolve user_id existente por e-mail (fallback de "convite recusado por já
-// existir")
-// ---------------------------------------------------------------------------
-
-// Esta versão de @supabase/auth-js (GoTrueAdminApi.listUsers) não aceita
-// filtro por e-mail no server — só pagina o diretório inteiro (mesma limitação
-// documentada em app/api/v1/admin/users/route.ts). Aqui o caso é raro (admin
-// criando tenant com e-mail que já tem conta) e não está no caminho quente, mas
-// ainda assim varre com teto: uma página vazia OU o teto (o diretório pode ser
-// grande) encerra a busca sem achar.
-const RESOLVE_MAX_PAGES = 50;
-const RESOLVE_PER_PAGE = 1000;
-
-async function resolveUserIdByEmail(
-  admin: SupabaseClient,
-  email: string,
-): Promise<string | null> {
-  const alvo = email.toLowerCase();
-  for (let page = 1; page <= RESOLVE_MAX_PAGES; page++) {
-    const { data, error } = await admin.auth.admin.listUsers({
-      page,
-      perPage: RESOLVE_PER_PAGE,
-    });
-    if (error || !data?.users?.length) return null;
-    const found = data.users.find((u) => u.email?.toLowerCase() === alvo);
-    if (found) return found.id;
-    if (data.users.length < RESOLVE_PER_PAGE) return null; // última página
-  }
-  return null;
 }
 
 // ---------------------------------------------------------------------------
@@ -243,14 +210,23 @@ export async function POST(req: NextRequest) {
   // motivo documentado em requestPasswordReset.ts para recovery), então
   // precisamos afirmá-lo aqui para /auth/confirm saber que não deve
   // provisionar uma organization nova para este usuário.
-  const { data: invited, error: inviteError } = await admin.auth.admin.inviteUserByEmail(
-    owner_email,
-    { redirectTo: `${env.NEXT_PUBLIC_APP_URL}/auth/confirm?type=invite` },
-  );
-
-  let ownerId: string;
-  if (invited?.user) {
-    ownerId = invited.user.id;
+  //
+  // Spec (docs/superpowers/specs/2026-09-09-licenciamento-por-tenant-design.md,
+  // "Tratamento de erros e casos-limite"): e-mail que já é dono de outra conta
+  // não é uma falha — GoTrue recusa reconvidar um usuário já confirmado
+  // (`email_exists`, normalmente HTTP 422). inviteOrResolveOwner resolve o
+  // user_id existente nesse caso e segue o fluxo como "adicionar membership".
+  const invite = await inviteOrResolveOwner(admin, owner_email);
+  if (!invite.ok) {
+    return fail(
+      "internal_error",
+      "Falha ao convidar o responsável pelo tenant",
+      500,
+      { requestId, details: invite.message },
+    );
+  }
+  const ownerId = invite.userId;
+  if (invite.wasInvited) {
     void audit({
       action: "tenant.owner_invited",
       actorUserId: adminCtx.user.id,
@@ -258,27 +234,6 @@ export async function POST(req: NextRequest) {
       requestId,
       metadata: { owner_email_hash: hashEmail(owner_email) },
     });
-  } else {
-    // Spec (docs/superpowers/specs/2026-09-09-licenciamento-por-tenant-design.md,
-    // "Tratamento de erros e casos-limite"): e-mail que já é dono de outra conta
-    // não é uma falha — GoTrue recusa reconvidar um usuário já confirmado
-    // (`email_exists`, normalmente HTTP 422). Nesse caso resolve o user_id
-    // existente e segue o fluxo como "adicionar membership", em vez de 500.
-    const emailJaExiste =
-      inviteError?.code === "email_exists" || inviteError?.status === 422;
-    const existingUserId = emailJaExiste
-      ? await resolveUserIdByEmail(admin, owner_email)
-      : null;
-
-    if (!existingUserId) {
-      return fail(
-        "internal_error",
-        "Falha ao convidar o responsável pelo tenant",
-        500,
-        { requestId, details: inviteError?.message },
-      );
-    }
-    ownerId = existingUserId;
   }
 
   // 3) Organization

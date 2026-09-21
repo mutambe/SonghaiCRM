@@ -87,6 +87,15 @@ export const PROVEDORES = [
     ondePegarAChave: "https://openrouter.ai/keys",
   },
   {
+    id: "groq",
+    rotulo: "Groq",
+    quandoUsar:
+      "Inferência extremamente rápida (LPU) para modelos open-weight como o GPT-OSS — bom quando latência de resposta importa mais que ser o modelo mais forte.",
+    aceitaEndpointProprio: true,
+    catalogoSincronizavel: false,
+    ondePegarAChave: "https://console.groq.com/keys",
+  },
+  {
     id: "nvidia",
     rotulo: "NVIDIA NIM",
     quandoUsar:

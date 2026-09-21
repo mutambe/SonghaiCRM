@@ -142,7 +142,8 @@ docker service update --env-rm GOTRUE_LOG_LEVEL --force supabase_auth
 - `self-host-kit/marca-emails.sh` ainda assume que quem tem Management API
   (Supabase Cloud) resolve tudo por lá — o caminho self-hosted (`--render-em`
   + servidor HTTP + env vars do GoTrue) continua manual, sem script
-  dedicado. Um `self-host-kit/configurar-emails-selfhosted.sh` que
-  automatizasse os passos deste runbook (subir o Nginx, gerar os `docker
-  service update`) seria a próxima melhoria natural, mas não foi escrito
-  aqui — fora do escopo do que foi pedido nesta sessão.
+  dedicado. Um script que automatizasse os passos deste runbook (subir o
+  Nginx, gerar os `docker service update`) — algo como
+  *configurar-emails-selfhosted.sh*, ainda por escrever — seria a próxima
+  melhoria natural, mas não foi escrito aqui — fora do escopo do que foi
+  pedido nesta sessão.
