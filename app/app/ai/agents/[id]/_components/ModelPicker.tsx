@@ -40,13 +40,34 @@ interface Props {
    * modelo que conversa", e chamar isso de "Selecione um modelo" mentiria.
    */
   placeholder?: string;
+  /**
+   * SÓ para o 9Router (`AgentForm` só passa isto quando `provider === "9router"`).
+   * Cada instância de 9Router é do operador — não há como curar um catálogo
+   * global do que ele configurou lá, e é por isso que o dropdown ficava
+   * eternamente vazio. Em vez disso usa o que a validação da credencial já
+   * descobriu (`ai_provider_credentials.models_available`, populado em
+   * `lib/ai/credenciais/guardar.ts` no mesmo `GET /models` que confirma a
+   * chave). `undefined` = comportamento de sempre (catálogo global
+   * `ai_models`); array (mesmo vazio) = troca de fonte.
+   */
+  credentialModels?: string[] | null;
 }
 
 interface ApiResponse {
   data: { models: ModelOption[] };
 }
 
-export function ModelPicker({ provider, value, onChange, disabled, id, placeholder }: Props) {
+export function ModelPicker({
+  provider,
+  value,
+  onChange,
+  disabled,
+  id,
+  placeholder,
+  credentialModels,
+}: Props) {
+  const usaCredencial = credentialModels !== undefined;
+
   const query = useQuery({
     queryKey: ["ai", "providers", provider, "models"],
     queryFn: async () => {
@@ -54,9 +75,28 @@ export function ModelPicker({ provider, value, onChange, disabled, id, placehold
       return res.data.models;
     },
     staleTime: 60_000,
+    enabled: !usaCredencial,
   });
 
-  const models = query.data ?? [];
+  const models: ModelOption[] = usaCredencial
+    ? (credentialModels ?? []).map((modelId) => ({
+        provider,
+        model_id: modelId,
+        display_name: modelId,
+        context_window: null,
+        is_default_for_provider: false,
+      }))
+    : (query.data ?? []);
+
+  const carregando = !usaCredencial && query.isLoading;
+
+  // No modo credencial, vazio tem dois motivos distintos — e confundi-los faz
+  // o operador procurar bug numa chave que só ainda não foi escolhida.
+  const semOpcaoTexto = usaCredencial
+    ? credentialModels === null
+      ? "Escolha a chave de acesso primeiro"
+      : "Nenhum modelo encontrado nesta chave"
+    : "Nenhum modelo disponível";
 
   return (
     <div className="space-y-1">
@@ -67,10 +107,10 @@ export function ModelPicker({ provider, value, onChange, disabled, id, placehold
           const m = models.find((m) => m.model_id === v);
           onChange(v, { contextWindow: m?.context_window ?? null });
         }}
-        disabled={disabled || query.isLoading}
+        disabled={disabled || carregando}
       >
         <SelectTrigger id={id}>
-          <SelectValue placeholder={query.isLoading ? "Carregando…" : (placeholder ?? "Selecione um modelo")} />
+          <SelectValue placeholder={carregando ? "Carregando…" : (placeholder ?? "Selecione um modelo")} />
         </SelectTrigger>
         <SelectContent>
           {models.map((m) => (
@@ -79,9 +119,9 @@ export function ModelPicker({ provider, value, onChange, disabled, id, placehold
               {m.is_default_for_provider ? " · default" : ""}
             </SelectItem>
           ))}
-          {models.length === 0 && !query.isLoading ? (
+          {models.length === 0 && !carregando ? (
             <SelectItem value="__none__" disabled>
-              Nenhum modelo disponível
+              {semOpcaoTexto}
             </SelectItem>
           ) : null}
         </SelectContent>

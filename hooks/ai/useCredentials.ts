@@ -19,7 +19,8 @@ export interface CredentialRow {
   api_key_last4: string | null;
   validated_at: string | null;
   validation_error: string | null;
-  models_available: number | null;
+  /** IDs devolvidos pelo `GET /models` do provedor na última validação. */
+  models_available: string[] | null;
   is_active: boolean;
   created_by: string | null;
   created_at: string;

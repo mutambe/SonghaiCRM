@@ -613,34 +613,77 @@ export function AgentForm(props: Props) {
               </Select>
             </div>
 
-            <ModelPicker
-              provider={form.provider}
-              value={form.model}
-              onChange={(modelId) => patch({ model: modelId })}
-              disabled={disabled}
-              id="model"
-            />
-            {validation.model ? (
-              <p className="text-xs text-destructive">{validation.model}</p>
-            ) : null}
+            {/*
+              SÓ o 9Router troca a ordem e a fonte do "Modelo": cada instância é
+              do operador, então o que existe para escolher é o que a
+              validação da CHAVE já descobriu (`cred.models_available`) — por
+              isso a credencial precisa vir primeiro aqui. Os demais provedores
+              seguem no catálogo global de sempre, na ordem de sempre.
+            */}
+            {form.provider === "9router" ? (
+              <>
+                <CredentialPicker
+                  provider={form.provider}
+                  credentials={props.credentials}
+                  value={form.credential_id}
+                  onChange={(id) => patch({ credential_id: id })}
+                  disabled={disabled}
+                  id="credential_id"
+                  instalacaoTemChave={(props.provedoresDaInstalacao ?? []).includes(form.provider)}
+                />
+                {validation.credential_id ? (
+                  <p className="text-xs text-destructive">{validation.credential_id}</p>
+                ) : null}
+                {cred && credSt !== "validated" ? (
+                  <p className="text-xs text-amber-600 dark:text-amber-400">
+                    Credencial selecionada está com status {credSt}. Publish bloqueado até validar.
+                  </p>
+                ) : null}
 
-            <CredentialPicker
-              provider={form.provider}
-              credentials={props.credentials}
-              value={form.credential_id}
-              onChange={(id) => patch({ credential_id: id })}
-              disabled={disabled}
-              id="credential_id"
-              instalacaoTemChave={(props.provedoresDaInstalacao ?? []).includes(form.provider)}
-            />
-            {validation.credential_id ? (
-              <p className="text-xs text-destructive">{validation.credential_id}</p>
-            ) : null}
-            {cred && credSt !== "validated" ? (
-              <p className="text-xs text-amber-600 dark:text-amber-400">
-                Credencial selecionada está com status {credSt}. Publish bloqueado até validar.
-              </p>
-            ) : null}
+                <ModelPicker
+                  provider={form.provider}
+                  value={form.model}
+                  onChange={(modelId) => patch({ model: modelId })}
+                  disabled={disabled}
+                  id="model"
+                  credentialModels={cred?.models_available ?? null}
+                />
+                {validation.model ? (
+                  <p className="text-xs text-destructive">{validation.model}</p>
+                ) : null}
+              </>
+            ) : (
+              <>
+                <ModelPicker
+                  provider={form.provider}
+                  value={form.model}
+                  onChange={(modelId) => patch({ model: modelId })}
+                  disabled={disabled}
+                  id="model"
+                />
+                {validation.model ? (
+                  <p className="text-xs text-destructive">{validation.model}</p>
+                ) : null}
+
+                <CredentialPicker
+                  provider={form.provider}
+                  credentials={props.credentials}
+                  value={form.credential_id}
+                  onChange={(id) => patch({ credential_id: id })}
+                  disabled={disabled}
+                  id="credential_id"
+                  instalacaoTemChave={(props.provedoresDaInstalacao ?? []).includes(form.provider)}
+                />
+                {validation.credential_id ? (
+                  <p className="text-xs text-destructive">{validation.credential_id}</p>
+                ) : null}
+                {cred && credSt !== "validated" ? (
+                  <p className="text-xs text-amber-600 dark:text-amber-400">
+                    Credencial selecionada está com status {credSt}. Publish bloqueado até validar.
+                  </p>
+                ) : null}
+              </>
+            )}
           </Card>
 
           {/* WhatsApp session */}
