@@ -162,16 +162,39 @@ async function loginComTotp(page: Page, email: string, secret: string): Promise<
 
 type Escopo = "instalacao" | "organizacao";
 
+/**
+ * `setInputFiles` despacha os eventos nativos `input`/`change` assim que o
+ * elemento resolve no DOM — mas logo depois de `page.goto()`, o React pode
+ * ainda não ter hidratado e anexado o `onChange` de `CampoDeLogo` nesse
+ * componente recém-montado. Quando isso acontece o evento cai no vazio: o
+ * arquivo fica selecionado no input, mas nenhum código roda (medido por
+ * trace num caso real: `setInputFiles` completa sem erro, e no período
+ * inteiro de espera do toast seguinte não sai UMA requisição de rede pro
+ * endpoint de upload). É condição de corrida, não determinística — daí
+ * confirmar que a REDE reagiu, e reenviar se não reagiu, em vez de confiar
+ * que o clique/seleção bastou.
+ */
 async function subir(page: Page, escopo: Escopo, arquivo: {
   nome: string;
   mime: string;
   bytes: Buffer;
 }): Promise<void> {
-  await page.locator(`#logo-${escopo}`).setInputFiles({
-    name: arquivo.nome,
-    mimeType: arquivo.mime,
-    buffer: arquivo.bytes,
-  });
+  const input = page.locator(`#logo-${escopo}`);
+  for (let tentativa = 0; tentativa < 2; tentativa++) {
+    const chegou = page
+      .waitForResponse(
+        (r) => r.url().includes("/api/v1/marca/logo") && r.request().method() === "POST",
+        { timeout: 3_000 },
+      )
+      .then(() => true)
+      .catch(() => false);
+    await input.setInputFiles({
+      name: arquivo.nome,
+      mimeType: arquivo.mime,
+      buffer: arquivo.bytes,
+    });
+    if (await chegou) return;
+  }
 }
 
 /**
