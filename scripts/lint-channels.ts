@@ -72,6 +72,7 @@ const KNOWN_DEBT: { reason: string; files: string[] }[] = [
       "app/api/v1/channel-sessions/[id]/reconnect/route.ts",
       "app/api/v1/channel-sessions/[id]/route.test.ts",
       "app/api/v1/channel-sessions/[id]/route.ts",
+      "app/api/v1/channel-sessions/route.test.ts",
       "app/api/v1/channel-sessions/route.ts",
       "app/api/v1/health/route.ts",
       "app/api/v1/messages/[id]/media/route.ts",
@@ -111,6 +112,9 @@ const KNOWN_DEBT: { reason: string; files: string[] }[] = [
       "components/admin/dashboard/AlertItem.tsx",
       "components/admin/dashboard/KPICards.tsx",
       "components/admin/tenants/HealthGrid.tsx",
+      // `counts.waha_sessions_count` (mesmo campo, botão de desativar/apagar
+      // do responsável do tenant checa se o número já saiu do ar).
+      "components/admin/tenants/TenantActions.tsx",
       "components/admin/tenants/TenantOverview.tsx",
       "components/connections/ConnectionsClient.tsx",
       // (#118) `waha_error` no catálogo de códigos de erro da API pública.
