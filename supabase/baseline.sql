@@ -13934,6 +13934,164 @@ alter table public.ai_faq_items alter column locale set default 'pt-PT';
 -- mesmo com IF EXISTS no trigger/policy (o IF EXISTS não cobre a tabela).
 drop table if exists public.nuvemshop_products;
 
+-- ---- 9Router: modelo publicável vem da CREDENCIAL, não do catálogo global (migration 0183) ----
+-- Mesmo bug do 0178/0179/0180 (Groq/NVIDIA/DeepSeek/Qwen/Zhipu/Moonshot): sem
+-- linha em `ai_models`, `fn_publish_ai_agent_version` recusava com
+-- `model_not_found` TODO agente 9Router, sempre. Diferença aqui: não dá pra
+-- seed — 9Router é uma instância que o OPERADOR roda, com os aliases que ele
+-- mesmo configurou (não existe "o catálogo do 9Router", existe o catálogo
+-- DAQUELE 9Router). A tela já resolve do lado de fora (`ModelPicker.tsx`
+-- ganha `credentialModels`, só quando `provider === "9router"`, lendo
+-- `ai_provider_credentials.models_available` — a mesma lista que
+-- `validate9RouterKey` busca em `GET {endpoint}/models` ao validar a chave).
+-- Este bloco é o espelho no servidor. Escopo é só `9router`: Ollama e os
+-- demais seguem no `ai_models` de sempre — pedido explícito do dono do
+-- produto, não é a mesma troca para todo provedor "local".
+--
+-- Reposicionado ANTES da varredura de anon (invariante em
+-- tests/unit/varredura-anon-e-o-ultimo-bloco.test.ts): o commit original
+-- colou este bloco no fim do arquivo, que hoje já não é mais "o fim de
+-- verdade" — está depois da varredura, e o `create or replace function`
+-- abaixo nasceria com EXECUTE para anon sem mais nada depois pra tirar.
+create or replace function public.fn_publish_ai_agent_version(
+  p_org_id uuid,
+  p_agent_id uuid,
+  p_version_id uuid
+)
+returns table (
+  agent_id uuid,
+  version_id uuid,
+  previous_version_id uuid,
+  published_at timestamptz
+)
+language plpgsql
+security definer
+set search_path to 'public'
+as $$
+declare
+  v_agent record;
+  v_version record;
+  v_credential record;
+  v_session record;
+  v_model_count integer;
+  v_previous_version_id uuid;
+  v_published_at timestamptz := now();
+begin
+  select a.id, a.organization_id, a.published_version_id, a.archived_at
+    into v_agent
+  from public.ai_agents a
+  where a.id = p_agent_id
+  for update;
+
+  if not found then
+    raise exception 'agent_not_found' using errcode = 'P0001';
+  end if;
+  if v_agent.organization_id <> p_org_id then
+    raise exception 'agent_not_found' using errcode = 'P0001';
+  end if;
+  if v_agent.archived_at is not null then
+    raise exception 'agent_archived' using errcode = 'P0001';
+  end if;
+
+  select v.id, v.organization_id, v.agent_id, v.status, v.provider, v.model,
+         v.credential_id, v.channel_session_id
+    into v_version
+  from public.ai_agent_versions v
+  where v.id = p_version_id
+  for update;
+
+  if not found then
+    raise exception 'version_not_found' using errcode = 'P0001';
+  end if;
+  if v_version.agent_id <> p_agent_id or v_version.organization_id <> p_org_id then
+    raise exception 'version_not_found' using errcode = 'P0001';
+  end if;
+  if v_version.status not in ('draft', 'superseded') then
+    raise exception 'version_invalid_state' using errcode = 'P0001';
+  end if;
+
+  if v_version.credential_id is null then
+    raise exception 'credential_missing' using errcode = 'P0001';
+  end if;
+
+  select c.id, c.organization_id, c.provider, c.is_active, c.validated_at, c.models_available
+    into v_credential
+  from public.ai_provider_credentials c
+  where c.id = v_version.credential_id;
+
+  if not found or v_credential.organization_id <> p_org_id then
+    raise exception 'credential_not_found' using errcode = 'P0001';
+  end if;
+  if not v_credential.is_active then
+    raise exception 'credential_inactive' using errcode = 'P0001';
+  end if;
+  if v_credential.validated_at is null then
+    raise exception 'credential_not_validated' using errcode = 'P0001';
+  end if;
+  if v_credential.provider <> v_version.provider then
+    raise exception 'credential_provider_mismatch' using errcode = 'P0001';
+  end if;
+
+  select s.id, s.organization_id, s.status
+    into v_session
+  from public.channel_sessions s
+  where s.id = v_version.channel_session_id;
+
+  if not found or v_session.organization_id <> p_org_id then
+    raise exception 'channel_session_not_found' using errcode = 'P0001';
+  end if;
+  if v_session.status <> 'WORKING' then
+    raise exception 'channel_session_offline' using errcode = 'P0001';
+  end if;
+
+  if v_version.provider = '9router' then
+    -- Catálogo não é global: é o que a validação DAQUELA credencial achou.
+    if v_credential.models_available is null
+       or not (v_version.model = any(v_credential.models_available)) then
+      raise exception 'model_not_found' using errcode = 'P0001';
+    end if;
+  else
+    select count(*)
+      into v_model_count
+    from public.ai_models m
+    where m.provider = v_version.provider
+      and m.model_id = v_version.model
+      and m.deprecated_at is null;
+
+    if v_model_count = 0 then
+      raise exception 'model_not_found' using errcode = 'P0001';
+    end if;
+  end if;
+
+  v_previous_version_id := v_agent.published_version_id;
+
+  if v_previous_version_id is not null and v_previous_version_id <> p_version_id then
+    update public.ai_agent_versions
+       set status = 'superseded', superseded_at = v_published_at
+     where id = v_previous_version_id;
+  end if;
+
+  update public.ai_agent_versions
+     set status = 'published',
+         published_at = v_published_at,
+         superseded_at = null
+   where id = p_version_id;
+
+  update public.ai_agents
+     set published_version_id = p_version_id,
+         updated_at = v_published_at
+   where id = p_agent_id;
+
+  return query
+    select p_agent_id, p_version_id, v_previous_version_id, v_published_at;
+end;
+$$;
+
+comment on function public.fn_publish_ai_agent_version(uuid, uuid, uuid) is
+  'EPIC-13 S-13.06 (fixed in 0026): compares channel_sessions.status against WORKING (uppercase). '
+  '0183: 9Router valida o modelo contra ai_provider_credentials.models_available (catálogo por '
+  'credencial) em vez de ai_models (catálogo global) — só para provider=''9router''; demais provedores inalterados.';
+
 -- ---- VARREDURA anon: função nova nasce exposta em quem ATUALIZA (migration 0116) ----
 --
 -- ⚠️ ESTE BLOCO É, DE PROPÓSITO, O ÚLTIMO DO ARQUIVO. Apêndice novo entra ANTES
@@ -14519,155 +14677,3 @@ revoke all on public.calendar_oauth_nonces from anon, authenticated;
 -- branco — achado rodando tests/e2e/admin-cria-tenant-convite-owner.spec.ts.
 alter table "public"."organizations"
   alter column "legal_name" drop not null;
-
--- ---- 9Router: modelo publicável vem da CREDENCIAL, não do catálogo global (migration 0183) ----
--- Mesmo bug do 0178/0179/0180 (Groq/NVIDIA/DeepSeek/Qwen/Zhipu/Moonshot): sem
--- linha em `ai_models`, `fn_publish_ai_agent_version` recusava com
--- `model_not_found` TODO agente 9Router, sempre. Diferença aqui: não dá pra
--- seed — 9Router é uma instância que o OPERADOR roda, com os aliases que ele
--- mesmo configurou (não existe "o catálogo do 9Router", existe o catálogo
--- DAQUELE 9Router). A tela já resolve do lado de fora (`ModelPicker.tsx`
--- ganha `credentialModels`, só quando `provider === "9router"`, lendo
--- `ai_provider_credentials.models_available` — a mesma lista que
--- `validate9RouterKey` busca em `GET {endpoint}/models` ao validar a chave).
--- Este bloco é o espelho no servidor. Escopo é só `9router`: Ollama e os
--- demais seguem no `ai_models` de sempre — pedido explícito do dono do
--- produto, não é a mesma troca para todo provedor "local".
-create or replace function public.fn_publish_ai_agent_version(
-  p_org_id uuid,
-  p_agent_id uuid,
-  p_version_id uuid
-)
-returns table (
-  agent_id uuid,
-  version_id uuid,
-  previous_version_id uuid,
-  published_at timestamptz
-)
-language plpgsql
-security definer
-set search_path to 'public'
-as $$
-declare
-  v_agent record;
-  v_version record;
-  v_credential record;
-  v_session record;
-  v_model_count integer;
-  v_previous_version_id uuid;
-  v_published_at timestamptz := now();
-begin
-  select a.id, a.organization_id, a.published_version_id, a.archived_at
-    into v_agent
-  from public.ai_agents a
-  where a.id = p_agent_id
-  for update;
-
-  if not found then
-    raise exception 'agent_not_found' using errcode = 'P0001';
-  end if;
-  if v_agent.organization_id <> p_org_id then
-    raise exception 'agent_not_found' using errcode = 'P0001';
-  end if;
-  if v_agent.archived_at is not null then
-    raise exception 'agent_archived' using errcode = 'P0001';
-  end if;
-
-  select v.id, v.organization_id, v.agent_id, v.status, v.provider, v.model,
-         v.credential_id, v.channel_session_id
-    into v_version
-  from public.ai_agent_versions v
-  where v.id = p_version_id
-  for update;
-
-  if not found then
-    raise exception 'version_not_found' using errcode = 'P0001';
-  end if;
-  if v_version.agent_id <> p_agent_id or v_version.organization_id <> p_org_id then
-    raise exception 'version_not_found' using errcode = 'P0001';
-  end if;
-  if v_version.status not in ('draft', 'superseded') then
-    raise exception 'version_invalid_state' using errcode = 'P0001';
-  end if;
-
-  if v_version.credential_id is null then
-    raise exception 'credential_missing' using errcode = 'P0001';
-  end if;
-
-  select c.id, c.organization_id, c.provider, c.is_active, c.validated_at, c.models_available
-    into v_credential
-  from public.ai_provider_credentials c
-  where c.id = v_version.credential_id;
-
-  if not found or v_credential.organization_id <> p_org_id then
-    raise exception 'credential_not_found' using errcode = 'P0001';
-  end if;
-  if not v_credential.is_active then
-    raise exception 'credential_inactive' using errcode = 'P0001';
-  end if;
-  if v_credential.validated_at is null then
-    raise exception 'credential_not_validated' using errcode = 'P0001';
-  end if;
-  if v_credential.provider <> v_version.provider then
-    raise exception 'credential_provider_mismatch' using errcode = 'P0001';
-  end if;
-
-  select s.id, s.organization_id, s.status
-    into v_session
-  from public.channel_sessions s
-  where s.id = v_version.channel_session_id;
-
-  if not found or v_session.organization_id <> p_org_id then
-    raise exception 'channel_session_not_found' using errcode = 'P0001';
-  end if;
-  if v_session.status <> 'WORKING' then
-    raise exception 'channel_session_offline' using errcode = 'P0001';
-  end if;
-
-  if v_version.provider = '9router' then
-    -- Catálogo não é global: é o que a validação DAQUELA credencial achou.
-    if v_credential.models_available is null
-       or not (v_version.model = any(v_credential.models_available)) then
-      raise exception 'model_not_found' using errcode = 'P0001';
-    end if;
-  else
-    select count(*)
-      into v_model_count
-    from public.ai_models m
-    where m.provider = v_version.provider
-      and m.model_id = v_version.model
-      and m.deprecated_at is null;
-
-    if v_model_count = 0 then
-      raise exception 'model_not_found' using errcode = 'P0001';
-    end if;
-  end if;
-
-  v_previous_version_id := v_agent.published_version_id;
-
-  if v_previous_version_id is not null and v_previous_version_id <> p_version_id then
-    update public.ai_agent_versions
-       set status = 'superseded', superseded_at = v_published_at
-     where id = v_previous_version_id;
-  end if;
-
-  update public.ai_agent_versions
-     set status = 'published',
-         published_at = v_published_at,
-         superseded_at = null
-   where id = p_version_id;
-
-  update public.ai_agents
-     set published_version_id = p_version_id,
-         updated_at = v_published_at
-   where id = p_agent_id;
-
-  return query
-    select p_agent_id, p_version_id, v_previous_version_id, v_published_at;
-end;
-$$;
-
-comment on function public.fn_publish_ai_agent_version(uuid, uuid, uuid) is
-  'EPIC-13 S-13.06 (fixed in 0026): compares channel_sessions.status against WORKING (uppercase). '
-  '0183: 9Router valida o modelo contra ai_provider_credentials.models_available (catálogo por '
-  'credencial) em vez de ai_models (catálogo global) — só para provider=''9router''; demais provedores inalterados.';
