@@ -4742,7 +4742,7 @@ export type Database = {
           display_name: string
           dpo_email: string | null
           id: string
-          legal_name: string
+          legal_name: string | null
           locale: string
           media_retention_days: number
           onboarded_at: string | null
@@ -4767,7 +4767,7 @@ export type Database = {
           display_name: string
           dpo_email?: string | null
           id?: string
-          legal_name: string
+          legal_name?: string | null
           locale?: string
           media_retention_days?: number
           onboarded_at?: string | null
@@ -4792,7 +4792,7 @@ export type Database = {
           display_name?: string
           dpo_email?: string | null
           id?: string
-          legal_name?: string
+          legal_name?: string | null
           locale?: string
           media_retention_days?: number
           onboarded_at?: string | null

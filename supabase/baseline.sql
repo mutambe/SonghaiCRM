@@ -14508,3 +14508,14 @@ create policy "calendar_oauth_nonces_no_access" on public.calendar_oauth_nonces
   with check (public.fn_is_platform_admin());
 
 revoke all on public.calendar_oauth_nonces from anon, authenticated;
+
+-- ---- organizations.legal_name vira nullable (migration 0182) ----
+-- Campo sempre foi OPCIONAL no formulário/API de criação de tenant por
+-- platform admin (app/admin/(protected)/tenants/new/_form.tsx,
+-- app/api/v1/admin/tenants/route.ts) e o resto do código já lê nullable
+-- em toda parte (lib/legal/operador.ts, lib/lgpd/export-collector.ts,
+-- lib/lgpd/pdf-renderer.tsx). Só a coluna, herdada de antes dessa feature,
+-- ficava NOT NULL e derrubava o POST com 500 quando o campo ficava em
+-- branco — achado rodando tests/e2e/admin-cria-tenant-convite-owner.spec.ts.
+alter table "public"."organizations"
+  alter column "legal_name" drop not null;
