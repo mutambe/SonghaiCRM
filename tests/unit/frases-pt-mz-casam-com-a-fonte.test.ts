@@ -29,7 +29,7 @@ const RAIZ = process.cwd();
  */
 const FORA = new Set([path.join("lib", "i18n", "frases-pt-mz.ts"), path.join("lib", "i18n", "dicionario.ts")]);
 
-/** Todo .ts/.tsx de lib/ e app/ que USA texto: sem testes, o registro e o dicionário. */
+/** Todo .ts/.tsx do produto que USA texto: sem testes, o registro e o dicionário. */
 function fontes(): string {
   const partes: string[] = [];
   const andar = (dir: string) => {
@@ -41,9 +41,9 @@ function fontes(): string {
       }
     }
   };
-  andar("lib");
-  andar("app");
-  return partes.join("\n");
+  for (const dir of ["lib", "app", "components", "hooks", "workers"]) andar(dir);
+  // `"…frase " +\n "continuação"` chega inteiro ao t(): junta as concatenações.
+  return partes.join("\n").replace(/(["'])\s*\+\s*\n\s*\1/g, "");
 }
 
 /** Marcas do português do Brasil que não podem chegar ao cliente moçambicano. */
@@ -53,13 +53,19 @@ const MARCAS_DO_BRASIL = [
   /\bpra\b/i,
   /\ba gente\b/i,
   /\bequipe\b/i,
-  /\b\w+ndo\b(?! [a-z]+-)/, // gerúndio ("passando", "pensando") — em Moçambique, «a» + infinitivo
+  // Gerúndio PROGRESSIVO ("está pensando") ou que abre a mensagem ("Passando…"): em
+  // Moçambique, «a» + infinitivo. O de modo ("referindo o segmento") é correto e fica.
+  /(?<![\p{L}])(est[áa]|estou|estamos|estão|continua|fica)\s+\p{L}+ndo(?![\p{L}])/iu,
+  /^(Passando|Aguardando|Esperando)(?![\p{L}])/u,
 ];
 
 describe("registro de frases pt-MZ", () => {
   it("toda chave existe na fonte do produto — nenhuma ficou órfã depois de um merge", () => {
     const fonte = fontes();
-    const orfas = Object.keys(FRASES_PT_MZ).filter((chave) => !fonte.includes(JSON.stringify(chave).slice(1, -1)));
+    // Cru (literal entre plicas, JSX) ou escapado (literal entre aspas com \" dentro).
+    const orfas = Object.keys(FRASES_PT_MZ).filter(
+      (chave) => !fonte.includes(chave) && !fonte.includes(JSON.stringify(chave).slice(1, -1)),
+    );
     expect(orfas).toEqual([]);
   });
 

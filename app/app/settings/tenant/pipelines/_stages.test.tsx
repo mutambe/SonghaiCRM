@@ -348,7 +348,7 @@ describe("StagesSection — a marcação de fechamento", () => {
     await user.click(await screen.findByRole("option", { name: "Nada especial" }));
 
     expect(await screen.findByTestId("etapa-erro-e3")).toHaveTextContent(
-      "a marcação se muda, não se apaga",
+      "a marcação muda-se, não se apaga",
     );
     // O seletor volta a dizer o que o BANCO tem — deixá-lo em «nenhuma» faria a
     // tela afirmar um estado que não existe.

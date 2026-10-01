@@ -186,14 +186,14 @@ describe("/admin/meta — o formulário", () => {
 
     const salvar = screen.getByTestId("meta-salvar") as HTMLButtonElement;
     expect(salvar.disabled).toBe(true);
-    await userEvent.type(screen.getByLabelText("Chave secreta do aplicativo"), "curta");
+    await userEvent.type(screen.getByLabelText("Chave secreta da aplicação"), "curta");
     expect(salvar.disabled).toBe(true);
   });
 
   it("configurado: diz que existe e quando nasceu, sem mostrar valor nenhum", () => {
     render(<FormularioDaMeta {...TUDO_CONFIGURADO} />);
 
-    expect(screen.getByLabelText("Chave secreta do aplicativo").getAttribute("placeholder")).toMatch(
+    expect(screen.getByLabelText("Chave secreta da aplicação").getAttribute("placeholder")).toMatch(
       /já registada/,
     );
     expect(screen.getByTestId("meta-token-estado").textContent).toBe("Gerado em 15/09/2026, 10:00.");
@@ -207,7 +207,7 @@ describe("/admin/meta — o formulário", () => {
     render(<FormularioDaMeta {...NADA_CONFIGURADO} />);
 
     await userEvent.type(
-      screen.getByLabelText("Chave secreta do aplicativo"),
+      screen.getByLabelText("Chave secreta da aplicação"),
       "0123456789abcdef0123456789abcdef",
     );
     await userEvent.click(screen.getByTestId("meta-salvar"));
@@ -249,7 +249,7 @@ describe("/admin/meta — o formulário", () => {
     updateMetaApp.mockResolvedValue({ ok: false, error: "invalid_input" });
     render(<FormularioDaMeta {...NADA_CONFIGURADO} />);
 
-    await userEvent.type(screen.getByLabelText("Chave secreta do aplicativo"), "0123456789abcdef-x");
+    await userEvent.type(screen.getByLabelText("Chave secreta da aplicação"), "0123456789abcdef-x");
     await userEvent.click(screen.getByTestId("meta-salvar"));
 
     await waitFor(() => expect(toastErro).toHaveBeenCalledWith(expect.stringMatching(/32 caracteres/)));

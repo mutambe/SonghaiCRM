@@ -22,6 +22,7 @@ vi.mock("@/hooks/metrics/usePrevisaoFunil", () => ({
 }));
 
 import { PrevisaoPanel } from "@/app/app/metrics/_components/PrevisaoPanel";
+import { nomeDaMoeda } from "@/lib/money";
 
 /** Os espaços que o `Intl` emite são NBSP (U+00A0) ou narrow NBSP (U+202F). */
 const semNbsp = (s: string) => s.replace(/[\u00A0\u202F]/g, " ");
@@ -48,12 +49,13 @@ describe("painel de previsão em Métricas", () => {
     const celulas = Array.from(linha?.querySelectorAll("td") ?? []).map((td) =>
       semNbsp(td.textContent ?? ""),
     );
-    expect(celulas).toEqual(["2026-10", "PYG", "Gs. 125.000", "Gs. 250.000", "2"]);
+    // SonghaiCRM: a coluna mostra o NOME da moeda ("Metical"), não o código ISO.
+    expect(celulas).toEqual(["2026-10", nomeDaMoeda("PYG"), "Gs. 125.000", "Gs. 250.000", "2"]);
 
     // Os dois baldes de fora do cronograma usam a mesma régua.
     const texto = semNbsp(document.body.textContent ?? "");
-    expect(texto).toContain("PYG: Gs. 125.000 · bruto Gs. 250.000 · 2 negócios");
-    expect(texto).toContain("PYG: Gs. 250.000 · 2 negócios");
+    expect(texto).toContain(`${nomeDaMoeda("PYG")}: Gs. 125.000 · bruto Gs. 250.000 · 2 negócios`);
+    expect(texto).toContain(`${nomeDaMoeda("PYG")}: Gs. 250.000 · 2 negócios`);
     expect(texto).not.toContain("12.500.000");
     expect(texto).not.toContain("25.000.000");
   });
@@ -63,6 +65,6 @@ describe("painel de previsão em Métricas", () => {
     render(<PrevisaoPanel />);
 
     const texto = semNbsp(document.body.textContent ?? "");
-    expect(texto).toContain("BRL: R$ 124,95 · bruto R$ 249,90 · 2 negócios");
+    expect(texto).toContain(`${nomeDaMoeda("BRL")}: R$ 124,95 · bruto R$ 249,90 · 2 negócios`);
   });
 });

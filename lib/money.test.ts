@@ -79,7 +79,8 @@ describe("formatCents", () => {
   it("formata cada moeda na convenção de quem a usa", () => {
     expect(semNbsp(formatCents(24990, "BRL"))).toBe("R$ 249,90");
     expect(semNbsp(formatCents(24990, "MXN"))).toBe("$249.90");
-    expect(semNbsp(formatCents(24990, "USD"))).toBe("$249.90");
+    // SonghaiCRM: o dólar sai como se lê em Moçambique (pt-MZ), "249,90 US$".
+    expect(semNbsp(formatCents(24990, "USD"))).toBe("249,90 US$");
     // Kwanza: símbolo DEPOIS do número e vírgula decimal, que é a convenção de
     // Angola — `formatadorDa` maximiza `und-AO` para `pt-AO` e é o ICU que
     // decide, não uma tabela nossa.
@@ -240,21 +241,22 @@ describe("formatSomaPorMoeda", () => {
       ["BRL", 10000],
     ]);
     expect(semNbsp(formatSomaPorMoeda(soma, formatCents, { primeira: "USD" }))).toBe(
-      "$100.00 + R$ 100,00 + 100,00 €",
+      "100,00 US$ + R$ 100,00 + 100,00 €",
     );
     // `primeira` fora da soma é ignorada — não inventa uma parcela zerada.
     expect(semNbsp(formatSomaPorMoeda(soma, formatCents, { primeira: "MXN" }))).toBe(
-      "R$ 100,00 + 100,00 € + $100.00",
+      "R$ 100,00 + 100,00 € + 100,00 US$",
     );
   });
 
   it("⭐ símbolo repetido leva o código; símbolo único não", () => {
+    // SonghaiCRM: o dólar americano escreve "US$" aqui; o canadiano mantém "$".
     const pesoEDolar = new Map([
       ["MXN", 150000],
-      ["USD", 10000],
+      ["CAD", 10000],
     ]);
     expect(semNbsp(formatSomaPorMoeda(pesoEDolar, formatCents))).toBe(
-      "$1,500.00 MXN + $100.00 USD",
+      "$100.00 CAD + $1,500.00 MXN",
     );
 
     const realEEuro = new Map([

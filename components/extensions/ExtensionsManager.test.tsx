@@ -739,7 +739,7 @@ describe("ExtensionsManager", () => {
 
     await waitFor(() =>
       expect(toast.warning).toHaveBeenCalledWith(
-        "A extensão mudou em outra sessão. Recarregamos o estado atual; revise antes de repetir.",
+        "A extensão mudou noutra sessão. Recarregamos o estado atual; revise antes de repetir.",
       ),
     );
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(3));

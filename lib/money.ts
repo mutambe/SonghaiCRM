@@ -56,7 +56,7 @@ export function parseReaisToCents(input: string): number | null {
 }
 
 /**
- * Centavos → "MZN 249,90", na moeda PADRÃO desta distribuição (metical).
+ * Centavos → "249,90 MTn", na moeda PADRÃO desta distribuição (metical).
  * Para eco na tela do que foi entendido, onde o valor não traz moeda própria.
  * Substitui o `formatCentsBRL` do upstream (SonghaiCRM é para Moçambique).
  */
@@ -171,6 +171,11 @@ const formatadores = new Map<string, Intl.NumberFormat>();
  */
 const LOCALE_DA_MOEDA_SEM_PAIS: Readonly<Record<string, string>> = {
   EUR: "pt-PT",
+  // SonghaiCRM: quem lê é moçambicano. O metical sai como em Moçambique
+  // ("249,90 MTn") e o dólar também ("249,90 US$", não o "$249.90" americano).
+  // O rand fica na convenção sul-africana ("R 249,90"), que é como se lê aqui.
+  MZN: "pt-MZ",
+  USD: "pt-MZ",
   // PYG tem país, mas a maximização responde o idioma ERRADO para dinheiro:
   // `und-PY` vira `gn-Latn-PY` (guarani), que o ICU não tem, e o formatador
   // caía em `en-US` — `PYG 125,000`, com vírgula de milhar. `es-PY` escreve
@@ -409,8 +414,8 @@ export function formatSomaPorMoeda(
  * SonghaiCRM (Moçambique): o metical é o padrão; dólar, rand e euro ficam para
  * quem fatura a clientes de fora (turismo, exportação, fronteira com a África
  * do Sul). BRL, MXN e AOA do upstream saíram — nada aqui é referente ao Brasil.
- * `formatCents(24990, "MZN")` → "MZN 249,90" (o ICU maximiza `und-MZ` para
- * `pt-MZ`); ZAR sai pelo `en-ZA`, USD pelo `en-US`, EUR pela exceção `pt-PT`.
+ * `formatCents(24990, "MZN")` → "249,90 MTn" e USD → "249,90 US$" (os dois pela
+ * exceção `pt-MZ`); ZAR sai pelo `en-ZA` ("R 249,90"), EUR pela exceção `pt-PT`.
  */
 export const MOEDAS_SERVIDAS = ["MZN", "USD", "ZAR", "EUR"] as const;
 export type MoedaServida = (typeof MOEDAS_SERVIDAS)[number];
@@ -450,4 +455,33 @@ export function moedaServidaOu(bruta: string | null | undefined): MoedaServida {
 export function simboloDaMoeda(moeda: string): string {
   const partes = formatadorDa(moeda).formatToParts(0);
   return partes.find((p) => p.type === "currency")?.value ?? moeda;
+}
+
+/**
+ * SonghaiCRM: o nome da moeda como se diz em Moçambique — o comerciante lê
+ * "Metical (MTn)", não o código ISO "MZN". Singular, porque é o nome da moeda;
+ * no plural, "meticais". Moeda fora da lista cai no nome do `Intl` em pt-MZ e,
+ * se nem esse houver, no próprio código.
+ */
+const NOME_DA_MOEDA: Readonly<Record<string, string>> = {
+  MZN: "Metical",
+  USD: "Dólar americano",
+  ZAR: "Rand sul-africano",
+  EUR: "Euro",
+};
+
+export function nomeDaMoeda(moeda: string): string {
+  const fixo = NOME_DA_MOEDA[moeda];
+  if (fixo) return fixo;
+  try {
+    const nome = new Intl.DisplayNames(["pt-MZ"], { type: "currency" }).of(moeda);
+    return nome ? nome.charAt(0).toUpperCase() + nome.slice(1) : moeda;
+  } catch {
+    return moeda;
+  }
+}
+
+/** "Metical (MTn)", "Dólar americano (US$)" — o rótulo de uma moeda num seletor ou título. */
+export function rotuloDaMoeda(moeda: string): string {
+  return `${nomeDaMoeda(moeda)} (${simboloDaMoeda(moeda)})`;
 }

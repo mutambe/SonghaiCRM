@@ -16,7 +16,7 @@ import {
 import { updateTenant } from "@/app/actions/settings/updateTenant";
 import { useT } from "@/hooks/i18n/useT";
 import { IDIOMAS_VISIVEIS } from "@/lib/i18n/registro";
-import { MOEDAS_SERVIDAS, simboloDaMoeda, type MoedaServida } from "@/lib/money";
+import { MOEDAS_SERVIDAS, rotuloDaMoeda, type MoedaServida } from "@/lib/money";
 import { paisesOferecidos } from "@/lib/legal/perfil-do-pais";
 import { tenantSchema, type Locale, type TenantInput } from "@/lib/schemas/settings";
 
@@ -133,7 +133,7 @@ export function TenantForm({ initial }: Props) {
               <SelectContent>
                 {MOEDAS_SERVIDAS.map((moeda) => (
                   <SelectItem key={moeda} value={moeda}>
-                    {moeda} · {simboloDaMoeda(moeda)}
+                    {rotuloDaMoeda(moeda)}
                   </SelectItem>
                 ))}
               </SelectContent>

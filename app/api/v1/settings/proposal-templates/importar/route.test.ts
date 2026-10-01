@@ -89,7 +89,7 @@ describe("POST /api/v1/settings/proposal-templates/importar", () => {
   it(".docx → 415 com Salvar como", async () => {
     const res = await POST(arquivo("proposta.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "x") as never);
     expect(res.status).toBe(415);
-    expect(await res.text()).toContain("Salvar como");
+    expect(await res.text()).toContain("Guardar como");
     expect(mocks.gerarModeloDoTexto).not.toHaveBeenCalled();
   });
 

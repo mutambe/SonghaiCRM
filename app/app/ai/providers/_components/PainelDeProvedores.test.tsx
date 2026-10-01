@@ -157,7 +157,7 @@ describe("PainelDeProvedores — o Jev no painel", () => {
     fireEvent.click(screen.getByTestId("avancado-entender"));
     const linha = screen.getByTestId("jev-no-ponto-intent_router");
     expect(linha).not.toHaveTextContent(/mede primeiro/);
-    expect(linha).toHaveTextContent("o modelo abaixo continua sendo chamado a cada mensagem");
+    expect(linha).toHaveTextContent("o modelo abaixo continua a ser chamado a cada mensagem");
   });
 
   it("com o Jev desligado, o cartão do ponto não fala dele", async () => {

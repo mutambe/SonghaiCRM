@@ -96,7 +96,7 @@ describe("copyDaPromessaSemDono — o aviso só afirma o que foi apurado", () =>
   it("sem capacidade marcada, manda para a tela do assistente", () => {
     const { body } = copyDaPromessaSemDono(1, "operador_sem_ferramentas");
     expect(body).toContain("capacidade");
-    expect(body).toContain("tela do assistente");
+    expect(body).toContain("ecrã do assistente");
   });
 
   it("com capacidade e sem ação, NÃO manda configurar nada — manda decidir", () => {

@@ -11,6 +11,7 @@
 import { NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
 import type { ApiErrorCode } from "@/lib/api/errors";
+import { paraPortuguesDeMocambique } from "@/lib/i18n/pt-mz";
 
 // -----------------------------------------------------------------------------
 // Tipos públicos
@@ -72,7 +73,10 @@ export function fail(
   const body: ApiError = {
     error: {
       code,
-      message,
+      // SonghaiCRM: a mensagem chega à tela (toast, formulário). Muitas rotas a
+      // escrevem sem `t()`; aqui ela sai em português de Moçambique de uma vez.
+      // Só texto: há rota que repassa o erro cru de outra camada (objeto).
+      message: typeof message === "string" ? paraPortuguesDeMocambique(message) : message,
       ...(opts.details !== undefined ? { details: opts.details } : {}),
     },
   };

@@ -295,7 +295,7 @@ describe("KnowledgeSourceCard — só oferece controle onde existe ação", () =
         onMudou={() => {}}
       />,
     );
-    expect(screen.getByText("Esperando a chave")).toBeInTheDocument();
+    expect(screen.getByText("A esperar a chave")).toBeInTheDocument();
     expect(screen.getByText(/Por que não entrou/)).toBeInTheDocument();
   });
 });

@@ -92,15 +92,15 @@ describe("menu do card — Excluir", () => {
     renderMenu();
 
     await user.click(screen.getByRole("button", { name: "Ações do lead" }));
-    await user.click(await screen.findByRole("menuitem", { name: "Excluir" }));
+    await user.click(await screen.findByRole("menuitem", { name: "Eliminar" }));
 
-    expect(await screen.findByText('Excluir "Proposta da ACME"?')).toBeTruthy();
+    expect(await screen.findByText('Eliminar "Proposta da ACME"?')).toBeTruthy();
     expect(post).not.toHaveBeenCalled();
     // Qual gate, e não só "algum gate": é `pipeline.move_card` que decide se
     // Excluir aparece, a mesma chave que a rota em lote cobra.
     expect(permissao).toHaveBeenCalledWith("pipeline.move_card");
 
-    await user.click(screen.getByRole("button", { name: "Excluir" }));
+    await user.click(screen.getByRole("button", { name: "Eliminar" }));
     await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
     expect(post).toHaveBeenCalledWith("/api/v1/leads/bulk", {
       action: "delete",
@@ -115,8 +115,8 @@ describe("menu do card — Excluir", () => {
     renderMenu();
 
     await user.click(screen.getByRole("button", { name: "Ações do lead" }));
-    await user.click(await screen.findByRole("menuitem", { name: "Excluir" }));
-    await screen.findByText('Excluir "Proposta da ACME"?');
+    await user.click(await screen.findByRole("menuitem", { name: "Eliminar" }));
+    await screen.findByText('Eliminar "Proposta da ACME"?');
 
     expect(await screen.findByText(/0002\/2026/)).toBeTruthy();
   });
@@ -127,8 +127,8 @@ describe("menu do card — Excluir", () => {
     renderMenu();
 
     await user.click(screen.getByRole("button", { name: "Ações do lead" }));
-    await user.click(await screen.findByRole("menuitem", { name: "Excluir" }));
-    await screen.findByText('Excluir "Proposta da ACME"?');
+    await user.click(await screen.findByRole("menuitem", { name: "Eliminar" }));
+    await screen.findByText('Eliminar "Proposta da ACME"?');
 
     expect(screen.queryByText(/continua em Propostas/)).toBeNull();
   });
@@ -138,8 +138,8 @@ describe("menu do card — Excluir", () => {
     renderMenu();
 
     await user.click(screen.getByRole("button", { name: "Ações do lead" }));
-    await user.click(await screen.findByRole("menuitem", { name: "Excluir" }));
-    await screen.findByText('Excluir "Proposta da ACME"?');
+    await user.click(await screen.findByRole("menuitem", { name: "Eliminar" }));
+    await screen.findByText('Eliminar "Proposta da ACME"?');
 
     await user.click(screen.getByRole("button", { name: "Cancelar" }));
 
@@ -152,10 +152,10 @@ describe("menu do card — Excluir", () => {
     renderMenu();
 
     await user.click(screen.getByRole("button", { name: "Ações do lead" }));
-    await user.click(await screen.findByRole("menuitem", { name: "Excluir" }));
-    await screen.findByText('Excluir "Proposta da ACME"?');
+    await user.click(await screen.findByRole("menuitem", { name: "Eliminar" }));
+    await screen.findByText('Eliminar "Proposta da ACME"?');
 
-    const confirmar = screen.getByRole("button", { name: "Excluir" });
+    const confirmar = screen.getByRole("button", { name: "Eliminar" });
     await user.click(confirmar);
     // Segundo clique no MESMO botão: enquanto a rota não responde ele está
     // `disabled`, e excluir em dobro é o erro que não tem desfazer.
@@ -176,8 +176,8 @@ describe("menu do card — Excluir", () => {
     renderMenu();
 
     await user.click(screen.getByRole("button", { name: "Ações do lead" }));
-    await user.click(await screen.findByRole("menuitem", { name: "Excluir" }));
-    await screen.findByText('Excluir "Proposta da ACME"?');
+    await user.click(await screen.findByRole("menuitem", { name: "Eliminar" }));
+    await screen.findByText('Eliminar "Proposta da ACME"?');
     abrirDossie.mockReset();
 
     // O overlay: o irmão do conteúdo dentro do portal, o que cobre a tela.

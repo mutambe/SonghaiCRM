@@ -26,6 +26,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 import { GET, PATCH } from "./route";
+import { paraPortuguesDeMocambique } from "@/lib/i18n/pt-mz";
 
 vi.mock("@/lib/auth/require-role", () => ({ requireRole: vi.fn() }));
 vi.mock("@/lib/impersonate/support", () => ({ requireSupportWrite: vi.fn(async () => null) }));
@@ -1053,7 +1054,8 @@ describe("o Jev por tarefa na rota", () => {
     const recusado = await mudar({ tarefa: "followup", estado: "decidindo" });
     expect(recusado.status).toBe(422);
     expect(recusado.corpo.error.code).toBe("jev_tarefa_so_observa");
-    expect(recusado.corpo.error.message).toBe(TAREFA_DO_FOLLOWUP.soObserva);
+    // fail() entrega a mensagem em português de Moçambique.
+    expect(recusado.corpo.error.message).toBe(paraPortuguesDeMocambique(TAREFA_DO_FOLLOWUP.soObserva));
     expect(escritas()).toEqual([]);
     expect(audit).not.toHaveBeenCalled();
 

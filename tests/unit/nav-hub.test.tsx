@@ -95,8 +95,8 @@ describe("NavHub", () => {
       <NavHub modulosLigados={["banco_externo"]} group="organizacao" isPlatformAdmin={false} role="viewer" title="Org" subtitle="" />,
     );
     const secoes = screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent?.trim());
-    expect(secoes).toContain("Sua conta");
-    expect(secoes).toContain("Sua empresa");
+    expect(secoes).toContain("A sua conta");
+    expect(secoes).toContain("A sua empresa");
     expect(secoes).toContain("Dados e acesso");
     expect(screen.getByRole("link", { name: /Extensões/ })).toHaveAttribute(
       "href",
@@ -193,7 +193,7 @@ describe("NavHub", () => {
       "/app/extensions/00000000-0000-4000-8000-000000000002?card=primeiro-passo",
     );
     expect(contribution).not.toHaveTextContent("Uma descrição que a configuração esconde.");
-    expect(screen.getByText("Abre Tarefas; não lê seus dados.")).toBeInTheDocument();
+    expect(screen.getByText("Abre Tarefas; não lê os seus dados.")).toBeInTheDocument();
   });
 
   it("expõe falha de leitura das contribuições sem derrubar o hub do CRM", () => {
@@ -211,7 +211,7 @@ describe("NavHub", () => {
     expect(
       screen.getByRole("heading", { name: "Não foi possível conferir as orientações instaladas" }),
     ).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Gerenciar extensões" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Gerir extensões" })).toHaveAttribute(
       "href",
       "/app/extensions",
     );

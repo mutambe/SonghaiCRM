@@ -199,7 +199,7 @@ export async function venceReativacoes(
           title: `Decida sobre ${r.vencidas} ${r.vencidas === 1 ? "negócio parado" : "negócios parados"} — a sugestão de retomar venceu`,
           body:
             `${r.vencidas === 1 ? "Um negócio esfriou" : `${r.vencidas} negócios esfriaram`} e a sugestão de ` +
-            `retomar contato ficou sem resposta até o prazo. Eles saíram do quadro para não ` +
+            `retomar contacto ficou sem resposta até o prazo. Eles saíram do quadro para não ` +
             `parecerem em andamento. Retomar ou encerrar — as duas são decisões; deixar como ` +
             `está é a única que não é.`,
           ref_kind: "organization",

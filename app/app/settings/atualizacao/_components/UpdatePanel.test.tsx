@@ -129,7 +129,7 @@ describe("tela de atualização — a rodada conta a disputa do banco", () => {
     // Não é log cru nem código: é frase. Os números vêm do estado persistido.
     expect(
       screen.getByText(
-        /O banco estava em disputa com o sistema no ar: foram duas passadas e uma retentativa/,
+        /A base de dados estava em disputa com o sistema no ar: foram duas passadas e uma retentativa/,
       ),
     ).toBeInTheDocument();
   });

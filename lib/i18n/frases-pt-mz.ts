@@ -30,6 +30,26 @@ export const FRASES_PT_MZ: Readonly<Record<string, string>> = {
   "Oi {{nome}}! Passando pra lembrar: {{titulo}}, {{dia}} às {{hora}}.":
     "Olá {{nome}}! Só para lembrar: {{titulo}}, {{dia}} às {{hora}}.",
 
+  // ---- Telas: frases que nenhuma regra da camada acerta ----
+  // "a gente" pede o verbo na 1.ª do plural; não é troca de palavra.
+  "Ex.: Agradeça o interesse citando o segmento que a pessoa informou, mostre em uma frase como a gente resolve a dificuldade que ela descreveu, e pergunte qual o melhor horário para conversar.":
+    "Ex.: Agradeça o interesse referindo o segmento que a pessoa indicou, mostre numa frase como resolvemos a dificuldade que ela descreveu e pergunte qual o melhor horário para conversar.",
+  "O que falta a gente resolve nos próximos passos.": "O que falta resolvemos nos próximos passos.",
+  "Uma linha basta. É com isso que seu funcionário aprende com quem ele está falando — e que a gente monta o quadro de clientes do seu jeito.":
+    "Uma linha basta. É com isso que o seu funcionário aprende com quem está a falar — e que montamos o quadro de clientes à sua maneira.",
+  "10 dígitos. Com ou sem hífen — tanto faz, a gente limpa.": "10 dígitos. Com ou sem hífen — tanto faz, nós limpamos.",
+  "Sem falar com a gente há (dias)": "Sem falar connosco há (dias)",
+  // Pagamento: em Moçambique o exemplo é o M-Pesa, não o Pix.
+  "Ex.: Pix": "Ex.: M-Pesa",
+  "Ex.: Pagamento em até 3x sem juros no cartão ou 5% de desconto à vista via Pix.":
+    "Ex.: Pagamento em até 3 prestações sem juros no cartão ou 5% de desconto a pronto via M-Pesa.",
+  // O gasto de IA é em DÓLAR (llm_calls.cost_cents) — o "(R$)" do upstream estava errado também lá.
+  "Quanto gastou por dia (R$)": "Quanto gastou por dia (US$)",
+  "Custo AI / dia (R$)": "Custo de IA por dia (US$)",
+  // "excluir" aqui é deixar de fora, não apagar (a camada troca "excluir" por "eliminar").
+  'Para não guardar a origem na aba, adicione data-storage="none" ao script. Para excluir um link, adicione data-rastreio-ignorar nele. Botões controlados apenas por JavaScript e links abreviados precisam de adaptação no site.':
+    'Para não guardar a origem no separador, adicione data-storage="none" ao script. Para deixar um link de fora, adicione-lhe data-rastreio-ignorar. Botões controlados apenas por JavaScript e links encurtados precisam de adaptação no site.',
+
   // ---- Modelos de follow-up da clínica (lib/followup/modelos/clinica.ts) ----
   "Oi! Ficamos de acertar o horário da sua consulta e a conversa parou por aqui. Quer que eu veja o que ainda está livre?":
     "Olá! Tínhamos ficado de acertar o horário da sua consulta e a conversa ficou por aqui. Quer que eu veja o que ainda está livre?",

@@ -31,7 +31,7 @@ describe("AddCredentialDialog — ajuda ao escolher", () => {
 
   it("linka para onde pegar a chave do provedor selecionado", () => {
     montar();
-    expect(screen.getByRole("link", { name: "Onde pegar a chave" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Onde obter a chave" })).toHaveAttribute(
       "href",
       "https://console.anthropic.com/settings/keys",
     );

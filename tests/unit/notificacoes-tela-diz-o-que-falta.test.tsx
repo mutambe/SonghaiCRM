@@ -144,7 +144,7 @@ describe("tela de Notificações — o que ela afirma sobre esta instalação", 
 
     expect(html).toContain("push-status-pronto");
     expect(html).not.toContain("push-status-faltando-chaves");
-    expect(html).toMatch(/aba fechada/i);
+    expect(html).toMatch(/separador fechado/i);
 
     // Capacidade que já está de pé não pode continuar pedindo que o operador
     // rode um comando: seria mandá-lo mexer no `.env` de produção à toa.

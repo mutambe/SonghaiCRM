@@ -36,7 +36,7 @@ describe("EdgeConfigPanel — excluir aresta", () => {
     );
 
     const botao = screen.getByTestId("delete-edge");
-    expect(botao).toHaveTextContent("Excluir aresta");
+    expect(botao).toHaveTextContent("Eliminar aresta");
     await userEvent.setup({ delay: null }).click(botao);
     expect(onDelete).toHaveBeenCalledOnce();
   });

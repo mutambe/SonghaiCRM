@@ -48,6 +48,8 @@ pnpm typecheck && pnpm test:unit && pnpm test:db
 | 2026-10-01 | Camada plataforma do playbook, prompt padrão de agente e prompt de prospecção mandavam escrever "em português do Brasil" — agora português de Moçambique, com vocabulário e construções | 0502 |
 | 2026-10-01 | Mensagens fixas ao cliente (agenda, lembrete, 13 mensagens dos modelos de follow-up) reescritas em português de Moçambique; data da reunião com ano de 4 dígitos | — |
 | 2026-10-01 | Sexta-feira Santa confirmada como feriado nos prazos (decisão do dono do produto) | — |
+| 2026-10-01 | "Tudo em português de Moçambique": a camada `pt-mz.ts` passou de troca de palavra a norma — gerúndio → «a» + infinitivo, nome que muda de gênero com concordância (tela → ecrã, aplicativo → aplicação, banco → base de dados), artigo no possessivo, ênclise, "aceder a", "precisar de", "noutro". Revisada contra as 8 751 frases do produto. Aplicada também no `fail()` (erros da API), no roteador de e-mail e nos moldes do GoTrue | — |
+| 2026-10-01 | Moeda "Metical (MTn)": `249,90 MTn` e `249,90 US$` (pt-MZ), nome da moeda no seletor e nos títulos (`rotuloDaMoeda`); gráficos de gasto de IA diziam "(R$)" sobre valores em dólar — agora "(US$)" | — |
 
 ## A reaplicar do fork antigo (`integracao/2026-09-30`)
 

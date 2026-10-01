@@ -44,7 +44,7 @@ const show = (meeting: MeetingDetail, locale = "pt-MZ") =>
   );
 it("pending mostra destino e só arma envio depois do clique", async () => {
   show(initial);
-  expect(screen.getByText("Criando link do Google Meet")).toBeInTheDocument();
+  expect(screen.getByText("A criar link do Google Meet")).toBeInTheDocument();
   expect(screen.queryByRole("link", { name: "Abrir reunião" })).not.toBeInTheDocument();
   expect(api.post).not.toHaveBeenCalled();
   fireEvent.click(screen.getByRole("button", { name: "Enviar quando ficar pronto" }));

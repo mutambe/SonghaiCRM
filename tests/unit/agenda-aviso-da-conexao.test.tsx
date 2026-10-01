@@ -329,7 +329,7 @@ describe("aviso da conexão do Google — código que a tela não conhece", () =
       screen.getByTestId("aviso-conexao-google").textContent ?? "",
       "sem essa frase, um aviso vermelho no topo faz a pessoa parar de usar a " +
         "agenda inteira por causa de uma integração que ela nem tinha ainda",
-    ).toMatch(/continua funcionando/i);
+    ).toMatch(/continua a funcionar/i);
   });
 });
 

@@ -168,7 +168,7 @@ describe("audit: a lista do painel é derivada do vocabulário", () => {
     // opção nascer aqui sem tocar em nada — é este caso que prova a derivação.
     expect(new Set(opcoes())).toEqual(new Set(AUDIT_ACTIONS));
 
-    const busca = within(painel).getByPlaceholderText("Buscar...");
+    const busca = within(painel).getByPlaceholderText("Procurar...");
     fireEvent.change(busca, { target: { value: "followup" } });
 
     // Esperado calculado do vocabulário, nunca fixado num literal: fixar 15 aqui

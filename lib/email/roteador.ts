@@ -38,6 +38,7 @@
 import { getSmtpConfig } from "@/lib/email/config";
 import { isEmailConfigured as resendConfigurada, sendEmail as enviarPelaResend } from "@/lib/email/resend";
 import { isSmtpConfigured, sendEmail as enviarPorSmtp } from "@/lib/email/smtp";
+import { htmlEmPortuguesDeMocambique, paraPortuguesDeMocambique } from "@/lib/i18n/pt-mz";
 
 /** Quem entregou (ou tentou entregar). Vai ao audit, nunca ao destinatário. */
 export type TransporteDeEmail = "smtp" | "resend";
@@ -107,7 +108,16 @@ export async function transporteEmVigor(): Promise<TransporteDeEmail | "nenhum">
   return (await resendConfigurada()) ? "resend" : "nenhum";
 }
 
-export async function sendEmail(args: SendArgs): Promise<EmailSendResult> {
+export async function sendEmail(entrada: SendArgs): Promise<EmailSendResult> {
+  // SonghaiCRM: todo e-mail sai em português de Moçambique — assunto, texto e
+  // os nós de texto do HTML (nunca atributo nem link). É o funil de saída: os
+  // modelos do upstream não precisam ser tocados um a um.
+  const args: SendArgs = {
+    ...entrada,
+    subject: paraPortuguesDeMocambique(entrada.subject),
+    html: htmlEmPortuguesDeMocambique(entrada.html),
+    ...(entrada.text !== undefined ? { text: paraPortuguesDeMocambique(entrada.text) } : {}),
+  };
   const via = await transporteDeEmail();
   const resultado = via === "smtp" ? await enviarPorSmtp(args) : await enviarPelaResend(args);
   return { ...resultado, via };

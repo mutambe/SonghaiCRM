@@ -34,7 +34,7 @@ describe("ImageMedia", () => {
   it("mostra fallback quando a imagem falha", () => {
     render(<ImageMedia messageId="m1" alt="Imagem recebida" />);
     fireEvent.error(screen.getByAltText("Imagem recebida"));
-    expect(screen.getByText("Mídia indisponível")).toBeInTheDocument();
+    expect(screen.getByText("Multimédia indisponível")).toBeInTheDocument();
   });
 });
 
@@ -65,6 +65,6 @@ describe("StickerMedia", () => {
     fireEvent.error(img);
     const stableBox = document.querySelector(".h-40.w-40");
     expect(stableBox).toBeInTheDocument();
-    expect(screen.getByText("Mídia indisponível")).toBeInTheDocument();
+    expect(screen.getByText("Multimédia indisponível")).toBeInTheDocument();
   });
 });

@@ -148,7 +148,7 @@ describe("o card diz a verdade sobre a PARADA", () => {
     // dois ramos passaria batido.
     montar(estado({ enforcement_mode: "bloquear", enforcement_env: "avisar" }));
     const faixa = screen.getByText(/proteção só avisa/iu);
-    expect(faixa.textContent ?? "").toMatch(/continuar respondendo/iu);
+    expect(faixa.textContent ?? "").toMatch(/continuar a responder/iu);
     expect(faixa.textContent ?? "").toMatch(/Comportamento/u);
   });
 });

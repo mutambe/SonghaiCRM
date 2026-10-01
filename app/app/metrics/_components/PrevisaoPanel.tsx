@@ -2,7 +2,7 @@
 
 import { useT } from "@/hooks/i18n/useT";
 import { usePrevisaoFunil } from "@/hooks/metrics/usePrevisaoFunil";
-import { formatValorDoNegocio } from "@/lib/money";
+import { formatValorDoNegocio, nomeDaMoeda } from "@/lib/money";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 /**
@@ -84,7 +84,7 @@ export function PrevisaoPanel() {
               {data.meses.map((faixa) => (
                 <tr key={`${faixa.moeda}-${faixa.mes}`} className="border-b border-border/50">
                   <td className="py-1 tabular-nums">{faixa.mes}</td>
-                  <td className="py-1">{faixa.moeda}</td>
+                  <td className="py-1">{nomeDaMoeda(faixa.moeda)}</td>
                   <td className="py-1 text-right tabular-nums">
                     {formatValorDoNegocio(faixa.ponderado_cents, faixa.moeda)}
                   </td>
@@ -105,7 +105,7 @@ export function PrevisaoPanel() {
             </p>
             {data.sem_data.map((balde) => (
               <p key={`sem-data-${balde.moeda}`} className="tabular-nums">
-                {balde.moeda}: {formatValorDoNegocio(balde.ponderado_cents, balde.moeda)} ·{" "}
+                {nomeDaMoeda(balde.moeda)}: {formatValorDoNegocio(balde.ponderado_cents, balde.moeda)} ·{" "}
                 {t("bruto")} {formatValorDoNegocio(balde.bruto_cents, balde.moeda)} · {balde.n}{" "}
                 {t("negócios")}
               </p>
@@ -120,7 +120,7 @@ export function PrevisaoPanel() {
             </p>
             {data.sem_probabilidade.map((balde) => (
               <p key={`sem-prob-${balde.moeda}`} className="tabular-nums">
-                {balde.moeda}: {formatValorDoNegocio(balde.bruto_cents, balde.moeda)} · {balde.n}{" "}
+                {nomeDaMoeda(balde.moeda)}: {formatValorDoNegocio(balde.bruto_cents, balde.moeda)} · {balde.n}{" "}
                 {t("negócios")}
               </p>
             ))}

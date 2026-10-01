@@ -255,7 +255,7 @@ export function LgpdExportPdf({ data, unsignedWarning }: Props): React.ReactElem
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Consentimentos</Text>
           {data.consents.length === 0 ? (
-            <Text style={styles.small}>Nenhum consentimento registrado.</Text>
+            <Text style={styles.small}>Nenhum consentimento registado.</Text>
           ) : (
             data.consents.map((c, i) => (
               <View key={i} style={styles.row}>

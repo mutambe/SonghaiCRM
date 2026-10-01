@@ -17,8 +17,10 @@ por cima. Regra completa na seção "SONGHAICRM" do [`CLAUDE.md`](CLAUDE.md); o 
   upstream; módulos brasileiros ficam desligados, não apagados.
 - **Banco:** migration nossa = arquivo em `supabase/migrations/` + linha no MANIFEST + bloco em
   `supabase/songhai.sql` — **nunca** no `baseline.sql`.
-- **Texto ao cliente:** frases em `lib/i18n/frases-pt-mz.ts`; voz da IA em
-  `lib/agent-engine/playbooks/platform.md`. Teste novo da distribuição vai em arquivo próprio.
+- **Português de Moçambique em tudo:** a camada `lib/i18n/pt-mz.ts` (sobre `t()`, `fail()` e
+  e-mail); frases inteiras em `lib/i18n/frases-pt-mz.ts`; voz da IA em
+  `lib/agent-engine/playbooks/platform.md`. Moeda: "Metical (MTn)". Teste novo da distribuição
+  vai em arquivo próprio.
 - Registro do que veio de onde: [`docs/upstream-sync.md`](docs/upstream-sync.md).
 
 ## Project Overview

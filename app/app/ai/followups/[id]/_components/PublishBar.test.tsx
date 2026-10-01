@@ -87,7 +87,7 @@ describe("PublishBar — excluir a seleção pede confirmação", () => {
     await usuario().click(screen.getByTestId("delete-selection"));
 
     const dialogo = await screen.findByRole("alertdialog");
-    expect(dialogo).toHaveTextContent("Excluir este nó?");
+    expect(dialogo).toHaveTextContent("Eliminar este nó?");
     expect(dialogo).toHaveTextContent("Não é possível desfazer");
     expect(onDeleteSelection).not.toHaveBeenCalled();
   });
@@ -110,7 +110,7 @@ describe("PublishBar — excluir a seleção pede confirmação", () => {
 
     await user.click(screen.getByTestId("delete-selection"));
     const dialogo = await screen.findByRole("alertdialog");
-    await user.click(within(dialogo).getByRole("button", { name: "Excluir" }));
+    await user.click(within(dialogo).getByRole("button", { name: "Eliminar" }));
 
     expect(onDeleteSelection).toHaveBeenCalledTimes(1);
     await waitFor(() => expect(screen.queryByRole("alertdialog")).toBeNull());
@@ -123,10 +123,10 @@ describe("PublishBar — excluir a seleção pede confirmação", () => {
     await user.click(screen.getByTestId("delete-selection"));
     const dialogo = await screen.findByRole("alertdialog");
 
-    expect(dialogo).toHaveTextContent("Excluir esta aresta?");
-    expect(dialogo).not.toHaveTextContent("Excluir este nó?");
+    expect(dialogo).toHaveTextContent("Eliminar esta aresta?");
+    expect(dialogo).not.toHaveTextContent("Eliminar este nó?");
 
-    await user.click(within(dialogo).getByRole("button", { name: "Excluir" }));
+    await user.click(within(dialogo).getByRole("button", { name: "Eliminar" }));
     expect(onDeleteSelection).toHaveBeenCalledTimes(1);
   });
 

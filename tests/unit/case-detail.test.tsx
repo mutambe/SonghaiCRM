@@ -136,7 +136,7 @@ describe("CaseDetail", () => {
 
     const campos = container.querySelectorAll("textarea");
     expect(campos.length).toBeGreaterThanOrEqual(2);
-    expect(campos[0]).toHaveAttribute("placeholder", "Escreva sua resposta para a IA...");
+    expect(campos[0]).toHaveAttribute("placeholder", "Escreva a sua resposta para a IA...");
     expect(campos[1]).toHaveAttribute("placeholder", "Pergunte à IA sobre este caso…");
 
     expect(screen.getAllByRole("button", { name: "Enviar" })).toHaveLength(1);

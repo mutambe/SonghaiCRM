@@ -198,7 +198,7 @@ describe("ConversationHeader — busca dentro da conversa (#1793)", () => {
     rerender(
       <ConversationHeader conversation={conversa("open")} onBuscar={buscar} buscaAberta={false} />,
     );
-    const botao = screen.getByRole("button", { name: "Buscar nesta conversa" });
+    const botao = screen.getByRole("button", { name: "Procurar nesta conversa" });
     expect(botao).toHaveAttribute("aria-expanded", "false");
     await user.click(botao);
     expect(buscar).toHaveBeenCalledOnce();

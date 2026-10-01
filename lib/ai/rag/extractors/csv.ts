@@ -58,7 +58,7 @@ export function extractCsvText(buffer: Buffer): string {
   }
   if (dados.length > CSV_MAX_LINHAS_DE_DADOS) {
     throw new CsvExtractError(
-      `a planilha tem ${dados.length} linhas de dado — o limite para material de conhecimento ` +
+      `a folha de cálculo tem ${dados.length} linhas de dado — o limite para material de conhecimento ` +
         `é ${CSV_MAX_LINHAS_DE_DADOS}. Divida em arquivos menores ou use o catálogo de produtos.`,
     );
   }

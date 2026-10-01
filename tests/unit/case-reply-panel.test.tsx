@@ -34,10 +34,10 @@ describe("CaseReplyPanel", () => {
   it("desabilitado fora de awaiting_human, com explicação visível", () => {
     renderWith("awaiting_lead");
 
-    expect(screen.getByText(/aguardando o cliente responder/i)).toBeInTheDocument();
+    expect(screen.getByText(/a aguardar o cliente responder/i)).toBeInTheDocument();
     expect(screen.getByRole("radio", { name: /concluí/i })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Enviar" })).toBeDisabled();
-    expect(screen.getByPlaceholderText(/escreva sua resposta/i)).toBeDisabled();
+    expect(screen.getByPlaceholderText(/escreva a sua resposta/i)).toBeDisabled();
   });
 
   it("botão Enviar desabilitado com texto vazio, mesmo em awaiting_human", () => {
@@ -55,7 +55,7 @@ describe("CaseReplyPanel", () => {
       expect(radio).toHaveAttribute("aria-checked", "false");
     }
 
-    fireEvent.change(screen.getByPlaceholderText(/escreva sua resposta/i), {
+    fireEvent.change(screen.getByPlaceholderText(/escreva a sua resposta/i), {
       target: { value: "Preciso do e-mail do pedido" },
     });
     expect(screen.getByRole("button", { name: "Enviar" })).toBeDisabled();
@@ -70,8 +70,8 @@ describe("CaseReplyPanel", () => {
     const { invalidateSpy } = renderWith("awaiting_human");
 
     fireEvent.click(screen.getByRole("radio", { name: /preciso de info do cliente/i }));
-    fireEvent.change(screen.getByPlaceholderText(/escreva sua resposta/i), {
-      target: { value: "Qual seu CPF?" },
+    fireEvent.change(screen.getByPlaceholderText(/escreva a sua resposta/i), {
+      target: { value: "Qual o seu NUIT?" },
     });
 
     const sendBtn = screen.getByRole("button", { name: "Enviar" });
@@ -81,7 +81,7 @@ describe("CaseReplyPanel", () => {
     await waitFor(() =>
       expect(postMock).toHaveBeenCalledWith("/api/v1/ai/cases/case-1/reply", {
         action: "need_lead_info",
-        body: "Qual seu CPF?",
+        body: "Qual o seu NUIT?",
       }),
     );
     await waitFor(() => expect(invalidateSpy).toHaveBeenCalled());
@@ -92,7 +92,7 @@ describe("CaseReplyPanel", () => {
     renderWith("awaiting_human");
 
     fireEvent.click(screen.getByRole("radio", { name: /concluí/i }));
-    fireEvent.change(screen.getByPlaceholderText(/escreva sua resposta/i), {
+    fireEvent.change(screen.getByPlaceholderText(/escreva a sua resposta/i), {
       target: { value: "Concluído, avisei o cliente." },
     });
     fireEvent.click(screen.getByRole("button", { name: "Enviar" }));

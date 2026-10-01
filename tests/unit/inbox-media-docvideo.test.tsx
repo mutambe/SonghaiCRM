@@ -43,10 +43,10 @@ describe("VideoMedia", () => {
 
     const aspectVideoBox = container.querySelector(".aspect-video");
     expect(aspectVideoBox).not.toBeNull();
-    expect(screen.getByText("Mídia indisponível")).toBeInTheDocument();
+    expect(screen.getByText("Multimédia indisponível")).toBeInTheDocument();
 
     // Verifica que o fallback está dentro do container aspect-video
-    expect(aspectVideoBox?.contains(screen.getByText("Mídia indisponível"))).toBe(true);
+    expect(aspectVideoBox?.contains(screen.getByText("Multimédia indisponível"))).toBe(true);
   });
 });
 

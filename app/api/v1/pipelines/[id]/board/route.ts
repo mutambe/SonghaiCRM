@@ -161,7 +161,7 @@ async function avisaAmbiguas(
       organization_id: organizationId,
       kind: "next_action_ambiguous",
       severity: "warn",
-      title: `A IA propôs uma próxima ação, mas o contato tem ${a.candidateIds.length} negócios abertos`,
+      title: `A IA propôs uma próxima ação, mas o contacto tem ${a.candidateIds.length} negócios abertos`,
       body: `Proposta: "${a.texto}". Escolha a qual negócio ela pertence — o sistema não adivinha para não executar no negócio errado.`,
       ref_kind: "contact",
       ref_id: a.contact_id,

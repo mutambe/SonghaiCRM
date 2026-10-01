@@ -188,7 +188,7 @@ describe("ligada: o provisionamento", () => {
     expect(res.status).toBe(409);
     const corpo = (await res.json()) as { error: { code: string; message: string } };
     expect(corpo.error.code).toBe("owner_email_ja_tem_conta");
-    expect(corpo.error.message).toContain("convide a pessoa pela tela da empresa");
+    expect(corpo.error.message).toContain("convide a pessoa pelo ecrã da empresa");
     expect(h.rotate).not.toHaveBeenCalled();
   });
 

@@ -258,6 +258,6 @@ describe("a tela degrada sem mentir", () => {
   it("falha de leitura não vira formulário vazio ligável", () => {
     montar(undefined, { error: new Error("boom") });
     expect(screen.queryByRole("switch")).toBeNull();
-    expect(screen.getByText(/Não foi possível abrir esta tela agora/i)).toBeInTheDocument();
+    expect(screen.getByText(/Não foi possível abrir este ecrã agora/i)).toBeInTheDocument();
   });
 });

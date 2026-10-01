@@ -162,7 +162,7 @@ describe("o bloco recusado DIZ por quê — a razão sai da mesma conta que o ap
     montar({ interacao: interacao({ horariosPorDia: {}, motivo: "sem-jornada" }) });
     expect(screen.getByTestId(`bloco-${DIA}-09:00`)).toHaveAttribute(
       "aria-label",
-      expect.stringContaining("você ainda não publicou seus horários"),
+      expect.stringContaining("você ainda não publicou os seus horários"),
     );
   });
 

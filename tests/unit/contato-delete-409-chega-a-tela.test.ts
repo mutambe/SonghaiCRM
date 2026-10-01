@@ -73,13 +73,13 @@ describe("mensagemDeBloqueioPorVinculo", () => {
 
   it("singular com 1 compromisso", () => {
     expect(mensagemDeBloqueioPorVinculo({ por_tabela: { calendar_appointments: 1 } }, pt)).toBe(
-      "Este contacto tem 1 compromisso na Agenda. Cancele ou apague o compromisso antes de excluir.",
+      "Este contacto tem 1 compromisso na Agenda. Cancele ou apague o compromisso antes de eliminar.",
     );
   });
 
   it("plural com o número", () => {
     expect(mensagemDeBloqueioPorVinculo({ por_tabela: { calendar_appointments: 3 } }, pt)).toBe(
-      "Este contacto tem 3 compromissos na Agenda. Cancele ou apague os compromissos antes de excluir.",
+      "Este contacto tem 3 compromissos na Agenda. Cancele ou apague os compromissos antes de eliminar.",
     );
   });
 

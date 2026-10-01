@@ -188,7 +188,7 @@ export function podeExcluirDeVez(
       ok: false,
       erro:
         `«${funil.name}» tem ${n} ${n === 1 ? "negócio" : "negócios"}, e o histórico ${n === 1 ? "dele" : "deles"} ` +
-        `aponta para este funil. Arquive em vez de excluir — o funil sai da lista e nada se perde.`,
+        `aponta para este funil. Arquive em vez de eliminar — o funil sai da lista e nada se perde.`,
     };
   }
 

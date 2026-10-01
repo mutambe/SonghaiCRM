@@ -263,7 +263,7 @@ export async function saveAgentDraftAction(
         return {
           ok: false,
           error: "internal_error",
-          message: `O rascunho foi salvo, mas o cadastro do agente não: ${r.erro}`,
+          message: `O rascunho foi guardado, mas o registo do agente não: ${r.erro}`,
         };
       }
       if (r.mudou.length > 0) revalidatePath("/app/ai/agents");
@@ -351,7 +351,7 @@ export async function saveAgentDraftAction(
           return {
             ok: false,
             error: "internal_error",
-            message: `O rascunho foi salvo, mas o cadastro do agente não: ${r.erro}`,
+            message: `O rascunho foi guardado, mas o registo do agente não: ${r.erro}`,
           };
         }
         if (r.mudou.length > 0) revalidatePath("/app/ai/agents");

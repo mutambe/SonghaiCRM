@@ -247,7 +247,7 @@ export function ContactPickerDialog({
               disabled={sending || !resolvedManualPhone}
               onClick={pickManual}
             >
-              Enviar contato
+              Enviar contacto
             </Button>
           </div>
         )}

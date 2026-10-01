@@ -341,7 +341,7 @@ export async function podeChamarFerramenta(entrada: {
         return {
           permitido: false,
           motivo: "indisponivel",
-          detalhe: `contato com ${r.quantos} negócios abertos: confirme qual antes de marcar`,
+          detalhe: `contacto com ${r.quantos} negócios abertos: confirme qual antes de marcar`,
         };
       }
 

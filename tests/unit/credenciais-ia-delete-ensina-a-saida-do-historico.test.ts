@@ -155,7 +155,7 @@ describe("DELETE /api/v1/ai/credentials/:id ensina a saída do histórico", () =
     expect(body.error.message).toContain("já saiu do rascunho");
     // E diz a saída REAL: editar a credencial no lugar (o id não muda).
     expect(body.error.message).toContain("Editar credencial");
-    expect(body.error.message).toContain("não pode ser excluída enquanto esse histórico existir");
+    expect(body.error.message).toContain("não pode ser eliminada enquanto esse histórico existir");
     // A instrução impossível para versão congelada não aparece mais.
     expect(body.error.message).not.toContain("Aponte essa versão para outra chave");
     expect(body.error.message).not.toContain("Aponte essas versões para outra chave");

@@ -88,7 +88,7 @@ export function validarBinding(entrada: {
       mensagem:
         `"${entrada.modelo.model_id}" não sabe usar as ferramentas do CRM. Em "${ponto.rotulo}" isso significa que ` +
         `o agente conversaria normalmente com o cliente, mas não criaria o lead nem moveria o funil — e sem nenhum ` +
-        `erro aparecer na tela. Escolha um modelo com suporte a ferramentas.`,
+        `erro aparecer no ecrã. Escolha um modelo com suporte a ferramentas.`,
     };
   }
 

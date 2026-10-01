@@ -125,7 +125,7 @@ export function parseSkillPackage(zipBytes: Uint8Array): ParseSkillResult {
         if (f.originalSize > MAX_FILE_BYTES) {
           oversize = {
             code: 'skill_file_too_large',
-            message: `O arquivo "${f.name}" tem mais de ${MAX_FILE_BYTES / 1024 / 1024}MB.`,
+            message: `O ficheiro "${f.name}" tem mais de ${MAX_FILE_BYTES / 1024 / 1024}MB.`,
           };
           return false;
         }

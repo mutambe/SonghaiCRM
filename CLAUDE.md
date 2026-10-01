@@ -30,8 +30,11 @@ Brasil, LGPD, real, pt-BR ou HostGator, vale o que está aqui.
   - moeda: `MOEDA_PADRAO`/`MOEDAS_SERVIDAS` em `lib/money.ts` (MZN, USD, ZAR, EUR);
   - fuso: `FUSO_PADRAO` em `lib/tempo/fusos.ts` — nunca o literal;
   - idioma: `pt-MZ` é o único visível em `lib/i18n/registro.ts`; o texto
-    das telas passa por `t()` e pela camada de vocabulário
-    `lib/i18n/pt-mz.ts` (troca só palavra de MESMO gênero, com teste).
+    das telas passa por `t()` e pela camada `lib/i18n/pt-mz.ts` — a norma
+    moçambicana em regras (vocabulário, gerúndio → «a» + infinitivo, troca de
+    gênero com concordância, artigo no possessivo, ênclise), cada uma com caso
+    em `tests/unit/i18n-portugues-de-mocambique.test.ts`. A mesma camada roda
+    no `fail()` e no roteador de e-mail. Moeda: "Metical (MTn)", `249,90 MTn`.
     O espanhol do dicionário fica como dado não lido — não apague (merge).
     Mensagem que o CLIENTE recebe sem passar pela IA (agenda, modelos de
     follow-up) vai escrita por inteiro em `lib/i18n/frases-pt-mz.ts`; a voz

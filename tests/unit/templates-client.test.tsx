@@ -82,7 +82,7 @@ describe("TemplatesClient", () => {
     expect(screen.getByText("Política da Equipe")).toBeInTheDocument();
     expect(screen.getByText("Pessoal do Outro")).toBeInTheDocument();
     expect(screen.getAllByRole("button", { name: "Editar template" })).toHaveLength(1);
-    expect(screen.getAllByRole("button", { name: "Excluir template" })).toHaveLength(1);
+    expect(screen.getAllByRole("button", { name: "Eliminar template" })).toHaveLength(1);
   });
 
   it("manager vê ações no próprio E no compartilhado, mas não no pessoal de outro", () => {
@@ -90,6 +90,6 @@ describe("TemplatesClient", () => {
     render(wrap(<TemplatesClient canShare={true} currentUserId="u1" />));
     // próprio (u1) + compartilhado (null) editáveis; pessoal de u2 não → 2 pares.
     expect(screen.getAllByRole("button", { name: "Editar template" })).toHaveLength(2);
-    expect(screen.getAllByRole("button", { name: "Excluir template" })).toHaveLength(2);
+    expect(screen.getAllByRole("button", { name: "Eliminar template" })).toHaveLength(2);
   });
 });

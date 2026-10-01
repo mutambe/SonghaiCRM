@@ -31,7 +31,7 @@ export function validarModelo(m: ModeloEditavel): ErroDeModelo[] {
     if (!ID_DE_SECAO.test(s.id)) {
       erros.push({ campo: `sections.${i}.id`, mensagem: "Identificador da seção: letras minúsculas, números e _ (começando por letra)." });
     } else if (vistos.has(s.id)) {
-      erros.push({ campo: `sections.${i}.id`, mensagem: `Identificador de seção repetido: ${s.id}.` });
+      erros.push({ campo: `sections.${i}.id`, mensagem: `Identificador de secção repetido: ${s.id}.` });
     }
     vistos.add(s.id);
     if (s.title.trim().length === 0 || s.title.length > 120) {

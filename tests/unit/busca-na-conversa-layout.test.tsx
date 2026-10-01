@@ -102,7 +102,7 @@ vi.mock("@/components/inbox/JanelaFechadaAviso", () => ({ JanelaFechadaAviso: ()
 
 import { InboxLayout } from "@/components/inbox/InboxLayout";
 
-const CAMPO = "Buscar nas mensagens carregadas";
+const CAMPO = "Procurar nas mensagens carregadas";
 
 function montar() {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -150,7 +150,7 @@ describe("busca dentro da conversa: o campo", () => {
     montar();
     const { campo } = await abrirBusca();
     fireEvent.change(campo, { target: { value: "pix" } });
-    fireEvent.click(screen.getByRole("button", { name: "Fechar busca" }));
+    fireEvent.click(screen.getByRole("button", { name: "Fechar pesquisa" }));
     expect(screen.getByTestId("fio")).toHaveAttribute("data-termo", "");
 
     const { campo: denovo } = await abrirBusca();

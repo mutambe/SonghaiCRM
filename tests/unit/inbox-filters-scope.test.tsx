@@ -132,9 +132,9 @@ describe("InboxFilters render — 3 visões + escopo", () => {
       );
       rerender(<InboxFilters value={{ ...VALUE, tab: "all" }} onChange={onChange} />);
       expect(list.scrollLeft).toBe(140);
-      expect(screen.getByRole("button", { name: "Aba anterior" })).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: "Próxima aba" })).toBeInTheDocument();
-      fireEvent.click(screen.getByRole("button", { name: "Próxima aba" }));
+      expect(screen.getByRole("button", { name: "Separador anterior" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Próxima separador" })).toBeInTheDocument();
+      fireEvent.click(screen.getByRole("button", { name: "Próxima separador" }));
       expect(onChange).toHaveBeenCalledWith({ ...VALUE, tab: "closed" });
 
       width = 260;
@@ -148,8 +148,8 @@ describe("InboxFilters render — 3 visões + escopo", () => {
       );
       rerender(<InboxFilters value={{ ...VALUE, tab: "archived" }} onChange={onChange} />);
       expect(list.scrollLeft).toBe(260);
-      expect(screen.getByRole("button", { name: "Aba anterior" })).toBeInTheDocument();
-      expect(screen.queryByRole("button", { name: "Próxima aba" })).not.toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Separador anterior" })).toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: "Próxima separador" })).not.toBeInTheDocument();
       expect(screen.getByRole("tab", { name: /Arquivadas/ })).toHaveAttribute("data-state", "active");
     } finally {
       vi.unstubAllGlobals();

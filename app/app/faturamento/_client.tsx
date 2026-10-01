@@ -24,7 +24,7 @@ import { showApiError } from "@/components/feedback/ApiErrorToast";
 import { useT } from "@/hooks/i18n/useT";
 import { apiClient } from "@/lib/api/client";
 import { rotuloDoContato } from "@/lib/contacts/rotulo-do-contato";
-import { formatCents } from "@/lib/money";
+import { formatCents, rotuloDaMoeda } from "@/lib/money";
 
 import { ListaDeLancamentos, type Conta, type Lancamento } from "./_lancamentos";
 
@@ -235,7 +235,7 @@ export function Faturamento({
         );
         return variasMoedas ? (
           <section key={moeda} data-testid={`bloco-${moeda}`} className="flex flex-col gap-4">
-            <h2 className="text-base font-semibold">{moeda}</h2>
+            <h2 className="text-base font-semibold">{rotuloDaMoeda(moeda)}</h2>
             {bloco}
           </section>
         ) : (

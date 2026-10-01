@@ -195,30 +195,30 @@ const COMPARADORES: Record<CampoDaCondicao, Record<OperadorDaCondicao, Comparado
     // O par que dá nome à regra deste módulo: no motor, `tag` é lista.
     eq: {
       rotulo: "tem a etiqueta",
-      frase: (v) => `O contato tem a etiqueta ${aspas(v)}`,
+      frase: (v) => `O contacto tem a etiqueta ${aspas(v)}`,
       oferecido: true,
     },
     neq: {
       rotulo: "não tem a etiqueta",
-      frase: (v) => `O contato não tem a etiqueta ${aspas(v)}`,
+      frase: (v) => `O contacto não tem a etiqueta ${aspas(v)}`,
       oferecido: true,
     },
     contains: {
       // Mesmo resultado que `eq` (o motor testa pertinência nos dois): descreve
       // o que está salvo, mas não repete a opção no seletor.
       rotulo: "tem a etiqueta",
-      frase: (v) => `O contato tem a etiqueta ${aspas(v)}`,
+      frase: (v) => `O contacto tem a etiqueta ${aspas(v)}`,
       oferecido: false,
     },
     gte: {
       rotulo: "é pelo menos",
-      frase: (v) => `A etiqueta do contato é pelo menos ${aspas(v)}`,
+      frase: (v) => `A etiqueta do contacto é pelo menos ${aspas(v)}`,
       oferecido: false,
       aviso: AVISO_SO_NUMERO,
     },
     lte: {
       rotulo: "é no máximo",
-      frase: (v) => `A etiqueta do contato é no máximo ${aspas(v)}`,
+      frase: (v) => `A etiqueta do contacto é no máximo ${aspas(v)}`,
       oferecido: false,
       aviso: AVISO_SO_NUMERO,
     },

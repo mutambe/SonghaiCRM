@@ -75,6 +75,6 @@ describe("AudioPlayer", () => {
       audio.dispatchEvent(new Event("error"));
     });
 
-    await waitFor(() => expect(screen.getByText(/mídia indisponível/i)).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText(/multimédia indisponível/i)).toBeInTheDocument());
   });
 });

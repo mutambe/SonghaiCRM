@@ -49,7 +49,7 @@ describe("NodeConfigPanel — excluir nó", () => {
   it.each(NODE_TYPES)("oferece Excluir nó para o tipo %s e dispara onDelete", async (type) => {
     const onDelete = montar(type);
     const botao = screen.getByTestId("delete-node");
-    expect(botao).toHaveTextContent("Excluir nó");
+    expect(botao).toHaveTextContent("Eliminar nó");
     await userEvent.setup({ delay: null }).click(botao);
     expect(onDelete).toHaveBeenCalledOnce();
   });

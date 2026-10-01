@@ -54,7 +54,7 @@ describe("o debounce da busca não desfaz a troca de aba", () => {
     });
 
     const { rerender } = render(<InboxFilters value={atual} onChange={onChange} />);
-    fireEvent.change(screen.getByLabelText(/Buscar conversas/i), {
+    fireEvent.change(screen.getByLabelText(/Procurar conversas/i), {
       target: { value: "ana" },
     });
 
@@ -79,7 +79,7 @@ describe("o debounce da busca não desfaz a troca de aba", () => {
     });
 
     const { rerender } = render(<InboxFilters value={atual} onChange={onChange} />);
-    fireEvent.change(screen.getByLabelText(/Buscar conversas/i), {
+    fireEvent.change(screen.getByLabelText(/Procurar conversas/i), {
       target: { value: "ana" },
     });
     rerender(<InboxFilters value={atual} onChange={onChange} />);

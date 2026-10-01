@@ -61,7 +61,7 @@ describe("CredentialCard — chave do Jev", () => {
       "Usada em: Medir o clima da conversa",
     );
     // Não trava como versão de agente: o botão de excluir segue disponível.
-    fireEvent.click(screen.getByRole("button", { name: "Excluir credencial" }));
+    fireEvent.click(screen.getByRole("button", { name: "Eliminar credencial" }));
     expect(screen.getByText(AVISO)).toBeInTheDocument();
   });
 
@@ -71,7 +71,7 @@ describe("CredentialCard — chave do Jev", () => {
     const dialogo = screen.getByRole("dialog");
     expect(dialogo).toHaveTextContent(/mantém o Jev ligado: na próxima mensagem ele já usa a chave nova/);
     expect(dialogo).not.toHaveTextContent(/agentes ligados/);
-    expect(screen.getByRole("link", { name: "Onde pegar a chave" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Onde obter a chave" })).toHaveAttribute(
       "href",
       "https://console.typesafe.ai/keys",
     );
@@ -85,7 +85,7 @@ describe("CredentialCard — chave do Jev", () => {
   it("controle: chave que o Jev não usa não tem a linha nem o aviso", () => {
     montar(credencial({ provider: "typesafe", label: "Jev reserva" }));
     expect(screen.queryByTestId("credencial-usada-em")).toBeNull();
-    fireEvent.click(screen.getByRole("button", { name: "Excluir credencial" }));
+    fireEvent.click(screen.getByRole("button", { name: "Eliminar credencial" }));
     expect(screen.queryByText(AVISO)).toBeNull();
   });
 });
@@ -107,7 +107,7 @@ describe("CredentialCard — erro de validação", () => {
   it("401 vira frase e link para pegar chave nova", () => {
     montar(credencial({ validated_at: null, validation_error: "auth_failed_401" }));
     expect(screen.getByText(/recusou a chave/)).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Onde pegar a chave" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Onde obter a chave" })).toHaveAttribute(
       "href",
       "https://console.anthropic.com/settings/keys",
     );

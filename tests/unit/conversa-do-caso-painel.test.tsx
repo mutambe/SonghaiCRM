@@ -260,7 +260,7 @@ describe("CaseChatPanel — conversa de outra pessoa", () => {
 
     expect(
       screen.getByText(
-        "Este atendimento é de outra pessoa. Peça para ela, ou para quem administra, se precisar acompanhar.",
+        "Este atendimento é de outra pessoa. Peça para ela, ou para quem administra, se precisar de acompanhar.",
       ),
     ).toBeInTheDocument();
     expect(screen.queryByPlaceholderText("Pergunte à IA sobre este caso…")).not.toBeInTheDocument();
@@ -370,7 +370,7 @@ describe("CaseChatPanel — pensando", () => {
     comChat(dados());
     pintar();
 
-    expect(screen.getByText("A IA está lendo o caso…")).toBeInTheDocument();
+    expect(screen.getByText("A IA está a ler o caso…")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "A perguntar…" })).toBeDisabled();
   });
 });
@@ -408,7 +408,7 @@ describe("CaseChatPanel — falhas da pergunta", () => {
     pintar();
 
     expect(
-      screen.getByText("Você fez muitas perguntas seguidas. Tente de novo em um minuto."),
+      screen.getByText("Você fez muitas perguntas seguidas. Tente de novo num minuto."),
     ).toBeInTheDocument();
   });
 

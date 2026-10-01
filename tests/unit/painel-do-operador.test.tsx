@@ -71,7 +71,7 @@ describe("painel do Operador — disciplina de informação", () => {
     // O que CONTINUA acontecendo (decisão da spec 16 §2.1: desligar não desliga
     // o registro básico). Sem esta frase, o usuário conclui que desligar deixa o
     // sistema cego — e liga por medo, não por escolha.
-    expect(aviso.textContent).toMatch(/continua atendendo/i);
+    expect(aviso.textContent).toMatch(/continua a atender/i);
     expect(aviso.textContent).toMatch(/registado sozinho/i);
     // E o que PARA de acontecer.
     expect(aviso.textContent).toMatch(/decidir sobre a operação/i);

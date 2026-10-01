@@ -163,7 +163,7 @@ export function corpoDoAvisoDeEnderecoSemChave(d: {
       : `A chamada SEGUIU desta vez, mas isso tem prazo: a partir de ${prazoLegivel()} ela passa a ser ` +
         `recusada, e quando o ponto faz parte do atendimento o agente deixa de responder aos clientes ` +
         `desta empresa. Corrija antes dessa data. `) +
-    `Para resolver: cadastre a chave da empresa em Agente de IA › Provedores, ` +
+    `Para resolver: registe a chave da empresa em Agente de IA › Provedores, ` +
     `ou tire o endereço próprio para voltar ao provedor padrão da instalação.`
   );
 }

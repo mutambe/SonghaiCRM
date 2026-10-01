@@ -168,7 +168,7 @@ describe("o passo do telefone pergunta como a pessoa já usa o número", () => {
     // c2f88e83: um aviso correto que nasceu sem botão prendeu quem instalava
     // sem chave. A pergunta é um estado novo, e estados novos precisam de saída.
     expect(screen.getByRole("button", { name: /pular por enquanto/i })).toBeTruthy();
-    expect(screen.getByRole("button", { name: /conectei em outro lugar/i })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /conectei noutro lugar/i })).toBeTruthy();
   });
 
   it("avisa que o servidor ainda não recebe pelo caminho oficial, ANTES do formulário", async () => {

@@ -158,7 +158,7 @@ export async function POST(req: NextRequest, ctx: RouteCtx): Promise<Response> {
           transactional: {
             granted: true,
             granted_at: new Date().toISOString(),
-            source: `informado pelo titular em atendimento; confirmado por usuário ${userId}`,
+            source: `informado pelo titular em atendimento; confirmado pelo utilizador ${userId}`,
           },
         },
       } as never,

@@ -85,7 +85,7 @@ describe("GruposSheet", () => {
     );
     render(<GruposSheet channelId="s1" onClose={() => {}} />);
     await screen.findByText("Grupo São Paulo");
-    const campo = screen.getByPlaceholderText("Buscar grupo");
+    const campo = screen.getByPlaceholderText("Procurar grupo");
     fireEvent.change(campo, { target: { value: "grupo sao" } });
     expect(screen.getByText("Grupo São Paulo")).toBeInTheDocument();
     expect(screen.queryByText("Família")).not.toBeInTheDocument();
@@ -99,7 +99,7 @@ describe("GruposSheet", () => {
     );
     render(<GruposSheet channelId="s1" onClose={() => {}} />);
     await screen.findByText("Cliente A");
-    fireEvent.change(screen.getByPlaceholderText("Buscar grupo"), {
+    fireEvent.change(screen.getByPlaceholderText("Procurar grupo"), {
       target: { value: "não existe" },
     });
     expect(await screen.findByText("Nenhum grupo encontrado")).toBeInTheDocument();
@@ -194,7 +194,7 @@ describe("GruposSheet", () => {
     await screen.findByText("Cliente A");
     expect(screen.getByRole("button", { name: "Ligar todos" })).toBeInTheDocument();
 
-    fireEvent.change(screen.getByPlaceholderText("Buscar grupo"), {
+    fireEvent.change(screen.getByPlaceholderText("Procurar grupo"), {
       target: { value: "cliente" },
     });
     expect(screen.queryByRole("button", { name: "Ligar todos" })).not.toBeInTheDocument();
@@ -220,7 +220,7 @@ describe("GruposSheet", () => {
 
     render(<GruposSheet channelId="s1" onClose={() => {}} />);
     await screen.findByText("Cliente A");
-    fireEvent.change(screen.getByPlaceholderText("Buscar grupo"), {
+    fireEvent.change(screen.getByPlaceholderText("Procurar grupo"), {
       target: { value: "cliente" },
     });
 

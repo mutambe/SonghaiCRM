@@ -56,7 +56,7 @@ describe("formulários de conversão", () => {
         }),
       ),
     );
-    expect(screen.getByText(/O botão do site precisa repassar/)).toBeTruthy();
+    expect(screen.getByText(/O botão do site precisa de repassar/)).toBeTruthy();
   });
   it("a conexão salva venda sem valor, categoria e telefone criptografado", async () => {
     render(

@@ -1,4 +1,5 @@
 import { NEUTROS_DE_SAIDA, type MarcaDeSaida } from "@/lib/branding/saida";
+import { htmlEmPortuguesDeMocambique, paraPortuguesDeMocambique } from "@/lib/i18n/pt-mz";
 
 /**
  * Os dois e-mails de ACESSO — confirmar conta e redefinir senha — no formato
@@ -60,7 +61,8 @@ const COPIA: Record<ModeloDeAcesso, { assunto: (marca: string) => string; titulo
 };
 
 export function assuntoDoModelo(modelo: ModeloDeAcesso, marca: MarcaDeSaida): string {
-  return COPIA[modelo].assunto(marca.nome);
+  // SonghaiCRM: o GoTrue envia este molde sem passar pelo roteador de e-mail.
+  return paraPortuguesDeMocambique(COPIA[modelo].assunto(marca.nome));
 }
 
 /**
@@ -81,7 +83,7 @@ export function montarTemplateDeAcesso(modelo: ModeloDeAcesso, marca: MarcaDeSai
   // As chaves duplas ficam CRUAS de propósito: o GoTrue as substitui.
   const destino = "{{ .RedirectTo }}&token_hash={{ .TokenHash }}";
 
-  return `<!doctype html>
+  return htmlEmPortuguesDeMocambique(`<!doctype html>
 <html lang="pt-MZ">
 <body style="margin:0;padding:0;background:${NEUTROS_DE_SAIDA.fundo};font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:${NEUTROS_DE_SAIDA.texto}">
   <div style="max-width:560px;margin:0 auto;padding:32px 24px">
@@ -106,7 +108,7 @@ export function montarTemplateDeAcesso(modelo: ModeloDeAcesso, marca: MarcaDeSai
     </p>
   </div>
 </body>
-</html>`;
+</html>`);
 }
 
 function escapeHtml(s: string): string {

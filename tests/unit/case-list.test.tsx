@@ -56,8 +56,8 @@ describe("CaseList", () => {
     render(wrap(<CaseList />));
 
     expect(screen.getByText("Cliente pede desconto acima do permitido")).toBeInTheDocument();
-    expect(screen.getByText("Aguardando você")).toBeInTheDocument();
-    expect(screen.getByText("Aguardando o cliente")).toBeInTheDocument();
+    expect(screen.getByText("À sua espera")).toBeInTheDocument();
+    expect(screen.getByText("A aguardar o cliente")).toBeInTheDocument();
     expect(screen.queryByText("awaiting_human")).not.toBeInTheDocument();
     expect(screen.queryByText("awaiting_lead")).not.toBeInTheDocument();
   });

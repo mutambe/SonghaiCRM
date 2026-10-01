@@ -424,7 +424,7 @@ export async function testarAcao(
     return {
       ok: false,
       codigo: "campanha_conteudo_invalido",
-      mensagem: `Este contato não pode receber: ${motivo}.`,
+      mensagem: `Este contacto não pode receber: ${motivo}.`,
       status: 422,
     };
   }

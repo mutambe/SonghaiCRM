@@ -140,8 +140,9 @@ describe("total da coluna do funil", () => {
       lead({ id: "l4", currency: "USD", value_cents: 10000 }),
     ]);
 
-    const total = screen.getByText((texto) => semNbsp(texto).includes("100.00"));
-    expect(semNbsp(total.textContent ?? "")).toBe("$100.00");
+    // SonghaiCRM: o dólar sai como se lê em Moçambique (pt-MZ), "249,90 US$".
+    const total = screen.getByText((texto) => semNbsp(texto).includes("100,00 US$"));
+    expect(semNbsp(total.textContent ?? "")).toBe("100,00 US$");
     // Sem valor não é "R$ 0,00": a moeda do lead vazio não aparece na faixa.
     expect(document.body.textContent).not.toContain("R$");
     expect(document.body.textContent).not.toContain(" + ");
@@ -195,18 +196,19 @@ describe("total da coluna do funil", () => {
     ]);
 
     const total = screen.getByText((texto) => semNbsp(texto).includes("100,00"));
-    expect(semNbsp(total.textContent ?? "")).toBe("R$ 100,00 + $200.00");
+    expect(semNbsp(total.textContent ?? "")).toBe("R$ 100,00 + 200,00 US$"); // pt-MZ
   });
 
   it("⭐ peso e dólar escrevem '$': cada total leva o código da moeda", () => {
     // "$1,500.00 + $100.00" não diz qual é o peso e qual é o dólar.
     montar([
       lead({ id: "m1", currency: "MXN", value_cents: 150_000 }),
-      lead({ id: "m2", currency: "USD", value_cents: 10_000 }),
+      // SonghaiCRM: o dólar americano escreve "US$"; o canadiano mantém "$".
+      lead({ id: "m2", currency: "CAD", value_cents: 10_000 }),
     ]);
 
     const total = screen.getByText((texto) => semNbsp(texto).includes("1,500.00"));
-    expect(semNbsp(total.textContent ?? "")).toBe("$1,500.00 MXN + $100.00 USD");
+    expect(semNbsp(total.textContent ?? "")).toBe("$100.00 CAD + $1,500.00 MXN");
   });
 
   it("⭐ o ponderado com duas moedas separa igual, na mesma ordem do total", () => {

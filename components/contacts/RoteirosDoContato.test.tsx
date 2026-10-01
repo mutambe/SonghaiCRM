@@ -43,7 +43,7 @@ describe("RoteirosDoContato", () => {
     deps.auth.mockReturnValue({ activeOrg: { modulos_ligados: ["fluxos_atendimento"] } });
     render(<RoteirosDoContato contactId="c1" />);
     expect(screen.getByText("Cadastro")).toBeTruthy();
-    expect(screen.getByText("Coletando respostas do roteiro")).toBeTruthy();
+    expect(screen.getByText("A recolher respostas do roteiro")).toBeTruthy();
     expect(screen.getByTestId("roteiro-campo-nome_completo").textContent).toContain("Lia Mendes");
     expect(screen.getByTestId("roteiro-campo-cpf").textContent).toContain("não respondido");
   });

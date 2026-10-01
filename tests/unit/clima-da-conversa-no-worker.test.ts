@@ -842,7 +842,7 @@ describe("o aviso do Jev na Central", () => {
     expect(primeira.banco.agent_inbox_items).toHaveLength(1);
     const aviso = primeira.banco.agent_inbox_items[0]!;
     expect(aviso).toMatchObject({ title: AVISO_DO_JEV.titulo, severity: "critical", status: "open" });
-    expect(aviso.body).toContain(O_QUE_FAZER_DO_JEV.jev_provedor_indisponivel);
+    expect(aviso.body).toContain(paraPortuguesDeMocambique(O_QUE_FAZER_DO_JEV.jev_provedor_indisponivel));
     expect(aviso.body).toContain(paraPortuguesDeMocambique(AVISO_DO_JEV.semReserva));
     expect(aviso.body).toContain(paraPortuguesDeMocambique(AVISO_DO_JEV.quedaSustentada));
     expect(aviso.body).toContain(paraPortuguesDeMocambique(AVISO_DO_JEV.rearme));

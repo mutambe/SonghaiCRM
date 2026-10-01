@@ -35,8 +35,8 @@ async function preencherEEnviar(comEmpresa = true) {
   if (comEmpresa) await user.type(screen.getByLabelText(/Nome da empresa/i), "Plata Iphones");
   else await user.type(screen.getByLabelText(/Seu nome/i), "Convidada da Silva");
   await user.type(screen.getByLabelText(/^Email$/i), "dono@plata.test");
-  await user.type(screen.getByLabelText(/^Senha$/i), "SenhaForte!2026");
-  await user.type(screen.getByLabelText(/Confirmar senha/i), "SenhaForte!2026");
+  await user.type(screen.getByLabelText(/^Palavra-passe$/i), "SenhaForte!2026");
+  await user.type(screen.getByLabelText(/Confirmar palavra-passe/i), "SenhaForte!2026");
   await user.click(screen.getByRole("button", { name: /criar conta/i }));
 }
 
