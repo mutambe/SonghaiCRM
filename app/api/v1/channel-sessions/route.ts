@@ -1,4 +1,5 @@
 import { requireSupportWrite } from "@/lib/impersonate/support";
+import { tetoDeConexoesWhatsApp } from "@/lib/plans/teto-de-conexoes";
 /**
  * GET  /api/v1/channel-sessions — lista os canais WhatsApp da org (do DB).
  *   Acessível a qualquer membro (usado pelo seletor do inbox e pela sidebar).
@@ -104,6 +105,10 @@ export async function POST(req: NextRequest): Promise<Response> {
       details: parsed.error.flatten().fieldErrors as Record<string, unknown>,
     });
   }
+
+  // SonghaiCRM — teto de números de WhatsApp do plano (lib/plans/teto-de-conexoes.ts).
+  const teto = await tetoDeConexoesWhatsApp(createAdminClient(), activeOrg.orgId);
+  if (teto) return fail("plan_limit_reached", teto.mensagem, 403, { requestId, details: teto.details });
 
   try {
     const result = await connectWahaChannel(await createClient(), createAdminClient(), waha, {

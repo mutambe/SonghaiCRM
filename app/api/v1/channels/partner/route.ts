@@ -1,4 +1,5 @@
 import { requireSupportWrite } from "@/lib/impersonate/support";
+import { tetoDeConexoesWhatsApp } from "@/lib/plans/teto-de-conexoes";
 /**
  * GET  /api/v1/channels/partner — estado da conexão por credencial + o que colar no provedor.
  * POST /api/v1/channels/partner — VALIDA a credencial e só então grava.
@@ -130,6 +131,12 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   }
 
   const existente = await findPartnerSession(admin, orgId);
+  // SonghaiCRM — teto de números de WhatsApp do plano: número novo ou arquivado
+  // que volta ocupam vaga; reconfigurar o que está vivo, não.
+  if (!existente || existente.archivedAt) {
+    const teto = await tetoDeConexoesWhatsApp(admin, orgId);
+    if (teto) return fail("plan_limit_reached", teto.mensagem, 403, { requestId, details: teto.details });
+  }
   // Reconectar por cima de um canal excluído RESSUSCITA a linha, e o token de
   // webhook é preservado para não invalidar o que já está colado do outro lado.
   const token = existente?.webhookPathToken ?? randomBytes(16).toString("hex");

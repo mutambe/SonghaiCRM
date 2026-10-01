@@ -96,7 +96,8 @@ interface TenantOverviewProps {
 export function TenantOverview({ organization, counts, integrations }: TenantOverviewProps) {
   const tagDoIdioma = useTagDeIdioma();
   const t = useT();
-  const plan = (organization.settings as { plan?: string } | null)?.plan ?? "—";
+  // SonghaiCRM: o pacote vigente mora em `organization_subscriptions` e aparece no
+  // cartão PlanoDaOrganizacao; `settings.plan` é só o rótulo da criação e ficava velho.
 
   const nuvemshopStatus = integrations.nuvemshop_status;
   // Valor fora do vocabulário conhecido continua aparecendo cru de propósito:
@@ -116,7 +117,6 @@ export function TenantOverview({ organization, counts, integrations }: TenantOve
           {t("Informações")}
         </h2>
         <div>
-          <InfoRow label={t("Plano")} value={<Badge variant="neutral" className="capitalize">{plan}</Badge>} />
           <InfoRow label={t("Razão social")} value={organization.legal_name} />
           <InfoRow label="NUIT" value={organization.cnpj} />
           <InfoRow label={t("Onboarding concluído")} value={formatDate(organization.onboarded_at, tagDoIdioma)} />

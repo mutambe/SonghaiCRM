@@ -8,6 +8,7 @@ import { requirePlatformAdmin } from "@/lib/auth/requirePlatformAdmin";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { ok, fail } from "@/lib/api/wrappers";
 import { audit } from "@/lib/audit";
+import { logger } from "@/lib/logger";
 import { createHash, randomUUID } from "node:crypto";
 
 // ---------------------------------------------------------------------------
@@ -207,6 +208,16 @@ export async function POST(req: NextRequest) {
     return fail("internal_error", "Não foi possível criar a organização", 500, { requestId });
   }
   if (org.created) {
+    // SonghaiCRM — o pacote escolhido vira a assinatura vigente (migration 0504).
+    // Falhar aqui não desfaz a organização: sem assinatura ela só fica sem teto,
+    // e o admin atribui o plano depois na tela da organização.
+    const { data: plano } = await admin.from("plans").select("id").eq("slug", request.plan).maybeSingle();
+    const { error: erroDoPlano } = plano
+      ? await admin.rpc("fn_trocar_plano_da_organizacao", { p_org: org.id, p_plan: plano.id, p_actor: adminCtx.user.id, p_notes: null })
+      : { error: { message: `plano ${request.plan} não está no catálogo` } };
+    if (erroDoPlano) {
+      logger.error("[admin.tenants] organização criada sem assinatura", { organizationId: org.id, plan: request.plan, error: erroDoPlano.message });
+    }
     await audit({
       action: "tenant.created_by_platform_admin",
       actorUserId: adminCtx.user.id,

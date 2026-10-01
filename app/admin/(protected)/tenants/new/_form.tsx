@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { NOME_DO_PLANO, PLANO_PADRAO, SLUGS_DE_PLANO, type SlugDePlano } from "@/lib/plans/catalogo";
 import { useRouter } from "next/navigation";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -85,7 +86,7 @@ export function NewTenantForm() {
       slug: "",
       legal_name: "",
       cnpj: "",
-      plan: "standard",
+      plan: PLANO_PADRAO,
       owner_email: "",
     },
   });
@@ -283,15 +284,17 @@ export function NewTenantForm() {
               <Label htmlFor="plan">{t("Plano")}</Label>
               <Select
                 value={planValue}
-                onValueChange={(v) => setValue("plan", v as "standard" | "pro" | "enterprise")}
+                onValueChange={(v) => setValue("plan", v as SlugDePlano)}
               >
                 <SelectTrigger id="plan" aria-label={t("Plano")}>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="standard">Standard</SelectItem>
-                  <SelectItem value="pro">Pro</SelectItem>
-                  <SelectItem value="enterprise">Enterprise</SelectItem>
+                  {SLUGS_DE_PLANO.map((slug) => (
+                    <SelectItem key={slug} value={slug}>
+                      {NOME_DO_PLANO[slug]}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               {errors.plan && (

@@ -32,6 +32,10 @@ export const PUBLIC_PATHS: RegExp[] = [
   /^\/500$/,
   /^\/503$/,
   /^\/api\/v1\/health$/,
+  // SonghaiCRM — catálogo público de pacotes (página de preços). Só leitura do que
+  // está à venda, com teto por IP na própria rota. Âncora `$`: nenhum sub-path nasce
+  // público de carona.
+  /^\/api\/v1\/plans$/,
   /^\/api\/v1\/webhooks\//,
   /^\/api\/v1\/cron\//,
   // Landing page de captura de clique do Google Ads (migration 0306). Quem

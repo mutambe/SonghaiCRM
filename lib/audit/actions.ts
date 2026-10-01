@@ -1003,6 +1003,8 @@ export const AUDIT_ACTIONS = [
   "payment.credentials_saved",
   "payment.charge_created",
   "payment.status_changed",
+  // SonghaiCRM — licença por organização (migration 0504).
+  "tenant.subscription_changed",
 ] as const;
 
 /** Um código de auditoria. Derivado de `AUDIT_ACTIONS` — não redigite a lista. */

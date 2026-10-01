@@ -1,4 +1,5 @@
 import { requireSupportWrite } from "@/lib/impersonate/support";
+import { tetoDeConexoesWhatsApp } from "@/lib/plans/teto-de-conexoes";
 /**
  * GET   /api/v1/channels/graph-partner — estado da conexão + o que colar no provedor.
  * POST  /api/v1/channels/graph-partner — VALIDA o token e só então grava.
@@ -128,6 +129,12 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   }
 
   const existente = await findGraphPartnerSession(admin, orgId);
+  // SonghaiCRM — teto de números de WhatsApp do plano: número novo ou arquivado
+  // que volta ocupam vaga; reconfigurar o que está vivo, não.
+  if (!existente || existente.archivedAt) {
+    const teto = await tetoDeConexoesWhatsApp(admin, orgId);
+    if (teto) return fail("plan_limit_reached", teto.mensagem, 403, { requestId, details: teto.details });
+  }
   const phoneNumber = validacao.displayPhoneNumber
     ? `+${validacao.displayPhoneNumber.replace(/\D/g, "")}`
     : null;

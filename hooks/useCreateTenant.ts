@@ -1,5 +1,6 @@
 "use client";
 import type { InterfaceSettings } from "@/lib/navigation/interface";
+import type { SlugDePlano } from "@/lib/plans/catalogo";
 import { useRef } from "react";
 import { createTenantSchema } from "@/lib/schemas/tenant-creation";
 import { randomId } from "@/lib/random-id";
@@ -15,7 +16,7 @@ export interface CreateTenantPayload {
   slug: string;
   legal_name?: string;
   cnpj?: string;
-  plan?: "standard" | "pro" | "enterprise";
+  plan?: SlugDePlano;
   owner_email: string;
   owner_interface_settings?: InterfaceSettings;
 }

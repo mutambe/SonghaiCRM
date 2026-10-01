@@ -72,6 +72,9 @@ export const ApiErrorCodes = {
   state_conflict: "state_conflict",
   invalid_state: "invalid_state", // resposta a um agent_case que saiu de awaiting_human (spec 15 §7)
   tenant_already_exists: "tenant_already_exists",
+  // SonghaiCRM — licença por organização (migration 0504).
+  plan_inactive: "plan_inactive", // o plano pedido existe mas está fora de venda (plans.is_active = false)
+  plan_limit_reached: "plan_limit_reached", // max_users / max_whatsapp_connections do plano vigente atingido
   // POST /api/v1/settings/api-tokens quando a organização já está no teto de
   // tokens ATIVOS (migration 0415, issue #1448). O corpo devolve a MESMA
   // mensagem que o gatilho levantou — com o limite e a instrução de revogar um

@@ -3,6 +3,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useTenantDetail } from "@/hooks/useTenantDetail";
 import { TenantOverview } from "@/components/admin/tenants/TenantOverview";
 import { TenantActions } from "@/components/admin/tenants/TenantActions";
+import { PlanoDaOrganizacao } from "@/components/admin/tenants/PlanoDaOrganizacao";
 import { SuspendedBanner } from "@/components/admin/tenants/SuspendedBanner";
 import { useT } from "@/hooks/i18n/useT";
 
@@ -45,11 +46,15 @@ export function TenantOverviewClient({ id }: TenantOverviewClientProps) {
       )}
 
       <div className="grid gap-6 lg:grid-cols-[1fr_280px]">
-        <TenantOverview
-          organization={organization}
-          counts={counts}
-          integrations={integrations}
-        />
+        <div className="space-y-6">
+          {/* SonghaiCRM — o pacote vigente e a troca (migration 0504). */}
+          <PlanoDaOrganizacao organizationId={organization.id} />
+          <TenantOverview
+            organization={organization}
+            counts={counts}
+            integrations={integrations}
+          />
+        </div>
         <TenantActions
           organizationId={organization.id}
           status={organization.status}

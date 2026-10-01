@@ -4,6 +4,7 @@ import { audit } from "@/lib/audit";
 import { cookieSecure } from "@/lib/supabase/cookie-secure";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { InvitePayload } from "@/lib/auth/invite-token";
+import { limitesDoTenant } from "@/lib/plans/limiteDoTenant";
 
 /**
  * O ATO de virar membro: grava o vínculo, audita e escolhe a organização ativa.
@@ -43,7 +44,7 @@ import type { InvitePayload } from "@/lib/auth/invite-token";
 
 export type ResultadoDoConvite =
   | { ok: true; membershipId: string; mudou: boolean }
-  | { ok: false; motivo: "invalid_or_expired" | "internal_error" };
+  | { ok: false; motivo: "invalid_or_expired" | "internal_error" | "plan_limit_reached"; mensagem?: string };
 
 export async function aplicarConvite(params: {
   userId: string;
@@ -62,6 +63,37 @@ export async function aplicarConvite(params: {
     .eq("organization_id", payload.organization_id)
     .maybeSingle();
   if (linhaDoConvite?.revoked_at) return { ok: false, motivo: "invalid_or_expired" };
+
+  // SonghaiCRM — o teto de usuários do plano é reconferido NO ACEITE, não só no
+  // envio: a 19/20, vinte convites enviados um a um passariam cada um no envio
+  // ("19+1 ≤ 20") e todos entrariam. Só ocupa lugar novo quem ainda não é membro
+  // ativo (vínculo novo ou reativado); reafirmar um vínculo ativo não bloqueia.
+  // Sem assinatura vigente, nada é bloqueado (lib/plans/limiteDoTenant.ts).
+  const limites = await limitesDoTenant(payload.organization_id);
+  if (limites) {
+    const { data: vinculo } = await admin
+      .from("user_organizations")
+      .select("revoked_at")
+      .eq("organization_id", payload.organization_id)
+      .eq("user_id", userId)
+      .maybeSingle();
+    const ocupaLugarNovo = !vinculo || !!vinculo.revoked_at;
+    if (ocupaLugarNovo) {
+      const { count, error: erroDaContagem } = await admin
+        .from("user_organizations")
+        .select("id", { count: "exact", head: true })
+        .eq("organization_id", payload.organization_id)
+        .is("revoked_at", null);
+      if (erroDaContagem) return { ok: false, motivo: "internal_error" };
+      if ((count ?? 0) >= limites.maxUsers) {
+        return {
+          ok: false,
+          motivo: "plan_limit_reached",
+          mensagem: `O pacote ${limites.planDisplayName} permite até ${limites.maxUsers} utilizadores. Fale com o administrador da sua empresa.`,
+        };
+      }
+    }
+  }
 
   // Org, papel e convidador vêm EXCLUSIVAMENTE do token assinado; o usuário,
   // de quem chamou. Nada aqui vem de body de requisição.

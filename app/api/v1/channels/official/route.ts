@@ -1,4 +1,5 @@
 import { requireSupportWrite } from "@/lib/impersonate/support";
+import { tetoDeConexoesWhatsApp } from "@/lib/plans/teto-de-conexoes";
 /**
  * GET  /api/v1/channels/official — estado da conexão oficial + o que colar na Meta.
  * POST /api/v1/channels/official — VALIDA a credencial e só então grava.
@@ -279,6 +280,13 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   // devolver a linha à vida, ou o canal fica "conectado" na tela e excluído para
   // todo o resto do sistema. Para o canal que já estava ativo é um no-op — e a
   // auditoria de volta sai de lá, junto da ressurreição, não daqui.
+  // SonghaiCRM — teto de números de WhatsApp do plano. Número novo ou número
+  // ARQUIVADO que volta à vida ocupam vaga; reconfigurar o que já está vivo, não.
+  if (!existente || existente.archived_at) {
+    const teto = await tetoDeConexoesWhatsApp(admin, orgId);
+    if (teto) return fail("plan_limit_reached", teto.mensagem, 403, { requestId, details: teto.details });
+  }
+
   let idDaSessao: string | null = existente?.id ?? null;
   let webhookPathToken: string | null = existente?.webhook_path_token ?? null;
   let error: { message?: string | null } | null = null;

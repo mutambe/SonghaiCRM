@@ -7,7 +7,12 @@ export function AcceptInviteForm({ token, label, failureLabel, pendingLabel }: {
     async () => acceptInviteAction(token), null,
   );
   return <form action={submit} className="mt-4 space-y-3">
-    {result && !result.ok && <p role="alert">{failureLabel}</p>}
+    {result && !result.ok && (
+      <p role="alert">
+        {/* SonghaiCRM: no teto do plano, a mensagem do servidor diz o pacote e o limite. */}
+        {result.error === "plan_limit_reached" && result.message ? result.message : failureLabel}
+      </p>
+    )}
     <button type="submit" disabled={pending}
       className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">
       {pending ? pendingLabel : label}

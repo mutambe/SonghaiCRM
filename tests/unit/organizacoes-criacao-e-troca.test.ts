@@ -6,7 +6,13 @@ const h = vi.hoisted(() => ({
 }));
 vi.mock("@/lib/auth/requirePlatformAdmin", () => ({ requirePlatformAdmin: h.guard }));
 vi.mock("@/lib/auth/server", () => ({ mfaEmDivida: h.mfa, loadAuthUser: h.user }));
-vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: () => ({ rpc: h.rpc }) }));
+// SonghaiCRM: a criação também lê o pacote em `plans` (migration 0504) para abrir a assinatura.
+vi.mock("@/lib/supabase/admin", () => ({
+  createAdminClient: () => ({
+    rpc: h.rpc,
+    from: () => ({ select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: { id: "plano-agente-simples" } }) }) }) }),
+  }),
+}));
 vi.mock("@/lib/supabase/server", () => ({ createClient: async () => ({ from: h.query }) }));
 vi.mock("@/lib/audit", () => ({ audit: h.audit }));
 vi.mock("@/lib/auth/issue-invite", () => ({ issueInvite: h.invite }));

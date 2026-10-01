@@ -1,6 +1,7 @@
 import type { EmailDeliveryError } from "@/lib/email/roteador";
 import { requireSupportWrite } from "@/lib/impersonate/support";
 import { issueInvite } from "@/lib/auth/issue-invite";
+import { limitesDoTenant } from "@/lib/plans/limiteDoTenant";
 import { emitirConvite } from "@/lib/team/convites";
 import { isServiceRoleConfigured } from "@/lib/audit";
 /**
@@ -85,6 +86,24 @@ export async function POST(req: NextRequest): Promise<Response> {
       const { data: u } = await admin.auth.admin.getUserById(m.user_id as string);
       const memberEmail = u?.user?.email?.trim().toLowerCase();
       if (memberEmail) memberEmails.add(memberEmail);
+    }
+  }
+
+  // SonghaiCRM — teto de usuários do plano vigente (migration 0504). Sem
+  // assinatura, `limitesDoTenant` devolve null e nada é bloqueado. Só convites
+  // REALMENTE novos contam: quem já é membro ativo é reenvio, não usuário a mais.
+  // O aceite confere de novo (app/actions/team/acceptInvite.ts): convite pendente
+  // emitido antes de chegar ao teto não fura o limite na hora de entrar.
+  const limites = await limitesDoTenant(activeOrg.orgId);
+  if (limites) {
+    const novos = input.invitations.filter((inv) => !memberEmails.has(inv.email.trim().toLowerCase())).length;
+    if (memberEmails.size + novos > limites.maxUsers) {
+      return fail(
+        "plan_limit_reached",
+        `O pacote ${limites.planDisplayName} permite até ${limites.maxUsers} utilizadores. Fale com o suporte para mudar de pacote.`,
+        403,
+        { requestId, details: { limit: "max_users", current: memberEmails.size, max: limites.maxUsers } },
+      );
     }
   }
 
