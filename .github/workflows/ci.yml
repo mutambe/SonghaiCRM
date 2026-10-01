@@ -608,6 +608,11 @@ jobs:
         # consultas/hora por IP — o executor próprio é um IP só.
         env:
           GH_TOKEN: ${{ github.token }}
+          # SonghaiCRM: o fork ainda não publicou release própria, e a
+          # conferência recusa rodar sem uma. Até a primeira, a régua é a base
+          # do upstream sobre a qual a distribuição está (v1.69.0, buscada do
+          # upstream só para leitura). TIRE esta linha quando houver release.
+          CONFERENCIA_KIT_RELEASE: v1.69.0
         run: pnpm test:db
 
       # O `update.sh` do cliente roda sobre um banco COM DADOS, e nenhum gate

@@ -1,8 +1,8 @@
 /**
  * O ATENDENTE LEU O QUE O CLIENTE MANDOU — SonghaiCRM (porte do `bcb34686c`).
  *
- * `messages.read_at` só era escrito para o que NÓS enviamos (o ack do WAHA:
- * o cliente leu no WhatsApp dele). Na direção contrária ficava sempre vazio, e
+ * `messages.read_at` só era escrito para o que NÓS enviamos (a confirmação de
+ * leitura do canal: o cliente leu no WhatsApp dele). Na direção contrária ficava sempre vazio, e
  * a bolha do cliente não dizia se alguém da equipa já a tinha visto. Esta
  * função marca as mensagens RECEBIDAS ainda não lidas de uma conversa; quem a
  * chama é `POST /api/v1/conversations/[id]/mark-read`, a mesma rota que o

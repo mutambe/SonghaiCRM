@@ -1,13 +1,15 @@
 /**
  * TETO DE NÚMEROS DE WHATSAPP DO PLANO (SonghaiCRM, migration 0504).
  *
- * Uma função para TODAS as portas que ligam um número novo — QR (WAHA), canal
- * oficial da Meta e os parceiros. No fork antigo o teto só existia no QR; aqui
- * há mais portas, e uma porta sem o teto fura o plano inteiro.
+ * Uma função para TODAS as portas que ligam um número novo — o QR, o canal
+ * oficial e os parceiros. No fork antigo o teto só existia no QR; aqui há mais
+ * portas, e uma porta sem o teto fura o plano inteiro.
  *
  * Conta só números de WhatsApp VIVOS: canais arquivados foram excluídos pelo
- * utilizador e não ocupam vaga, e Instagram/Messenger (`zernio_social`) e o
- * pareamento de chamada (`wacalls`) não são números de conversa do plano.
+ * utilizador e não ocupam vaga, e redes sociais e chamada de voz não são
+ * números de conversa do plano. Quais providers contam é decidido em
+ * `lib/channels/numeros-de-whatsapp.ts` — nomear provider fora de
+ * `lib/channels/` é proibido (`pnpm lint:channels`).
  *
  * Sem assinatura vigente não bloqueia (lib/plans/limiteDoTenant.ts). Quem chama
  * aplica isto só quando vai CRIAR uma ligação — reconfigurar a existente nunca
@@ -15,11 +17,12 @@
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+import { PROVIDERS_DE_NUMERO_WHATSAPP } from "@/lib/channels/numeros-de-whatsapp";
 import { logger } from "@/lib/logger";
 import { limitesDoTenant } from "@/lib/plans/limiteDoTenant";
 
-/** Os `channel_sessions.provider` que são um número de WhatsApp de conversa. */
-export const PROVEDORES_DE_NUMERO_WHATSAPP = ["waha", "meta_cloud", "zernio", "datafy"] as const;
+/** Reexportado para quem já lia daqui. */
+export const PROVEDORES_DE_NUMERO_WHATSAPP = PROVIDERS_DE_NUMERO_WHATSAPP;
 
 export interface TetoAtingido {
   mensagem: string;
