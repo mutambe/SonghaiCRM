@@ -63,7 +63,7 @@ function Numero({ valor, casas = 0 }: { valor: number | null; casas?: number }) 
   if (valor === null) return <span className="text-muted-foreground">{TRACO}</span>;
   return (
     <>
-      {valor.toLocaleString("pt-BR", {
+      {valor.toLocaleString("pt-MZ", {
         minimumFractionDigits: casas,
         maximumFractionDigits: casas,
       })}
@@ -95,7 +95,7 @@ function Percentual({
     );
   return (
     <>
-      {valor.toLocaleString("pt-BR", {
+      {valor.toLocaleString("pt-MZ", {
         minimumFractionDigits: casas,
         maximumFractionDigits: casas,
       })}
@@ -139,7 +139,7 @@ export function TabelaDeCampanhas({ linhas, moeda, avisos }: Props) {
     if (valor === null) return <span className="text-muted-foreground">{TRACO}</span>;
     return (
       <>
-        {valor.toLocaleString("pt-BR", {
+        {valor.toLocaleString("pt-MZ", {
           style: "currency",
           currency: moeda,
           minimumFractionDigits: casas,

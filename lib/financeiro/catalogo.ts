@@ -12,6 +12,7 @@
  * direção. Três schemas explícitos dizem isso; um genérico esconderia.
  */
 import { z } from "zod";
+import { MOEDA_PADRAO } from "@/lib/money";
 
 /** As três tabelas do catálogo, e o que a rota aceita em `tipo`. */
 export const ENTIDADES_DO_CATALOGO = {
@@ -44,7 +45,7 @@ export const contaSchema = z.object({
    * mentir no cadastro.
    */
   opening_balance_cents: z.coerce.number().int().default(0),
-  currency: z.string().length(3).default("BRL"),
+  currency: z.string().length(3).default(MOEDA_PADRAO),
 });
 
 export const formaDePagamentoSchema = z.object({

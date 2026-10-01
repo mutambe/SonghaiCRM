@@ -83,7 +83,7 @@ function makeAdminStub() {
             contacts: {
               id: CONTACT_ID,
               display_name: null,
-              locale: "pt-BR",
+              locale: "pt-MZ",
               is_blocked: false,
               force_human: false,
             },

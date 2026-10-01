@@ -52,7 +52,7 @@ function deps(over: Partial<{
       carregaCanal: async () =>
         (over.canal === undefined ? { id: "canal-1", status: "WORKING", archived_at: null, aceitaMensagemLivre: true } : over.canal) as never,
       registraJidDoAviso: async () => undefined,
-      marcaDaOrganizacao: async () => ({ nome: "Acme", idioma: "pt-BR" as const }),
+      marcaDaOrganizacao: async () => ({ nome: "Acme", idioma: "pt-MZ" as const }),
     },
     transporte: {
       configurado: async () => true,
@@ -73,7 +73,7 @@ function deps(over: Partial<{
 
 describe("montarAvisoDeProposta", () => {
   it("marca, título, primeiro nome e link", () => {
-    const texto = montarAvisoDeProposta({ marca: "Acme", idioma: "pt-BR", titulo: "Site catálogo", cliente: "Maria Silva", link: "https://x/app/proposals/p" });
+    const texto = montarAvisoDeProposta({ marca: "Acme", idioma: "pt-MZ", titulo: "Site catálogo", cliente: "Maria Silva", link: "https://x/app/proposals/p" });
     expect(texto).toContain("Acme");
     expect(texto).toContain("Site catálogo");
     expect(texto).toContain("Maria");

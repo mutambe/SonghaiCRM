@@ -55,9 +55,13 @@ export function parseReaisToCents(input: string): number | null {
   return Math.round(n * 100);
 }
 
-/** Centavos → "R$ 249,90". Para eco na tela do que foi entendido. */
-export function formatCentsBRL(cents: number): string {
-  return (cents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+/**
+ * Centavos → "MZN 249,90", na moeda PADRÃO desta distribuição (metical).
+ * Para eco na tela do que foi entendido, onde o valor não traz moeda própria.
+ * Substitui o `formatCentsBRL` do upstream (SonghaiCRM é para Moçambique).
+ */
+export function formatCentsPadrao(cents: number): string {
+  return formatCents(cents, MOEDA_PADRAO);
 }
 
 /**
@@ -77,7 +81,7 @@ export function formatCentsBRL(cents: number): string {
  * mas ali ela não pode importar daqui (o módulo é do engine e roda no worker).
  */
 export function formatCentsUSD(cents: number): string {
-  return ((cents ?? 0) / 100).toLocaleString("pt-BR", { style: "currency", currency: "USD" });
+  return ((cents ?? 0) / 100).toLocaleString("pt-MZ", { style: "currency", currency: "USD" });
 }
 
 /**
@@ -144,7 +148,7 @@ export function formatCentsUSD(cents: number): string {
  * — que é o que separa o anti-pattern 2 ("duplicação sem source of truth
  * declarado") de uma dívida com dono e endereço.
  *
- * `formatCentsBRL` e `formatCentsUSD` ficam pelo mesmo motivo: atendem o valor
+ * `formatCentsPadrao` e `formatCentsUSD` ficam pelo mesmo motivo: atendem o valor
  * do negócio no kanban e o gasto de IA, que são essas outras frentes.
  *
  * ⚠️ Havia uma SEXTA, não listada aqui na primeira versão deste comentário:
@@ -393,19 +397,26 @@ export function formatSomaPorMoeda(
  * entrar, porque servir é o conjunto das três coisas acima: `formatCents(24990,
  * "AOA")` → `"249,90 Kz"` (o `formatadorDa` maximiza `und-AO` para `pt-AO`) e
  * `maximumFractionDigits` responde 2, então a régua de centavos vale. Entrar na
- * lista NÃO muda o padrão de ninguém — `MOEDA_PADRAO` continua `BRL`, e é isso
- * que o `default` da coluna grava em quem não escolheu.
+ * lista NÃO muda o padrão de ninguém — `MOEDA_PADRAO` é `MZN` (metical) nesta
+ * distribuição, e é isso que o `default` da coluna grava em quem não escolheu.
  *
  * `EUR` entrou pelo mesmo motivo, para quem opera em Portugal e no resto da
  * zona euro. É o caso que a maximização não resolve (ver
  * `LOCALE_DA_MOEDA_SEM_PAIS`): sem a exceção, `formatCents(24990, "EUR")`
  * sairia `€249.90`, e a varredura de degradação deixaria passar.
  */
-export const MOEDAS_SERVIDAS = ["AOA", "BRL", "EUR", "MXN", "USD"] as const;
+/**
+ * SonghaiCRM (Moçambique): o metical é o padrão; dólar, rand e euro ficam para
+ * quem fatura a clientes de fora (turismo, exportação, fronteira com a África
+ * do Sul). BRL, MXN e AOA do upstream saíram — nada aqui é referente ao Brasil.
+ * `formatCents(24990, "MZN")` → "MZN 249,90" (o ICU maximiza `und-MZ` para
+ * `pt-MZ`); ZAR sai pelo `en-ZA`, USD pelo `en-US`, EUR pela exceção `pt-PT`.
+ */
+export const MOEDAS_SERVIDAS = ["MZN", "USD", "ZAR", "EUR"] as const;
 export type MoedaServida = (typeof MOEDAS_SERVIDAS)[number];
 
 /** O que o `default` da coluna grava quando ninguém escolheu. */
-export const MOEDA_PADRAO: MoedaServida = "BRL";
+export const MOEDA_PADRAO: MoedaServida = "MZN";
 
 /**
  * A moeda guardada, se o produto souber servi-la — senão, o padrão.

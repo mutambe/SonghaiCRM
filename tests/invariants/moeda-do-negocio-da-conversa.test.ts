@@ -69,7 +69,8 @@ describe("fn_nascer_lead_da_conversa — a moeda do negócio", () => {
     expect(await nascer(ORG_PYG, await montar(ORG_PYG, "1"))).toBe("PYG");
   });
 
-  it("organização que não escolheu moeda: a da organização, que é o default BRL", async () => {
-    expect(await nascer(ORG_PADRAO, await montar(ORG_PADRAO, "2"))).toBe("BRL");
+  // SonghaiCRM: a migration 0501 (supabase/songhai.sql) troca o default para MZN.
+  it("organização que não escolheu moeda: a da organização, que é o default MZN", async () => {
+    expect(await nascer(ORG_PADRAO, await montar(ORG_PADRAO, "2"))).toBe("MZN");
   });
 });

@@ -27,13 +27,14 @@ const avisoDeEtapa = (idioma: (typeof IDIOMAS)[number]) => ({
 describe("qual som cada aviso pede", () => {
   it("pedido de pessoa → som de pessoa; negócio na etapa que avisa → som da etapa", () => {
     expect(somDoAviso({ kind: "handoff", ref_kind: "conversation" })).toBe("pessoa");
-    expect(somDoAviso(avisoDeEtapa("pt-BR"))).toBe("venda");
+    expect(somDoAviso(avisoDeEtapa("pt-MZ"))).toBe("venda");
     expect(somDoAviso({ kind: "job_dead", ref_kind: "conversation" })).toBeNull();
     expect(somDoAviso({ kind: "other", ref_kind: "channel_session" })).toBeNull();
   });
 
   it("o aviso de etapa é reconhecido em todo idioma servido", () => {
-    expect(IDIOMAS.length).toBeGreaterThan(1);
+    // SonghaiCRM serve um idioma só (pt-MZ); o laço continua valendo para ele.
+    expect(IDIOMAS.length).toBeGreaterThan(0);
     for (const idioma of IDIOMAS) {
       expect(ehAvisoDeEtapa(avisoDeEtapa(idioma)), idioma).toBe(true);
       expect(somDoAviso(avisoDeEtapa(idioma)), idioma).toBe("venda");
@@ -99,8 +100,8 @@ describe("qual som cada aviso pede", () => {
     expect(
       sonsNovos(vistos, [
         { id: "a", kind: "handoff", ref_kind: null },
-        { id: "b", ...avisoDeEtapa("pt-BR") },
-        { id: "c", ...avisoDeEtapa("es") },
+        { id: "b", ...avisoDeEtapa("pt-MZ") },
+        { id: "c", ...avisoDeEtapa("pt-MZ") },
       ]),
     ).toEqual(["venda"]);
   });

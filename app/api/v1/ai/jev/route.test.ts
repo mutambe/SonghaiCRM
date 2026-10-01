@@ -209,7 +209,7 @@ beforeEach(() => {
     roleAtLeast(papel, min)
       ? ({
           ok: true,
-          user: { id: USUARIO, idioma: "pt-BR" },
+          user: { id: USUARIO, idioma: "pt-MZ" },
           org: { orgId: ORG, role: papel },
         } as unknown as Awaited<ReturnType<typeof requireRole>>)
       : { ok: false, response: fail("forbidden_role", "sem permissão", 403) },

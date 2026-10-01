@@ -37,6 +37,8 @@ import React from "react";
 import { env } from "@/lib/env";
 
 import type { ExportPayload } from "./export-collector";
+import { MOEDA_PADRAO } from "@/lib/money";
+import { FUSO_PADRAO } from "@/lib/tempo/fusos";
 
 const styles = StyleSheet.create({
   page: {
@@ -98,7 +100,7 @@ interface Props {
 function fmtDate(s: string | null | undefined): string {
   if (!s) return "—";
   try {
-    return new Date(s).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" });
+    return new Date(s).toLocaleString("pt-MZ", { timeZone: FUSO_PADRAO });
   } catch {
     return s;
   }
@@ -107,7 +109,7 @@ function fmtDate(s: string | null | undefined): string {
 function fmtMoney(cents: number | null | undefined, currency: string | null | undefined): string {
   if (cents == null) return "—";
   const v = cents / 100;
-  return `${currency ?? "BRL"} ${v.toFixed(2)}`;
+  return `${currency ?? MOEDA_PADRAO} ${v.toFixed(2)}`;
 }
 
 /**

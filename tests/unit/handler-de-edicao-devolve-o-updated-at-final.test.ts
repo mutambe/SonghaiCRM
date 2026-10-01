@@ -102,7 +102,7 @@ const ctx: HandlerCtx = {
   organization_id: ORG,
   actor: { type: "user", id: "11111111-1111-4111-8111-111111111111" },
   requestId: "req-1",
-  idioma: "pt-BR",
+  idioma: "pt-MZ",
 };
 
 beforeEach(() => {

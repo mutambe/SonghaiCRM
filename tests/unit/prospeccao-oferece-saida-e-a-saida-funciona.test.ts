@@ -32,7 +32,7 @@ const RAIZ = path.resolve(__dirname, "../..");
 
 describe("a abordagem fria oferece uma saída", () => {
   it("o rodapé sai em toda mensagem de abordagem, colado ao texto do modelo", () => {
-    const corpo = comSaida("Oi! Vi a padaria de vocês no mapa.", "pt-BR");
+    const corpo = comSaida("Oi! Vi a padaria de vocês no mapa.", "pt-MZ");
     expect(corpo).toContain("Oi! Vi a padaria de vocês no mapa.");
     expect(corpo).toContain("PARAR");
   });
@@ -41,8 +41,8 @@ describe("a abordagem fria oferece uma saída", () => {
     // O prompt também fala em transparência; se um dia alguém puser a frase lá,
     // a mensagem não pode sair com ela duas vezes — parece defeito e é a
     // primeira impressão da empresa.
-    const uma = comSaida("Bom dia.", "pt-BR");
-    expect(comSaida(uma, "pt-BR")).toBe(uma);
+    const uma = comSaida("Bom dia.", "pt-MZ");
+    expect(comSaida(uma, "pt-MZ")).toBe(uma);
   });
 
   it("segue o idioma da instalação — e não inventa idioma que não existe", () => {

@@ -37,6 +37,8 @@ if ! command -v vitest >/dev/null 2>&1; then
   exit 1
 fi
 BASELINE="$ROOT/supabase/baseline.sql"
+# SonghaiCRM: o apêndice da distribuição, aplicado logo depois do baseline.
+APENDICE="$ROOT/supabase/songhai.sql"
 # A PORTA: quem PEDE escolhe; quem não pede deixa o Docker escolher.
 #
 # Antes era 54329 fixo, e duas sessões rodando `test:db` ao mesmo tempo colidiam:
@@ -183,7 +185,9 @@ psql_install() {
 # no próprio molde. Com isso um invariante PROVA quantas aplicações o banco que ele
 # lê recebeu, em vez de confiar na posição das linhas deste script.
 aplicar_baseline() {
-  psql_install < "$BASELINE"
+  # SonghaiCRM: o apêndice da distribuição vai na MESMA sessão, logo depois do
+  # baseline — como o `reaplicar_baseline` do kit faz (`-f baseline -f songhai`).
+  { cat "$BASELINE"; if [ -f "$APENDICE" ]; then cat "$APENDICE"; fi; } | psql_install
   psql_install <<'SQL'
 set client_min_messages = warning;
 create schema if not exists test_db;

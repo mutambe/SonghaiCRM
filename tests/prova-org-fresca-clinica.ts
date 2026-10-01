@@ -146,7 +146,7 @@ async function main(): Promise<void> {
       display_name: "Clínica Prova (org fresca)",
       legal_name: "Clínica Prova (org fresca)",
       timezone: "America/Sao_Paulo",
-      locale: "pt-BR",
+      locale: "pt-MZ",
       // A tela de funis não é onboarding; sem isto o app manda o usuário para o
       // fluxo de primeiros passos, que não é o que está sendo provado aqui.
       onboarded_at: new Date().toISOString(),

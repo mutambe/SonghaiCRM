@@ -68,8 +68,9 @@ describe("ExecucoesDeIa — o filtro do Jev", () => {
     expect(screen.getByTestId("execucao-r1")).toHaveTextContent("Jev (TypeSafe AI) · typesafe/jev-1.13.0");
     expect(screen.getByTestId("filtro-jev")).toHaveAttribute("aria-pressed", "true");
     // Fração de centavo não vira "US$ 0,00": 0,000168 centavo = US$ 0,000002.
-    expect(screen.getByTestId("execucao-r1")).not.toHaveTextContent(/US\$\s?0,00(?!0)/);
-    expect(screen.getByTestId("execucao-r1")).toHaveTextContent(/US\$\s?0,000002/);
+    // pt-MZ (CLDR pt-PT) escreve o símbolo depois do número: "0,000002 US$".
+    expect(screen.getByTestId("execucao-r1")).not.toHaveTextContent(/US\$\s?0,00(?!0)|(?<![\d,])0,00\s?US\$/);
+    expect(screen.getByTestId("execucao-r1")).toHaveTextContent(/US\$\s?0,000002|0,000002\s?US\$/);
   });
 
   it("o filtro de falhas soma ao do Jev, não o substitui", async () => {

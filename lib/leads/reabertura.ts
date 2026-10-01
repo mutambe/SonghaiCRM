@@ -125,6 +125,6 @@ export function recusaReabertura(p: {
   if (p.etapaDestino.is_won || p.etapaDestino.is_lost) return null;
   return {
     codigo: CODIGO_REABERTURA_CRIA_NOVO,
-    mensagem: traduzir(RECUSA_REABERTURA_CRIA_NOVO, p.idioma ?? "pt-BR"),
+    mensagem: traduzir(RECUSA_REABERTURA_CRIA_NOVO, p.idioma ?? "pt-MZ"),
   };
 }

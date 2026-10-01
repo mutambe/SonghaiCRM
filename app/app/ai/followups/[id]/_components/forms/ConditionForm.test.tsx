@@ -213,7 +213,7 @@ describe("ConditionForm — a regra nasce e muda sem decidir sozinha", () => {
     // saída por regra ela leva todo mundo e as outras saídas morrem.
     renderizar({ combinator: "and", checks: [{ field: "steps_taken", op: "gte", value: 0 }] });
 
-    expect(screen.getByTestId("regra-vale-sempre-0")).toHaveTextContent("vale para todo contato");
+    expect(screen.getByTestId("regra-vale-sempre-0")).toHaveTextContent("vale para todo contacto");
   });
 
   it("passos com valor de verdade não é acusado de valer sempre", () => {
@@ -238,7 +238,7 @@ describe("ConditionForm — a regra nasce e muda sem decidir sozinha", () => {
     const gravados = renderizar(POR_REGRA);
 
     await user.click(screen.getAllByRole("combobox", { name: "Campo" })[1]!);
-    await user.click(await screen.findByRole("option", { name: "Etiqueta do contato" }));
+    await user.click(await screen.findByRole("option", { name: "Etiqueta do contacto" }));
 
     expect(gravados.at(-1)!.checks[1]).toMatchObject({ id: "regra-2", field: "tag", value: "" });
   });

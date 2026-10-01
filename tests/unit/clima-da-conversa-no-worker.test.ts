@@ -59,6 +59,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { traduzir } from "@/lib/i18n/dicionario";
 import type { EventRow } from "@/lib/event-log/dispatcher";
 import { processSentiment } from "@/workers/ai-sentiment-worker";
+import { paraPortuguesDeMocambique } from "@/lib/i18n/pt-mz";
 
 type Linha = Record<string, unknown>;
 /** As tabelas que os casos afirmam são nomeadas; o resto nasce vazio sob demanda. */
@@ -202,7 +203,7 @@ interface Cenario {
 
 function montarBanco(c: Cenario): Banco {
   return {
-    organizations: [{ id: ORG, settings: c.settings ?? {}, locale: "pt-BR" }],
+    organizations: [{ id: ORG, settings: c.settings ?? {}, locale: "pt-MZ" }],
     ai_provider_credentials: c.credenciais ?? [],
     ai_purpose_bindings: c.bindings ?? [],
     messages: [
@@ -628,7 +629,7 @@ describe("o Jev no worker de clima", () => {
       title: AVISO_DO_JEV.titulo,
     });
     expect(avisos[0]!.body).toContain(O_QUE_FAZER_DO_JEV.jev_credencial_invalida);
-    expect(avisos[0]!.body).toContain(AVISO_DO_JEV.comReserva);
+    expect(avisos[0]!.body).toContain(paraPortuguesDeMocambique(AVISO_DO_JEV.comReserva));
     expect(linhasDoJev(segunda.banco)).toHaveLength(0);
     expect(linhasDaIaDeSempre(segunda.banco).map((l) => l.origem_da_escolha)).toEqual([
       "reserva_do_jev",
@@ -705,10 +706,10 @@ describe("o Jev no worker de clima", () => {
     });
     expect(banco.agent_inbox_items).toHaveLength(1);
     expect(banco.agent_inbox_items[0]).toMatchObject({ severity: "critical" });
-    expect(banco.agent_inbox_items[0]!.body).toContain(AVISO_DO_JEV.semReserva);
+    expect(banco.agent_inbox_items[0]!.body).toContain(paraPortuguesDeMocambique(AVISO_DO_JEV.semReserva));
   });
 
-  it("Jev desligado: nenhuma chamada ao fornecedor e nenhuma linha dele, mesmo com a chave cadastrada", async () => {
+  it("Jev desligado: nenhuma chamada ao fornecedor e nenhuma linha dele, mesmo com a chave registada", async () => {
     fornecedor(async () => respostaDoJev(0));
     const cenario = jevLigado("decide");
     cenario.settings = { llm: { provider: "anthropic" }, jev: { ligado: false, modo: "decide", aceite: ACEITE } };
@@ -771,8 +772,8 @@ describe("o aviso do Jev na Central", () => {
     expect(resultado).toEqual({ skipped: true, reason: "classify_failed" });
     expect(banco.agent_inbox_items).toHaveLength(1);
     expect(banco.agent_inbox_items[0]).toMatchObject({ severity: "critical" });
-    expect(banco.agent_inbox_items[0]!.body).toContain(AVISO_DO_JEV.semReserva);
-    expect(banco.agent_inbox_items[0]!.body).not.toContain(AVISO_DO_JEV.comReserva);
+    expect(banco.agent_inbox_items[0]!.body).toContain(paraPortuguesDeMocambique(AVISO_DO_JEV.semReserva));
+    expect(banco.agent_inbox_items[0]!.body).not.toContain(paraPortuguesDeMocambique(AVISO_DO_JEV.comReserva));
     // A linha de erro da IA de sempre não diz "mediu no lugar dele".
     expect(linhasDaIaDeSempre(banco)[0]).toMatchObject({ status: "erro", origem_da_escolha: null });
   });
@@ -790,7 +791,7 @@ describe("o aviso do Jev na Central", () => {
     expect(segunda.banco.agent_inbox_items).toHaveLength(1);
     expect(segunda.banco.agent_inbox_items[0]).toMatchObject({ severity: "critical", status: "open" });
     expect(segunda.banco.agent_inbox_items[0]!.body).toContain(O_QUE_FAZER_DO_JEV.jev_sem_credito);
-    expect(segunda.banco.agent_inbox_items[0]!.body).toContain(AVISO_DO_JEV.semReserva);
+    expect(segunda.banco.agent_inbox_items[0]!.body).toContain(paraPortuguesDeMocambique(AVISO_DO_JEV.semReserva));
   });
 
   it("o Jev volta a medir: o aviso aberto se fecha sozinho", async () => {
@@ -842,9 +843,9 @@ describe("o aviso do Jev na Central", () => {
     const aviso = primeira.banco.agent_inbox_items[0]!;
     expect(aviso).toMatchObject({ title: AVISO_DO_JEV.titulo, severity: "critical", status: "open" });
     expect(aviso.body).toContain(O_QUE_FAZER_DO_JEV.jev_provedor_indisponivel);
-    expect(aviso.body).toContain(AVISO_DO_JEV.semReserva);
-    expect(aviso.body).toContain(AVISO_DO_JEV.quedaSustentada);
-    expect(aviso.body).toContain(AVISO_DO_JEV.rearme);
+    expect(aviso.body).toContain(paraPortuguesDeMocambique(AVISO_DO_JEV.semReserva));
+    expect(aviso.body).toContain(paraPortuguesDeMocambique(AVISO_DO_JEV.quedaSustentada));
+    expect(aviso.body).toContain(paraPortuguesDeMocambique(AVISO_DO_JEV.rearme));
 
     // Passados os 5 minutos do disjuntor, o Jev responde: o mesmo aviso se fecha.
     vi.useFakeTimers({ toFake: ["Date"] });
@@ -878,7 +879,7 @@ describe("o aviso do Jev na Central", () => {
       kind: "other",
       severity: "warn",
       status: "open",
-      title: traduzir(AVISO_DO_JEV.titulo, "es"),
+      title: traduzir(AVISO_DO_JEV.titulo, "pt-MZ"),
       body: "texto antigo",
     });
     const { banco: depois } = await rodar(cenario, banco);
@@ -1341,7 +1342,7 @@ describe("os pedidos do cliente no worker de clima", () => {
    * idioma da organização (lido aqui, no `locale` dela), na conversa — e a
    * conversa e o contato ficam como estavam.
    */
-  it.each(["pt-BR", "es"] as const)(
+  it.each(["pt-MZ"] as const)(
     "humano em Avisar a equipe (%s): a frase natural abre UM aviso na Central, e nada muda na conversa",
     async (idioma) => {
       // Clima 3: o clima desta mensagem não chama ninguém.
@@ -1481,7 +1482,7 @@ describe("o aviso do Jev com o título antigo", () => {
     expect(TITULOS_ANTIGOS_DO_AVISO_DO_JEV.length).toBeGreaterThan(0);
   });
 
-  it.each(["pt-BR", "es"] as const)("aberto com o título antigo (%s), fecha quando o Jev volta a medir", async (idioma) => {
+  it.each(["pt-MZ"] as const)("aberto com o título antigo (%s), fecha quando o Jev volta a medir", async (idioma) => {
     fornecedor(async () => respostaDoJev(4));
     const cenario = jevLigado("decide");
     const banco = montarBanco(cenario);

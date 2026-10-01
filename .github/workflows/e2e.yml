@@ -1552,10 +1552,10 @@ jobs:
           create extension if not exists pg_trgm with schema public;
           SQL
 
-      - name: Aplicar o baseline.sql (o mesmo que o install.sh do kit aplica)
+      - name: Aplicar o baseline.sql + songhai.sql (o mesmo que o install.sh do kit aplica)
         run: |
           psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" \
-            -v ON_ERROR_STOP=1 -q -f supabase/baseline.sql
+            -v ON_ERROR_STOP=1 -q -f supabase/baseline.sql -f supabase/songhai.sql
 
       # A chave de cifra dos segredos, como o install.sh semeia em TODA instalação
       # (`ensure_encryption_key`, em hostgator-setup-kit/_common.sh). Sem ela,

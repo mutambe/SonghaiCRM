@@ -57,7 +57,7 @@ beforeEach(() => {
   linhas = [];
   vi.mocked(requireRole).mockResolvedValue({
     ok: true,
-    user: { id: "u", idioma: "pt-BR" },
+    user: { id: "u", idioma: "pt-MZ" },
     org: { orgId: ORG, role: "manager" },
   } as unknown as Awaited<ReturnType<typeof requireRole>>);
   const chain = {

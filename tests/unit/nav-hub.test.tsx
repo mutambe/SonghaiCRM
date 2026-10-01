@@ -172,39 +172,7 @@ describe("NavHub", () => {
     expect(within(ensinar).queryByRole("link", { name: /Credenciais/ })).toBeNull();
   });
 
-  it("traduz o conteúdo do hub quando a página entrega o idioma", () => {
-    render(
-      <NavHub modulosLigados={[]}
-        group="ia"
-        isPlatformAdmin
-        role={null}
-        title="Agente de IA"
-        subtitle="Tudo que define quem atende por você — e como acompanhar o que ele faz."
-        locale="es"
-      />,
-    );
-
-    expect(
-      screen.getByText("Todo lo que define quién atiende por ti, y cómo dar seguimiento a lo que hace."),
-    ).toBeTruthy();
-    expect(screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent?.trim())).toEqual([
-      "Configurar el agente",
-      "Enseñar al agente",
-      "Supervisar al agente",
-    ]);
-    expect(
-      screen.getByRole("link", { name: /Credenciales.*La clave del proveedor de IA/ }),
-    ).toBeTruthy();
-  });
-
-  it("todo texto registrado no hub de IA tem tradução em espanhol", () => {
-    const textos = hubSections("ia", true, "admin").flatMap(({ section, items }) => [
-      section,
-      ...items.flatMap((item) => [item.label, item.description]),
-    ]);
-
-    expect(textos.filter((texto) => !DICIONARIO[texto]?.es)).toEqual([]);
-  });
+  // SonghaiCRM: os dois casos que mediam o hub em espanhol saíram com o idioma.
 
   it("integra contribuições tipadas no CRM sem aceitar destino vindo do pacote", () => {
     render(
@@ -214,18 +182,18 @@ describe("NavHub", () => {
         role="viewer"
         title="CRM"
         subtitle=""
-        locale="es"
+        locale="pt-MZ"
         extensionGuides={[extensionGuide]}
       />,
     );
 
-    const contribution = screen.getByRole("link", { name: /Empieza aquí/ });
+    const contribution = screen.getByRole("link", { name: /Comece por aqui/ });
     expect(contribution).toHaveAttribute(
       "href",
       "/app/extensions/00000000-0000-4000-8000-000000000002?card=primeiro-passo",
     );
     expect(contribution).not.toHaveTextContent("Uma descrição que a configuração esconde.");
-    expect(screen.getByText("Abre Tareas; no lee tus datos.")).toBeInTheDocument();
+    expect(screen.getByText("Abre Tarefas; não lê seus dados.")).toBeInTheDocument();
   });
 
   it("expõe falha de leitura das contribuições sem derrubar o hub do CRM", () => {

@@ -47,14 +47,14 @@ beforeEach(() => {
 });
 
 describe("painel do inbox — o botão de tags diz de quem é a tag", () => {
-  it("o botão se chama 'Tags do contato', e não só 'Tag'", async () => {
+  it("o botão se chama 'Tags do contacto', e não só 'Tag'", async () => {
     render(
       <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
         <CRMSidePanel conversation={conversation} />
       </QueryClientProvider>,
     );
 
-    expect(await screen.findByRole("button", { name: "Tags do contato" })).toBeTruthy();
+    expect(await screen.findByRole("button", { name: "Tags do contacto" })).toBeTruthy();
     // Guarda contra a volta do rótulo ambíguo: "Tag" exato, não o prefixo.
     expect(screen.queryByRole("button", { name: "Tag" })).toBeNull();
   });

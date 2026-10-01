@@ -79,7 +79,7 @@ beforeEach(() => {
   vi.mocked(requireSupportWrite).mockResolvedValue(null as never);
   vi.mocked(requireRole).mockResolvedValue({
     ok: true,
-    user: { id: USER_ID, idioma: "pt-BR" },
+    user: { id: USER_ID, idioma: "pt-MZ" },
     org: { orgId: ORG_ID, role: "admin" },
   } as never);
   vi.mocked(enfileirarTodosOsMateriais).mockResolvedValue({

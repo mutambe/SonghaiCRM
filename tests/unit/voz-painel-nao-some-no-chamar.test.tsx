@@ -54,7 +54,7 @@ function montar() {
     full_name: "Quem Liga",
     avatar_url: null,
     is_platform_admin: false,
-    idioma: "pt-BR",
+    idioma: "pt-MZ",
     organizations: [],
   } as AuthUser;
   const activeOrg: ActiveOrg = { orgId: ORG, name: "Org de teste", role: "agent" };

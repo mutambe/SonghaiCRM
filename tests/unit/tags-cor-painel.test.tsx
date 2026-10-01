@@ -46,7 +46,7 @@ function montar() {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   render(
     <QueryClientProvider client={client}>
-      <PainelDeTags tags={[VIP, OBRA]} idioma="pt-BR" />
+      <PainelDeTags tags={[VIP, OBRA]} idioma="pt-MZ" />
     </QueryClientProvider>,
   );
 }

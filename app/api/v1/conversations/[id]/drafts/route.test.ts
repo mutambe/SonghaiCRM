@@ -134,7 +134,7 @@ beforeEach(() => {
     organizationId: ORG_A,
     actor: { type: "user", id: USER },
     supabase: clienteFake([{ id: CONV_A, organization_id: ORG_A }]),
-    idioma: "pt-BR",
+    idioma: "pt-MZ",
     via: "token",
     apiTokenId: "token-1",
   } as unknown as Awaited<ReturnType<typeof resolveAuthDual>>);
@@ -171,7 +171,7 @@ describe("POST /api/v1/conversations/[id]/drafts", () => {
       organizationId: ORG_A,
       actor: { type: "user", id: USER },
       supabase: clienteFake([{ id: CONV_B, organization_id: ORG_B }]),
-      idioma: "pt-BR",
+      idioma: "pt-MZ",
       via: "token",
       apiTokenId: "token-1",
     } as unknown as Awaited<ReturnType<typeof resolveAuthDual>>);
@@ -283,7 +283,7 @@ describe("POST /api/v1/conversations/[id]/drafts — Idempotency-Key", () => {
         { id: CONV_A, organization_id: ORG_A },
         { id: CONV_B, organization_id: ORG_A },
       ]),
-      idioma: "pt-BR",
+      idioma: "pt-MZ",
       via: "token",
       apiTokenId: "token-1",
     } as unknown as Awaited<ReturnType<typeof resolveAuthDual>>);

@@ -19,7 +19,7 @@ import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { useT } from "@/hooks/i18n/useT";
-import { formatCents } from "@/lib/money";
+import { formatCents, MOEDA_PADRAO } from "@/lib/money";
 
 export type Pendente = {
   appointment_id: string;
@@ -97,7 +97,7 @@ export function AtendimentosSemComanda({
                 {semPreco ? (
                   <span className="text-xs text-danger">{t("sem preço no serviço")}</span>
                 ) : (
-                  formatCents(p.suggested_price_cents ?? 0, "BRL")
+                  formatCents(p.suggested_price_cents ?? 0, MOEDA_PADRAO)
                 )}
               </span>
             </li>
@@ -132,7 +132,7 @@ export function AtendimentosSemComanda({
               })
             }
           >
-            {t("Faturar")} {marcados.size > 0 ? `(${formatCents(total, "BRL")})` : ""}
+            {t("Faturar")} {marcados.size > 0 ? `(${formatCents(total, MOEDA_PADRAO)})` : ""}
           </Button>
 
           {/*

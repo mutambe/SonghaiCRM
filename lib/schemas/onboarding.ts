@@ -3,6 +3,7 @@
  * the persistent `organizations.onboarding_state jsonb` blob.
  */
 import { z } from "zod";
+import { FUSO_PADRAO } from "@/lib/tempo/fusos";
 
 export const welcomeSchema = z.object({
   display_name: z.string().min(2).max(120),
@@ -20,7 +21,7 @@ export const welcomeSchema = z.object({
    * o próprio negócio em uma linha. Quem pula recebe o quadro genérico.
    */
   o_que_faz: z.string().max(280).optional(),
-  timezone: z.string().min(1).default("America/Sao_Paulo"),
+  timezone: z.string().min(1).default(FUSO_PADRAO),
   accepted_terms_at: z.string().datetime().optional(),
 });
 export type WelcomeInput = z.infer<typeof welcomeSchema>;

@@ -599,7 +599,7 @@ describe("StagesSection — arquivar", () => {
     const aviso = await screen.findByTestId("arquivar-erro-e1");
     expect(aviso).not.toHaveTextContent("violates");
     expect(aviso).not.toHaveTextContent("crm_leads");
-    expect(aviso).toHaveTextContent("Não deu para salvar");
+    expect(aviso).toHaveTextContent("Não deu para guardar");
   });
 });
 

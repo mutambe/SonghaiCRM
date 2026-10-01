@@ -24,8 +24,8 @@ import { PACING_DEFAULTS } from '@/lib/agent-engine/pacing/defaults';
 import { SPINNING_DEFAULTS } from '@/lib/agent-engine/spinning/defaults';
 import type { Logger } from '@/lib/agent-engine/obs/logger';
 
-const COMERCIAL = new Date('2026-07-28T13:00:00Z'); // 10h BRT, terça — dentro da janela
-const MADRUGADA = new Date('2026-07-28T06:00:00Z'); // 03h BRT — fora da janela
+const COMERCIAL = new Date('2026-07-28T13:00:00Z'); // 15h em Maputo, terça — dentro da janela
+const MADRUGADA = new Date('2026-07-28T01:00:00Z'); // 03h em Maputo (UTC+2) — fora da janela
 
 // Espelha o baseCtx de tests/invariants/case-guardrail.test.ts:32 (o repo não tem
 // fixture compartilhada de GateContext — cada teste de gate monta a sua).

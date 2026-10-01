@@ -73,7 +73,7 @@ export function respostaDePonte(destino: string, nomeDaMarca: string, mensagem: 
   const nome = escapeHtml(nomeDaMarca);
 
   return new Response(
-    `<!doctype html><html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Voltando ao ${nome}</title><body><p>${escapeHtml(mensagem)}</p><a href="${alvo}">Continuar no ${nome}</a><script>${script}</script></body></html>`,
+    `<!doctype html><html lang="pt-MZ"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Voltando ao ${nome}</title><body><p>${escapeHtml(mensagem)}</p><a href="${alvo}">Continuar no ${nome}</a><script>${script}</script></body></html>`,
     {
       headers: {
         "Content-Type": "text/html; charset=utf-8",

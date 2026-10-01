@@ -44,7 +44,7 @@ export function portasLegiveis(
 ): string {
   const nomes = [...permissoes]
     .filter((p) => p in NOME_DA_PORTA)
-    .sort((a, b) => NOME_DA_PORTA[a].localeCompare(NOME_DA_PORTA[b], "pt-BR"))
+    .sort((a, b) => NOME_DA_PORTA[a].localeCompare(NOME_DA_PORTA[b], "pt-MZ"))
     .map((p) => t(nomeDaPorta(p)));
   if (nomes.length === 0) return t("Não abre nenhuma tela e não lê seus dados.");
   const lista =

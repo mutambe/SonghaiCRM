@@ -115,7 +115,7 @@ export function FilterBar({ filters, onChange, leads, settings }: FilterBarProps
         version: a.version_number,
       })),
     ];
-    return rows.sort((x, y) => x.name.localeCompare(y.name, "pt-BR"));
+    return rows.sort((x, y) => x.name.localeCompare(y.name, "pt-MZ"));
   }, [members, agents, user.id, t]);
   const ownerLabel =
     filters.owner === "unassigned"
@@ -168,7 +168,7 @@ export function FilterBar({ filters, onChange, leads, settings }: FilterBarProps
   const motivosPerdidos = useMemo(() => {
     const set = new Set<string>();
     for (const l of leads) if (l.status === "lost" && l.lost_reason) set.add(l.lost_reason);
-    return Array.from(set).sort((a, b) => a.localeCompare(b, "pt-BR"));
+    return Array.from(set).sort((a, b) => a.localeCompare(b, "pt-MZ"));
   }, [leads]);
   const categoriasPerdidas = useMemo(() => {
     const set = new Set<string>();
@@ -176,7 +176,7 @@ export function FilterBar({ filters, onChange, leads, settings }: FilterBarProps
       const categoria = categoriaDoMotivo(motivo, settings);
       if (categoria) set.add(categoria);
     }
-    return Array.from(set).sort((a, b) => a.localeCompare(b, "pt-BR"));
+    return Array.from(set).sort((a, b) => a.localeCompare(b, "pt-MZ"));
   }, [motivosPerdidos, settings]);
   /** Só com a aba em Perdidos: fora dela os dois filtros esconderiam tudo. */
   const mostraPerda = (filters.status ?? "all") === "lost" && motivosPerdidos.length > 0;

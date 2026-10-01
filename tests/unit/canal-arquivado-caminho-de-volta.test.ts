@@ -279,7 +279,7 @@ function authOk(): void {
     full_name: null,
     avatar_url: null,
     is_platform_admin: false,
-    idioma: "pt-BR" as const,
+    idioma: "pt-MZ" as const,
     organizations: [{ organization_id: ORG, organization_name: "Org", role: "admin" }],
   };
   const org = { orgId: ORG, name: "Org", role: "admin" as const };

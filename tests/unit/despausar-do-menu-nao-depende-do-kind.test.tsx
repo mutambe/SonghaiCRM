@@ -114,7 +114,7 @@ function estaBloqueado(item: HTMLElement): boolean {
 async function abrirMenu(over: Partial<AgentRow>) {
   const user = userEvent.setup();
   render(
-    <IdiomaProvider locale="pt-BR">
+    <IdiomaProvider locale="pt-MZ">
       <AgentRowMenu agent={{ ...AGENTE, ...over } as AgentRow} />
     </IdiomaProvider>,
   );

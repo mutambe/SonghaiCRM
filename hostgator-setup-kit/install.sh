@@ -1894,8 +1894,17 @@ if [ -f supabase/baseline.sql ]; then
       listar_erros_do_banco "$BASELINE_INESPERADO" 20
     fi
   else
+    # SonghaiCRM: o apêndice da distribuição (`supabase/songhai.sql`) vai na
+    # MESMA chamada, logo depois do baseline — ver `reaplicar_baseline`.
+    APENDICE_ARGS=()
+    [ -f "$PROJECT_DIR/supabase/songhai.sql" ] && \
+      APENDICE_ARGS=(-v "$PROJECT_DIR/supabase/songhai.sql:/songhai.sql:ro")
+    APENDICE_F=()
+    [ "${#APENDICE_ARGS[@]}" -gt 0 ] && APENDICE_F=(-f /songhai.sql)
     if pg_container -i -v "$PROJECT_DIR/supabase/baseline.sql:/baseline.sql:ro" \
+        ${APENDICE_ARGS[@]+"${APENDICE_ARGS[@]}"} \
         postgres:17-alpine psql "$(url_do_schema)" -v ON_ERROR_STOP=1 -f /baseline.sql \
+        ${APENDICE_F[@]+"${APENDICE_F[@]}"} \
         > "$SCHEMA_LOG" 2>&1; then
       c_grn "$(t "✓ schema aplicado (log: {1})" "$SCHEMA_LOG")"
     else

@@ -135,7 +135,7 @@ describe("a tela do Operador", () => {
 
   function abrir(ocultar?: readonly string[]) {
     return render(
-      <IdiomaProvider locale="pt-BR">
+      <IdiomaProvider locale="pt-MZ">
         <QueryClientProvider client={client}>
           <ToolPicker value={[BUSCA, DRAFT]} onChange={() => undefined} ocultar={ocultar} />
         </QueryClientProvider>

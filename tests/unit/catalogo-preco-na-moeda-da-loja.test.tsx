@@ -6,7 +6,7 @@ import { describe, expect, it, vi } from "vitest";
  *
  * A tela de produtos formatava com um ajudante local de quatro linhas:
  *
- *     const v = (cents / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 });
+ *     const v = (cents / 100).toLocaleString("pt-MZ", { minimumFractionDigits: 2 });
  *     return moeda === "BRL" ? `R$ ${v}` : `${moeda} ${v}`;
  *
  * Ele tem dois defeitos, e os dois só aparecem quando a loja não é brasileira:

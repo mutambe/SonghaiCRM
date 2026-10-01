@@ -56,7 +56,7 @@ const post = (body: unknown) =>
   POST(new NextRequest(URL_, { method: "POST", body: JSON.stringify(body) }));
 
 const CORPO = [{ type: "BODY", text: "Olá {{1}}", example: { body_text: [["Ana"]] } }];
-const PERMITIDO = { ok: true, org: { orgId: "org-da-sessao" }, user: { id: "u-1", idioma: "pt-BR" } };
+const PERMITIDO = { ok: true, org: { orgId: "org-da-sessao" }, user: { id: "u-1", idioma: "pt-MZ" } };
 const RECUSADO = () => ({ ok: false, response: new Response(null, { status: 403 }) });
 
 beforeEach(() => {

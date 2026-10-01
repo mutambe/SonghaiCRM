@@ -116,7 +116,7 @@ export const PACING_DEFAULTS: PacingKnobs = {
   respostaStartHour: 7,
   respostaEndHour: 22,
   allowSunday: true,
-  timezone: 'America/Sao_Paulo',
+  timezone: 'Africa/Maputo',
   // Número sem linha em channel_knobs é tratado como idade 0 (o degrau mais
   // conservador) até alguém registrar number_activated_at.
   warmupDailyCaps: [

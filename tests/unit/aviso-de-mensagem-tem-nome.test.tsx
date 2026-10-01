@@ -132,7 +132,7 @@ describe("aviso de mensagem nova — quem mandou", () => {
     const [titulo, opcoes] = await avisa(mensagem());
 
     expect(titulo).toBe("Maria Souza");
-    expect(opcoes.description).toBe("oi, tudo bem?");
+    expect(opcoes.description).toBe("olá, tudo bem?");
     expect(opcoes.action?.label).toBe("Abrir conversa");
     // A leitura do contato foi pela rota, COM a sessão — é isto que a RLS do
     // browser não tinha como enxergar.
@@ -177,7 +177,7 @@ describe("aviso de mensagem nova — quem mandou", () => {
     const [titulo, opcoes] = await avisa(mensagem());
 
     expect(titulo).toBe("Nova mensagem");
-    expect(opcoes.description).toBe("oi, tudo bem?");
+    expect(opcoes.description).toBe("olá, tudo bem?");
   });
 
   it("contato sem nome apresentável cai no texto de sempre, em vez de inventar nome", async () => {

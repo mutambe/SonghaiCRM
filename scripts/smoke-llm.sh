@@ -50,7 +50,9 @@ done
 
 echo "==> prelude + baseline (install, ON_ERROR_STOP=1)"
 docker exec -i "$CONTAINER" psql -U postgres -d postgres -v ON_ERROR_STOP=1 -q -f - < "$ROOT/scripts/selfhost-prelude.sql"
-docker exec -i "$CONTAINER" psql -U postgres -d postgres -v ON_ERROR_STOP=1 -q -f - < "$ROOT/supabase/baseline.sql"
+# SonghaiCRM: baseline + apêndice da distribuição, na mesma sessão.
+cat "$ROOT/supabase/baseline.sql" "$ROOT/supabase/songhai.sql" \
+  | docker exec -i "$CONTAINER" psql -U postgres -d postgres -v ON_ERROR_STOP=1 -q -f -
 
 echo "==> smoke contra o modelo real"
 # lib/env (importado transitivamente por aes_gcm) valida vars do APP que o

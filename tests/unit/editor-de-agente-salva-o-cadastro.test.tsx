@@ -5,7 +5,7 @@
  *
  * Em `/app/ai/agents/[id]`, os campos **Nome**, **Descrição** e **Ordem de
  * preferência** aceitavam digitação, tinham validação própria e habilitavam o
- * botão "Salvar rascunho" — e o envio os descartava inteiros.
+ * botão "Guardar rascunho" — e o envio os descartava inteiros.
  *
  * A causa é de uma linha: em modo edição, o único construtor do envio era
  * `toVersionPayload()`, que monta as colunas de `ai_agent_versions`. Os três
@@ -25,7 +25,7 @@
  *
  * ─── O que cada bloco vigia ────────────────────────────────────────────────
  *
- * 1. A TELA — clicar em "Salvar rascunho" leva os três campos ao servidor.
+ * 1. A TELA — clicar em "Guardar rascunho" leva os três campos ao servidor.
  *    É o defeito relatado, exercitado pelo DOM: digita, clica, e se cobra o que
  *    saiu daqui.
  * 2. O SERVIDOR — a action grava em `ai_agents` filtrando a organização, e só
@@ -172,7 +172,7 @@ function abrirEditor() {
 }
 
 async function salvarRascunho() {
-  fireEvent.click(screen.getByRole("button", { name: /salvar rascunho/i }));
+  fireEvent.click(screen.getByRole("button", { name: /guardar rascunho/i }));
   await waitFor(() => expect(acoes.salvar).toHaveBeenCalled());
   // O cadastro é o SEGUNDO argumento; antes do conserto só existia o primeiro.
   return acoes.salvar.mock.calls[0]?.[2] as Record<string, unknown> | undefined;
@@ -220,7 +220,7 @@ describe("editor de agente — a tela", () => {
     // só reprovaria no servidor, e o aviso chegaria como erro genérico.
     const { campo } = abrirEditor();
     fireEvent.change(campo("priority"), { target: { value: "5000" } });
-    fireEvent.click(screen.getByRole("button", { name: /salvar rascunho/i }));
+    fireEvent.click(screen.getByRole("button", { name: /guardar rascunho/i }));
     await waitFor(() =>
       expect(screen.getByText(/ordem de preferência vai de 0 a 1000/i)).toBeInTheDocument(),
     );

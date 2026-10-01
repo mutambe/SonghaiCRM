@@ -27,7 +27,7 @@ import {
 describe("conta", () => {
   it("nasce em caixa e BRL quando não se diz nada", () => {
     const r = contaSchema.parse({ name: "Caixa" });
-    expect(r).toMatchObject({ kind: "cash", currency: "BRL", opening_balance_cents: 0 });
+    expect(r).toMatchObject({ kind: "cash", currency: "MZN", opening_balance_cents: 0 });
   });
 
   it("aceita saldo inicial NEGATIVO — e isso é deliberado", () => {

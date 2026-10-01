@@ -275,7 +275,7 @@ describe("AgentMappingSection — o que a tela oferece e envia", () => {
     });
     // Confirmação no mesmo canal do resto da tela (o editor de vocabulário, a
     // 200px daqui, também usa toast) — não em texto cinza só desta seção.
-    await waitFor(() => expect(toast.success).toHaveBeenCalledWith("Escolhas salvas."));
+    await waitFor(() => expect(toast.success).toHaveBeenCalledWith("Escolhas guardadas."));
   });
 
   it("erro 500 não vira toast de sucesso nem texto cru do Postgres na tela", async () => {
@@ -291,7 +291,7 @@ describe("AgentMappingSection — o que a tela oferece e envia", () => {
 
     const aviso = await screen.findByTestId("mapeamento-erro");
     expect(aviso).not.toHaveTextContent("violates");
-    expect(aviso).toHaveTextContent("Não deu para salvar");
+    expect(aviso).toHaveTextContent("Não deu para guardar");
     expect(toast.success).not.toHaveBeenCalled();
   });
 

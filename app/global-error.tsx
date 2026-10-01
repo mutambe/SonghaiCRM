@@ -23,7 +23,7 @@ export default function GlobalError({
   const displayId = eventId ?? error.digest ?? "—";
 
   return (
-    <html lang="pt-BR">
+    <html lang="pt-MZ">
       <body
         style={{
           margin: 0,

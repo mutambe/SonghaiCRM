@@ -29,7 +29,7 @@ beforeEach(() => {
   h.role.mockResolvedValue({
     ok: true,
     org: { orgId: "trusted-org" },
-    user: { id: "admin", idioma: "pt-BR" },
+    user: { id: "admin", idioma: "pt-MZ" },
   });
   h.mfa.mockResolvedValue(false);
   h.support.mockResolvedValue(null);

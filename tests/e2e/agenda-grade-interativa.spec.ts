@@ -51,7 +51,7 @@ interface Creds {
  * de formatar no MESMO fuso que produziu o rótulo que ele compara.
  */
 function rotuloNoFuso(instante: Date, fuso: string): string {
-  const fmt = new Intl.DateTimeFormat("pt-BR", {
+  const fmt = new Intl.DateTimeFormat("pt-MZ", {
     timeZone: fuso,
     hour: "2-digit",
     minute: "2-digit",

@@ -278,7 +278,7 @@ export async function GET(req: NextRequest): Promise<Response> {
     // Pedido filtra: quem pediu duas etiquetas não quer a lista inteira — mas a
     // pedida que não tem conversa NENHUMA no período continua aqui (zerada).
     .filter((tag) => pedidas.length === 0 || pedidas.includes(tag))
-    .sort((a, b) => a.localeCompare(b, "pt-BR"));
+    .sort((a, b) => a.localeCompare(b, "pt-MZ"));
 
   // O corte: sem linha nenhuma, a resposta DIZ que não há dados. Duas portas
   // para a mesma ausência, e as duas são pergunta, não tabela.
@@ -320,7 +320,7 @@ export async function GET(req: NextRequest): Promise<Response> {
 
   // Volume primeiro: a pergunta é "qual assunto ocupou mais", e a leitura que
   // começa em cima não pode obrigar a varrer a lista para achar o maior.
-  linhas.sort((a, b) => b.conversas - a.conversas || a.etiqueta.localeCompare(b.etiqueta, "pt-BR"));
+  linhas.sort((a, b) => b.conversas - a.conversas || a.etiqueta.localeCompare(b.etiqueta, "pt-MZ"));
 
   return ok(montarResposta(janela, tz, linhas, null, truncado), { requestId });
 }

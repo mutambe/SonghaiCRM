@@ -164,7 +164,7 @@ async function idiomaDaOrganizacao(
       .maybeSingle();
     return normalizarIdioma((data as { locale?: string | null } | null)?.locale ?? null);
   } catch {
-    return "pt-BR";
+    return "pt-MZ";
   }
 }
 

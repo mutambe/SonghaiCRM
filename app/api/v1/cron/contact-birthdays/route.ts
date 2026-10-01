@@ -46,7 +46,7 @@ export const dynamic = "force-dynamic";
 export const HORA_DE_PARABENIZAR = 9;
 
 /** Fuso de quem não declarou o seu — o mesmo padrão do resto do produto. */
-const FUSO_PADRAO = "America/Sao_Paulo";
+const FUSO_PADRAO = "Africa/Maputo";
 
 /** Quantos contatos uma organização pode parabenizar por rodada. */
 const TETO_POR_ORGANIZACAO = 200;

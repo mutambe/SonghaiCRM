@@ -3,7 +3,7 @@
 // `StageColumn` tinha a sexta cópia do formatador de dinheiro do produto —
 // `formatBRL`, com locale e moeda escritos em duro:
 //
-//     new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", ... })
+//     new Intl.NumberFormat("pt-MZ", { style: "currency", currency: "BRL", ... })
 //
 // e a moeda em duro é justamente o que a cópia escondia. Numa organização que
 // opera em peso ou dólar o número do topo da coluna estava certo e o símbolo

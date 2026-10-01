@@ -45,8 +45,8 @@ describe("gatilho do agente: fuso do horário de funcionamento", () => {
     expect(emitido.filters.business_hours?.timezone).toBe("America/Mexico_City");
   });
 
-  it("sem fuso da organização, cai em São Paulo", () => {
+  it("sem fuso da organização, cai em Maputo", () => {
     const emitido = ligarHorario(undefined);
-    expect(emitido.filters.business_hours?.timezone).toBe("America/Sao_Paulo");
+    expect(emitido.filters.business_hours?.timezone).toBe("Africa/Maputo");
   });
 });

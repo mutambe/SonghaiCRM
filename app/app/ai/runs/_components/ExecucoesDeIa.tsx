@@ -28,7 +28,7 @@ import { PROVEDOR_DO_JEV } from "@/lib/ai/decisao/credencial";
  * O MESMO formato da tela de Uso — as duas leem `llm_calls.cost_cents`, que é
  * centavo de DÓLAR (`pricing.ts` cota o provedor em USD).
  */
-const usd = new Intl.NumberFormat("pt-BR", {
+const usd = new Intl.NumberFormat("pt-MZ", {
   style: "currency",
   currency: "USD",
   // 6 casas porque uma execução isolada custa fração de centavo, e arredondar

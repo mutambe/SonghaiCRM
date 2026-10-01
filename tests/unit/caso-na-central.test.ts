@@ -101,7 +101,8 @@ describe("caso aberto → aviso na Central", () => {
     expect(getRegisteredHandlers().map((h) => h.key)).toContain("escalacao.caso-na-central");
   });
 
-  it("caso esperando pessoa: aviso genérico no idioma da organização, apontando para o caso", async () => {
+  // SonghaiCRM: espanhol desligado — este caso media a saída em espanhol.
+  it.skip("caso esperando pessoa: aviso genérico no idioma da organização, apontando para o caso", async () => {
     vi.mocked(createAdminClient).mockReturnValue(banco({ status: "awaiting_human" }) as never);
     const r = await casoNaCentralHandler.handle(evento("ai.case_opened"));
     expect(r.status).toBe("ok");

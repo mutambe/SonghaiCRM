@@ -32,6 +32,7 @@ import * as path from "node:path";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 import { anunciarDestino, credenciaisSupabaseDeTeste } from "./lib/env-de-teste";
+import { FUSO_PADRAO } from "@/lib/tempo/fusos";
 
 const credenciais = credenciaisSupabaseDeTeste();
 anunciarDestino("seed-e2e-zona-de-perigo", credenciais);
@@ -94,7 +95,7 @@ async function garantirOrg(lado: Lado): Promise<string> {
       slug: lado.slug,
       display_name: lado.nome,
       legal_name: lado.nome,
-      timezone: "America/Sao_Paulo",
+      timezone: FUSO_PADRAO,
       locale: "pt-BR",
       onboarded_at: new Date().toISOString(),
     } as never)

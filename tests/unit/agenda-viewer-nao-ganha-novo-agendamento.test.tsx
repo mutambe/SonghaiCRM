@@ -70,11 +70,11 @@ vi.mock("@/hooks/auth/AuthProvider", () => ({
 const traduzir = Object.assign((texto: string) => texto, { t: (texto: string) => texto });
 vi.mock("@/hooks/i18n/useT", () => ({ useT: () => traduzir }));
 
-// O `Locale` do date-fns é OBJETO: devolver a etiqueta "pt-BR" aqui derrubava
+// O `Locale` do date-fns é OBJETO: devolver a etiqueta "pt-MZ" aqui derrubava
 // o render dentro do `format()` do date-fns.
 vi.mock("@/hooks/i18n/useLocaleDeData", async () => {
   const { ptBR } = await import("date-fns/locale");
-  return { useLocaleDeData: () => ptBR, useTagDeIdioma: () => "pt-BR" };
+  return { useLocaleDeData: () => ptBR, useTagDeIdioma: () => "pt-MZ" };
 });
 
 vi.mock("@/hooks/agenda/useHorariosLivres", () => ({

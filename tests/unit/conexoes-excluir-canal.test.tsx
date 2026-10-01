@@ -192,11 +192,11 @@ describe("diálogo de exclusão diz a verdade antes do clique", () => {
     );
     expect(await screen.findByText("Continua no inbox: 12 conversas e 340 mensagens.")).toBeInTheDocument();
     expect(
-      screen.getByText("Fica salvo, mas sem número — para de atender: 1 roteador de IA."),
+      screen.getByText("Fica guardado, mas sem número — para de atender: 1 roteador de IA."),
     ).toBeInTheDocument();
     // A promessa antiga: valia só para o número pareado por QR, e mesmo nele
     // dizia que "só o canal é removido".
-    expect(screen.queryByText(/escanear o QR de novo/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/digitalizar o QR de novo/)).not.toBeInTheDocument();
     expect(screen.queryByText(/só o canal é removido/)).not.toBeInTheDocument();
   });
 
@@ -208,7 +208,7 @@ describe("diálogo de exclusão diz a verdade antes do clique", () => {
 
     const confirmar = await screen.findByRole("button", { name: "Excluir" });
     expect(confirmar).toBeDisabled();
-    expect(screen.getByText(/Verificando o que está ligado/)).toBeInTheDocument();
+    expect(screen.getByText(/A verificar o que está ligado/)).toBeInTheDocument();
   });
 
   it("preflight que falhou não vira promessa: admite que não sabe", async () => {

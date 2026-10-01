@@ -393,7 +393,7 @@ beforeAll(() => {
 
 describe("POST /api/v1/webhooks/in/[token] (Task 6)", () => {
   it("caso 1 — JSON feliz: cria contato + lead, loga evento, atualiza last_received_at", async () => {
-    const body = { nome: "Ana", telefone: "11998765432", utm_source: "ig", empresa: "ACME" };
+    const body = { nome: "Ana", telefone: "841234567", utm_source: "ig", empresa: "ACME" };
     const res = await POST(jsonReq(TOKEN_JSON, body), reqCtx(TOKEN_JSON));
     expect(res.status).toBe(200);
     const json = (await res.json()) as { data: { lead_id: string } };
@@ -411,7 +411,7 @@ describe("POST /api/v1/webhooks/in/[token] (Task 6)", () => {
 
     const contactRows = rows(`select * from public.contacts where id = '${lead.contact_id}'`);
     expect(contactRows.length).toBe(1);
-    expect(contactRows[0]!.phone_number).toBe("+5511998765432");
+    expect(contactRows[0]!.phone_number).toBe("+258841234567");
 
     // entity_kind='crm_lead' é a emissão explícita de createLeadHandler (mesma
     // convenção de moveLeadHandler/updateLeadHandler). O trigger de banco
@@ -514,14 +514,14 @@ describe("POST /api/v1/webhooks/in/[token] (Task 6)", () => {
 
   it("caso 7 — telefone já tem contato ativo: reusa o contato existente, não duplica", async () => {
     const preexistingId = "dddddddd-6666-4000-8000-000000000001";
-    const phone = "+5511977776666";
+    const phone = "+258877776666";
     sql(`
       insert into public.contacts (id, organization_id, name, phone_number, source)
       values ('${preexistingId}', '${GOV_ORG}', 'Duda Preexistente', '${phone}', 'manual')
       on conflict do nothing;
     `);
 
-    const res = await POST(jsonReq(TOKEN_JSON, { nome: "Duda", telefone: "11977776666" }), reqCtx(TOKEN_JSON));
+    const res = await POST(jsonReq(TOKEN_JSON, { nome: "Duda", telefone: "877776666" }), reqCtx(TOKEN_JSON));
     expect(res.status).toBe(200);
     const json = (await res.json()) as { data: { lead_id: string } };
 

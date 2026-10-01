@@ -17,7 +17,7 @@ import { IDIOMAS } from "@/lib/i18n/idiomas";
  * "quinta-feira, 3 de março" no meio da tela. Parece bug, não decisão.
  *
  * A causa era mecânica e estava em dois lugares ao mesmo tempo: `locale: ptBR`
- * importado à mão do `date-fns/locale` (em 38 arquivos) e `"pt-BR"` escrito
+ * importado à mão do `date-fns/locale` (em 38 arquivos) e `"pt-MZ"` escrito
  * dentro de `toLocaleDateString` (em mais nove). Nenhum dos dois perguntava
  * quem estava lendo — não havia a quem perguntar.
  *
@@ -31,9 +31,9 @@ import { IDIOMAS } from "@/lib/i18n/idiomas";
  *
  * ─── O que ele NÃO cobre, dito aqui para a ausência não virar cobertura ────
  *
- * **Número.** `toLocaleString("pt-BR")` continua em onze lugares, e ficou de
+ * **Número.** `toLocaleString("pt-MZ")` continua em onze lugares, e ficou de
  * propósito: os dois idiomas formatam número IGUAL — medido,
- * `(1234567.89).toLocaleString("pt-BR")` e `.toLocaleString("es")` devolvem os
+ * `(1234567.89).toLocaleString("pt-MZ")` e `.toLocaleString("es")` devolvem os
  * dois `1.234.567,89`. Trocar não mudaria um pixel, e mexer em onze arquivos
  * para nada é diff que o revisor precisa ler sem ter o que ganhar. Se um dia o
  * produto servir um idioma que formate número diferente (inglês, por exemplo),
@@ -138,10 +138,10 @@ function varrerDatasNoAst(): string[] {
       const rel = relative(RAIZ, arq).split(sep).join("/");
       if (A_CAMADA_DE_DATA.has(rel) || rel in FORA_DE_INTERFACE) continue;
       const src = readFileSync(arq, "utf8");
-      if (!src.includes('"pt-BR"') && !src.includes("'pt-BR'")) continue;
+      if (!src.includes('"pt-MZ"') && !src.includes("'pt-MZ'")) continue;
       const fonte = ts.createSourceFile(arq, src, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
       const visita = (no: ts.Node): void => {
-        if (ts.isStringLiteral(no) && no.text === "pt-BR") {
+        if (ts.isStringLiteral(no) && no.text === "pt-MZ") {
           const pai = no.parent;
           let ehData = false;
           if (ts.isNewExpression(pai) && /DateTimeFormat$/.test(pai.expression.getText(fonte))) {
@@ -203,14 +203,14 @@ describe("ninguém fixa o idioma da data fora da camada", () => {
     ).toEqual([]);
   });
 
-  it('nenhuma DATA é formatada com "pt-BR" fixo', () => {
+  it('nenhuma DATA é formatada com "pt-MZ" fixo', () => {
     // ⚠️ PELO AST, e não por regex sobre o nome do método — o regex tinha um
     // ponto cego que a sabotagem encontrou.
     //
     // A primeira versão procurava `toLocaleDateString` e `toLocaleTimeString`,
     // deixando `toLocaleString` de fora porque ele também formata NÚMERO (que
     // fica fora de escopo, ver o cabeçalho). Só que `new Date(x)
-    // .toLocaleString("pt-BR")` é DATA, e passava. Sabotei um sítio real
+    // .toLocaleString("pt-MZ")` é DATA, e passava. Sabotei um sítio real
     // exatamente assim e o guarda ficou VERDE.
     //
     // Quem decide não é o nome do método: é o RECEPTOR. `new Date(...)` e
@@ -219,7 +219,7 @@ describe("ninguém fixa o idioma da data fora da camada", () => {
     const vazando = varrerDatasNoAst();
     expect(
       vazando,
-      `${vazando.length} data(s) com o idioma fixo em "pt-BR". Use \`useTagDeIdioma()\`.`,
+      `${vazando.length} data(s) com o idioma fixo em "pt-MZ". Use \`useTagDeIdioma()\`.`,
     ).toEqual([]);
   });
 });

@@ -57,7 +57,7 @@ function usuario(support?: AuthUser["support"]): AuthUser {
     full_name: "Quem Testa",
     avatar_url: null,
     is_platform_admin: false,
-    idioma: "pt-BR",
+    idioma: "pt-MZ",
     organizations: [],
     ...(support ? { support } : {}),
   } as AuthUser;

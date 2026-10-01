@@ -256,7 +256,7 @@ async function idiomaDaOrganizacao(
 ): Promise<Idioma> {
   const guardado = cache.get(organizationId);
   if (guardado !== undefined) return guardado;
-  let idioma: Idioma = "pt-BR";
+  let idioma: Idioma = "pt-MZ";
   try {
     const { data } = await admin
       .from("organizations")
@@ -265,7 +265,7 @@ async function idiomaDaOrganizacao(
       .maybeSingle();
     idioma = normalizarIdioma((data as { locale?: string | null } | null)?.locale ?? null);
   } catch {
-    idioma = "pt-BR";
+    idioma = "pt-MZ";
   }
   cache.set(organizationId, idioma);
   return idioma;

@@ -191,7 +191,7 @@ export async function readExtensionBody(request: Request, maxBytes: number): Pro
   }
 }
 
-export function extensionFailure(error: unknown, locale: Idioma = "pt-BR"): Response {
+export function extensionFailure(error: unknown, locale: Idioma = "pt-MZ"): Response {
   const requestId = randomUUID();
   const t = (text: string) => traduzir(text, locale);
   if (error instanceof ExtensionServiceError) {

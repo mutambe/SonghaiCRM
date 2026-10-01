@@ -73,7 +73,7 @@ function banco(falas: Fala[] | { erro: string }) {
         const cadeia: Record<string, unknown> = {
           select: () => cadeia,
           eq: () => cadeia,
-          maybeSingle: async () => ({ data: { locale: "pt-BR" }, error: null }),
+          maybeSingle: async () => ({ data: { locale: "pt-MZ" }, error: null }),
         };
         return cadeia;
       }

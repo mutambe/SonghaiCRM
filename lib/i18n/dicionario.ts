@@ -32,9 +32,13 @@
  * do que estava.
  */
 import type { Idioma } from "./idiomas";
+import { paraPortuguesDeMocambique } from "./pt-mz";
 
 /** `pt-BR` não aparece: é a chave. Só o que DIFERE precisa de linha. */
-type Traducoes = Record<string, Partial<Record<Exclude<Idioma, "pt-BR">, string>>>;
+// SonghaiCRM: as entradas em espanhol do upstream continuam aqui como DADO
+// (o arquivo não diverge do upstream e os merges não esbarram nele), mas
+// nenhum idioma visível as lê — o único é `pt-MZ`. Por isso a chave é `string`.
+type Traducoes = Record<string, Partial<Record<string, string>>>;
 
 export const DICIONARIO: Traducoes = {
   // ─── EMPRESAS, PESSOAS E IMPORTAÇÃO (metade B2B do #1621, de @renatofortal) ───
@@ -13683,6 +13687,8 @@ export const DICIONARIO: Traducoes = {
  * tradução parcial não pode deixar a tela PIOR do que estava.
  */
 export function traduzir(texto: string, idioma: Idioma): string {
-  if (idioma === "pt-BR") return texto;
-  return DICIONARIO[texto]?.[idioma] ?? texto;
+  // SonghaiCRM: a entrada explícita em `pt-MZ` vence (frase que a camada de
+  // vocabulário não acerta sozinha); sem ela, o texto-fonte passa pela camada
+  // de português de Moçambique (`./pt-mz.ts`).
+  return paraPortuguesDeMocambique(DICIONARIO[texto]?.[idioma] ?? texto);
 }

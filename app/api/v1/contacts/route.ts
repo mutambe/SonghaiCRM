@@ -115,7 +115,7 @@ export async function GET(req: NextRequest): Promise<Response> {
   const auth = await resolveContactsAuth(req, requestId);
   if (!auth.ok) return auth.response;
   const { organizationId, actor, supabase, idioma } = auth;
-  const t = (texto: string) => traduzir(texto, idioma ?? "pt-BR");
+  const t = (texto: string) => traduzir(texto, idioma ?? "pt-MZ");
 
   const url = new URL(req.url);
   const qsParsed = contactListQuerySchema.safeParse({

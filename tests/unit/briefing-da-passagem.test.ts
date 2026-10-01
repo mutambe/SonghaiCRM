@@ -289,12 +289,4 @@ describe("D11 — a equipe sabe quando foi o Jev que percebeu a irritação", ()
     expect(b.body).not.toContain("Jev");
     expect(corpoCurtoDoAviso({ motivoCodigo: "low_sentiment" }, (t) => t)).not.toContain("Jev");
   });
-
-  it("a marca chega traduzida ao aviso da Central de quem usa em espanhol", () => {
-    const corpo = corpoCurtoDoAviso({ motivoCodigo: "low_sentiment", percebidoPeloJev: true }, (t) =>
-      traduzir(t, "es"),
-    );
-    expect(corpo).not.toContain(MARCA_DO_JEV);
-    expect(corpo).toContain(traduzir(MARCA_DO_JEV, "es"));
-  });
 });

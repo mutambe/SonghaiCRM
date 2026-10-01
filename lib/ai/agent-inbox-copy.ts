@@ -151,7 +151,7 @@ export function copyDaPromessaSemDono(
    * veio, sem passar por `t()` —, então é na escrita que ele ganha o idioma de
    * quem vai ler, como o aviso de passagem para pessoa já fazia.
    */
-  idioma: Idioma = "pt-BR",
+  idioma: Idioma = "pt-MZ",
 ): { title: string; body: string } {
   const title =
     quantas === 1

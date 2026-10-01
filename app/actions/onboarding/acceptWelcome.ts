@@ -11,6 +11,7 @@ import { z } from "zod";
 import { audit } from "@/lib/audit";
 import { welcomeSchema } from "@/lib/schemas/onboarding";
 import { requireOnboardingCtx, patchOnboardingState, OnboardingError } from "./_shared";
+import { FUSO_PADRAO } from "@/lib/tempo/fusos";
 
 export type AcceptWelcomeResult =
   | { ok: true }
@@ -28,7 +29,7 @@ export async function acceptWelcome(formData: FormData): Promise<AcceptWelcomeRe
   const raw = {
     display_name: String(formData.get("display_name") ?? "").trim(),
     o_que_faz: String(formData.get("o_que_faz") ?? "").trim() || undefined,
-    timezone: String(formData.get("timezone") ?? "America/Sao_Paulo"),
+    timezone: String(formData.get("timezone") ?? FUSO_PADRAO),
     accepted_terms_at: new Date().toISOString(),
   };
 

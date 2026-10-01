@@ -19,7 +19,7 @@
  * pergunta ("ano" exige 4 dígitos plausíveis, "km" aceita "mil", etc.). Texto
  * livre NUNCA é capturado aqui — interpretar sentido não é trabalho de regex.
  */
-import { isValidCpf } from "@/lib/legal/perfil-do-pais";
+import { isValidNuit } from "@/lib/legal/perfil-do-pais";
 
 import type { ContactFlowFieldType } from "./graph-schema";
 
@@ -157,11 +157,17 @@ function validaData(ano: number, mes: number, dia: number): boolean {
   return true;
 }
 
-/** Um CPF de 11 dígitos, com ou sem pontuação, que CONFERE pelo dígito verificador. */
+/**
+ * O DOCUMENTO DO TITULAR — o tipo de campo se chama `cpf` por vocabulário do
+ * upstream, mas nesta distribuição é o NUIT: 9 dígitos, com ou sem separador
+ * a cada três ("123 456 789"). O NUIT não tem dígito verificador público, então
+ * a captura confere a FORMA (`isValidNuit`), e as bordas `(?<!\d)`/`(?!\d)`
+ * impedem que um pedaço de um número maior (telefone com +258) vire NUIT.
+ */
 function capturarCpf(campo: CampoPendenteParaCaptura, bruto: string): CapturaDeCampo | null {
-  for (const m of bruto.matchAll(/\d{3}\.?\d{3}\.?\d{3}-?\d{2}/g)) {
+  for (const m of bruto.matchAll(/(?<!\d)\d{3}[ .-]?\d{3}[ .-]?\d{3}(?!\d)/g)) {
     const digitos = m[0].replace(/\D/g, "");
-    if (isValidCpf(digitos)) return { key: campo.key, valor: digitos, bruto };
+    if (isValidNuit(digitos)) return { key: campo.key, valor: digitos, bruto };
   }
   return null;
 }
@@ -324,7 +330,7 @@ export function valorBateComTipo(campo: CampoPendenteParaCaptura, valor: unknown
     case "select":
       return (campo.options ?? []).some((o) => normalizar(o) === normalizar(s));
     case "cpf":
-      return isValidCpf(s);
+      return isValidNuit(s);
     case "text":
       return true;
     default:
@@ -380,7 +386,7 @@ export function perguntaSaiuNosTextos(
 //   select   a opção aparece no texto (sem acento/caixa);
 //   number   o número aparece no texto como número ("120 mil" = 120000), e um
 //            campo de ANO só aceita 1950–2100;
-//   cpf      o CPF confere pelo dígito E os 11 dígitos estão no texto;
+//   cpf      o documento (NUIT) tem a forma certa E os 9 dígitos estão no texto;
 //   date     há uma data escrita no texto;
 //   text     na pergunta que está sendo feita, o texto livre É a resposta;
 //            em outra pergunta (ou correção), o valor precisa estar no texto;
@@ -471,7 +477,7 @@ export function respostaTemLastro(
     }
     case "cpf": {
       const digitos = v.replace(/\D/g, "");
-      return isValidCpf(digitos) && t.replace(/\D/g, "").includes(digitos);
+      return isValidNuit(digitos) && t.replace(/\D/g, "").includes(digitos);
     }
     case "date": {
       // A data devolvida tem de ser A MESMA escrita — não basta haver uma data

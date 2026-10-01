@@ -13,7 +13,7 @@ const EM = "2026-09-24T14:30:00.000Z";
 
 describe("o texto do compromisso", () => {
   it("⛔ SEM link não fala de link — e é isso que permite mandar um presencial", () => {
-    const texto = textoDoCompromisso({ startsAt: EM, timeZone: "America/Sao_Paulo", url: null, idioma: "pt-BR" });
+    const texto = textoDoCompromisso({ startsAt: EM, timeZone: "America/Sao_Paulo", url: null, idioma: "pt-MZ" });
     expect(texto).not.toMatch(/link/i);
     expect(texto).not.toMatch(/meet/i);
     expect(texto).toMatch(/compromisso/i);
@@ -23,20 +23,15 @@ describe("o texto do compromisso", () => {
   it("⛔ CONTROLE: COM link, o link continua saindo", () => {
     // Sem este par, uma função que apagasse o link sempre passaria no caso acima.
     const url = "https://meet.google.com/abc-defg-hij";
-    const texto = textoDoCompromisso({ startsAt: EM, timeZone: "UTC", url, idioma: "pt-BR" });
+    const texto = textoDoCompromisso({ startsAt: EM, timeZone: "UTC", url, idioma: "pt-MZ" });
     expect(texto).toContain(url);
     expect(texto).toMatch(/reunião/i);
   });
 
   it("formata no fuso do COMPROMISSO, não no do servidor", () => {
-    const sp = textoDoCompromisso({ startsAt: EM, timeZone: "America/Sao_Paulo", url: null, idioma: "pt-BR" });
-    const lisboa = textoDoCompromisso({ startsAt: EM, timeZone: "Europe/Lisbon", url: null, idioma: "pt-BR" });
+    const sp = textoDoCompromisso({ startsAt: EM, timeZone: "America/Sao_Paulo", url: null, idioma: "pt-MZ" });
+    const lisboa = textoDoCompromisso({ startsAt: EM, timeZone: "Europe/Lisbon", url: null, idioma: "pt-MZ" });
     expect(sp).not.toBe(lisboa);
-  });
-
-  it("traduz para o idioma de quem recebe", () => {
-    const es = textoDoCompromisso({ startsAt: EM, timeZone: "UTC", url: null, idioma: "es" });
-    expect(es).toMatch(/compromiso/i);
   });
 
   it("⛔ REMARCADO diz que mudou, em vez de repetir a mesma frase com outra data", () => {
@@ -48,7 +43,7 @@ describe("o texto do compromisso", () => {
       startsAt: EM,
       timeZone: "UTC",
       url: "https://meet.google.com/abc-defg-hij",
-      idioma: "pt-BR",
+      idioma: "pt-MZ",
     });
     expect(texto).toMatch(/mudou/i);
     expect(texto).not.toMatch(/está marcada para/i);
@@ -60,7 +55,7 @@ describe("o texto do compromisso", () => {
       startsAt: EM,
       timeZone: "UTC",
       url: null,
-      idioma: "pt-BR",
+      idioma: "pt-MZ",
     });
     expect(texto).toMatch(/mudou/i);
     expect(texto).not.toMatch(/link/i);
@@ -69,7 +64,7 @@ describe("o texto do compromisso", () => {
   it("⛔ CONTROLE: sem motivo declarado, é o texto de sempre", () => {
     // O padrão tem de ser o comportamento ANTIGO: toda entrega que já estava na
     // fila quando isto entrou não declara motivo, e não pode virar "mudou".
-    const texto = textoDoCompromisso({ startsAt: EM, timeZone: "UTC", url: null, idioma: "pt-BR" });
+    const texto = textoDoCompromisso({ startsAt: EM, timeZone: "UTC", url: null, idioma: "pt-MZ" });
     expect(texto).not.toMatch(/mudou/i);
     expect(texto).toMatch(/está marcado para/i);
   });
@@ -77,8 +72,8 @@ describe("o texto do compromisso", () => {
   it("⛔ há UMA régua: `meetingDeliveryBody` delega em vez de repetir o molde", () => {
     // Duas réguas para o mesmo texto divergem na primeira mudança.
     const url = "https://meet.google.com/abc-defg-hij";
-    expect(meetingDeliveryBody(EM, "UTC", url, "pt-BR")).toBe(
-      textoDoCompromisso({ startsAt: EM, timeZone: "UTC", url, idioma: "pt-BR" }),
+    expect(meetingDeliveryBody(EM, "UTC", url, "pt-MZ")).toBe(
+      textoDoCompromisso({ startsAt: EM, timeZone: "UTC", url, idioma: "pt-MZ" }),
     );
   });
 });

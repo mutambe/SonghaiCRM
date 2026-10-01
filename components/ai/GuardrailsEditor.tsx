@@ -13,6 +13,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { guardrailItemSchema, type GuardrailItem, type GuardrailKind } from "@/lib/ai/guardrails-schema";
 import { useT } from "@/hooks/i18n/useT";
+import { FUSO_PADRAO } from "@/lib/tempo/fusos";
 
 interface Props {
   value: GuardrailItem[];
@@ -51,7 +52,7 @@ function defaultForKind(kind: GuardrailKind, t: (texto: string) => string = (tex
         kind: "window_check",
         start_hour: 7,
         end_hour: 22,
-        timezone: "America/Sao_Paulo",
+        timezone: FUSO_PADRAO,
         reason: t("Janela operacional 7h-22h"),
       };
     case "contact_flag":
@@ -253,7 +254,7 @@ function GuardrailFields({
         <div className="space-y-1 md:col-span-2">
           <Label className="text-xs">Timezone</Label>
           <Input
-            value={item.timezone ?? "America/Sao_Paulo"}
+            value={item.timezone ?? FUSO_PADRAO}
             onChange={(e) => onPatch({ timezone: e.target.value } as Partial<GuardrailItem>)}
             disabled={disabled}
           />

@@ -95,16 +95,6 @@ describe("recusaReabertura — as três condições SÓ juntas recusam", () => {
       }),
     ).toBeNull();
   });
-
-  it("a recusa fala espanhol e aponta a porta que resolve nas DUAS línguas", () => {
-    const es = traduzir(RECUSA_REABERTURA_CRIA_NOVO, "es");
-    expect(es).not.toBe(RECUSA_REABERTURA_CRIA_NOVO);
-    for (const idioma of ["pt-BR", "es"] as const) {
-      expect(traduzir(RECUSA_REABERTURA_CRIA_NOVO, idioma)).toContain(
-        "/api/v1/leads/{id}/retomar",
-      );
-    }
-  });
 });
 
 describe("os campos que a retomada copia", () => {

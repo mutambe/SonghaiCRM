@@ -159,7 +159,7 @@ function postsDeMidia() {
 
 async function montar() {
   const ref = { current: null };
-  const user = { id: EU, email: "q@e.com", full_name: "Q", avatar_url: null, is_platform_admin: false, idioma: "pt-BR", organizations: [] } as AuthUser;
+  const user = { id: EU, email: "q@e.com", full_name: "Q", avatar_url: null, is_platform_admin: false, idioma: "pt-MZ", organizations: [] } as AuthUser;
   const activeOrg: ActiveOrg = { orgId: ORG, name: "Org", role: "agent" };
   const vista = renderHook(() => useVoiceCallSession(ref), {
     wrapper: ({ children }: { children: ReactNode }) => (

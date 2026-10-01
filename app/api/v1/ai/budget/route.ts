@@ -56,7 +56,7 @@ const CARENCIA_HORAS = 72;
  * em `run-model-call.ts`: dólar porque `cost_cents` é USD, vírgula porque a
  * frase é pt-BR.
  */
-const PISO_LEGIVEL = `US$ ${(PISO_DE_TETO_CENTS / 100).toLocaleString("pt-BR", {
+const PISO_LEGIVEL = `US$ ${(PISO_DE_TETO_CENTS / 100).toLocaleString("pt-MZ", {
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,
 })}`;

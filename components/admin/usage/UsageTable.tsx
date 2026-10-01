@@ -23,7 +23,7 @@ import { useT } from "@/hooks/i18n/useT";
 const fmtUSD = formatCentsUSD;
 
 function fmtNum(n: number): string {
-  return n.toLocaleString("pt-BR");
+  return n.toLocaleString("pt-MZ");
 }
 
 // ---------------------------------------------------------------------------

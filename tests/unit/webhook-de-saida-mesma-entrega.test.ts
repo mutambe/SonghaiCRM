@@ -134,7 +134,7 @@ beforeEach(() => {
   recebidas.length = 0;
   corpos.length = 0;
   deps.support.mockResolvedValue(null);
-  deps.role.mockResolvedValue({ ok: true, user: { id: EU, idioma: "pt-BR" }, org: { orgId: ORG } });
+  deps.role.mockResolvedValue({ ok: true, user: { id: EU, idioma: "pt-MZ" }, org: { orgId: ORG } });
 });
 
 function evento(): EventRow & Linha {

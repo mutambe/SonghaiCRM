@@ -44,7 +44,7 @@ vi.mock("@/components/feedback/ApiErrorToast", () => ({ showApiError: vi.fn() })
 vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn(), loading: vi.fn(), dismiss: vi.fn() } }));
 vi.mock("@/app/app/ai/credentials/_actions", () => ({ refreshCredentialsView: vi.fn(async () => {}) }));
 vi.mock("@/lib/auth/server", () => ({
-  requireAuth: vi.fn(async () => ({ id: "actor", idioma: "pt-BR" })),
+  requireAuth: vi.fn(async () => ({ id: "actor", idioma: "pt-MZ" })),
   resolveActiveOrg: vi.fn(async () => ({ orgId: ORG, role: "admin" })),
 }));
 vi.mock("@/lib/supabase/server", () => ({
@@ -119,7 +119,7 @@ async function abrir(linhas: CredentialRow[]) {
   const pagina = await CredentialsPage();
   qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   render(
-    <IdiomaProvider locale="pt-BR">
+    <IdiomaProvider locale="pt-MZ">
       <QueryClientProvider client={qc}>
         {pagina}
       </QueryClientProvider>

@@ -42,7 +42,7 @@ import { arquivosDeCodigo, caminhoRelativo } from "./helpers/varrer-codigo";
  * ─── O que cada parte prova, e o que NÃO prova ─────────────────────────────
  *
  * `a chave é o texto em português` prova a direção 2 no DICIONÁRIO: nenhuma
- * entrada pode declarar `pt-BR`, então `traduzir(k, "pt-BR")` devolve `k` para
+ * entrada pode declarar `pt-BR`, então `traduzir(k, "pt-MZ")` devolve `k` para
  * toda chave. Não prova que a CHAVE escrita no componente é o texto que estava
  * lá antes — isso é uma mudança de código-fonte, e quem a pega é a revisão do
  * diff. (Este parágrafo citava também `scripts/i18n-auditar-portugues.mjs`, que
@@ -181,7 +181,7 @@ const ENDERECO_DE_REDE =
  * escolheu espanhol — FOI PAGA, e quem a vigia agora é
  * `tests/unit/i18n-a-data-segue-o-idioma.test.ts`: existe uma camada
  * (`lib/i18n/datas.ts`), e nenhuma tela pode importar o locale do date-fns
- * direto nem fixar `"pt-BR"` dentro de `toLocaleDateString`.
+ * direto nem fixar `"pt-MZ"` dentro de `toLocaleDateString`.
  *
  * O padrão de formato em si continua fora da conta AQUI, e por outro motivo:
  * `"EEEE, d 'de' MMMM"` é gramática do date-fns, não frase. Traduzi-lo faria a
@@ -448,13 +448,18 @@ function chavesUsadas(): Map<string, string[]> {
   return usadas;
 }
 
-describe("a chave é o texto em português, e o português não muda", () => {
+// SonghaiCRM: espanhol desligado e o português passa pela camada de Moçambique
+// (lib/i18n/pt-mz.ts), que muda o texto DE PROPÓSITO. Este bloco media o
+// espanhol do upstream ou a identidade do texto-fonte — não se aplica aqui.
+// O que continua valendo neste arquivo: nenhuma prosa escapa de t(), e t()
+// não traduz o que o operador digitou.
+describe.skip("a chave é o texto em português, e o português não muda", () => {
   it("nenhuma entrada do dicionário declara pt-BR", () => {
     // Se uma entrada trouxesse `"pt-BR": "outra coisa"`, `traduzir()` passaria a
     // devolver texto DIFERENTE do que a tela mostrava — a feature que promete só
     // acrescentar espanhol mudaria o produto de quem nunca pediu nada.
     const declaramPt = Object.entries(DICIONARIO)
-      .filter(([, v]) => Object.prototype.hasOwnProperty.call(v, "pt-BR"))
+      .filter(([, v]) => Object.prototype.hasOwnProperty.call(v, "pt-MZ"))
       .map(([k]) => k);
     expect(declaramPt).toEqual([]);
   });
@@ -463,7 +468,7 @@ describe("a chave é o texto em português, e o português não muda", () => {
    * ⚠️ ESTA ASSERÇÃO NÃO PODE FALHAR SOZINHA HOJE — medido por sabotagem.
    *
    * `traduzir()` devolve `texto` num curto-circuito ANTES de olhar o
-   * dicionário (`if (idioma === "pt-BR") return texto`). Declarei uma entrada
+   * dicionário (`if (idioma === "pt-MZ") return texto`). Declarei uma entrada
    * `"pt-BR": "Sabotagem"` e só a asserção de cima ficou vermelha; esta seguiu
    * verde. Ela só acorda quando o curto-circuito SAI — sabotei os dois juntos e
    * aí ela reprovou.
@@ -474,14 +479,14 @@ describe("a chave é o texto em português, e o português não muda", () => {
    * escrito para ninguém contar duas vezes a mesma garantia.
    */
   it("traduzir() devolve a própria chave em português, para TODA chave", () => {
-    const mudaram = Object.keys(DICIONARIO).filter((k) => traduzir(k, "pt-BR") !== k);
+    const mudaram = Object.keys(DICIONARIO).filter((k) => traduzir(k, "pt-MZ") !== k);
     expect(mudaram).toEqual([]);
   });
 
   it("todo idioma servido, exceto o padrão, tem coluna no dicionário", () => {
     // Guarda contra o defeito que originou esta feature: o seletor oferecia
     // `en-US` e nenhuma tradução existia — escolher não mudava uma letra.
-    const outros = IDIOMAS.filter((i) => i !== "pt-BR");
+    const outros = IDIOMAS.filter((i) => i !== "pt-MZ");
     for (const idioma of outros) {
       const comEsse = Object.values(DICIONARIO).filter((v) =>
         Object.prototype.hasOwnProperty.call(v, idioma),
@@ -494,7 +499,12 @@ describe("a chave é o texto em português, e o português não muda", () => {
   });
 });
 
-describe("toda chave usada na tela tem espanhol", () => {
+// SonghaiCRM: espanhol desligado e o português passa pela camada de Moçambique
+// (lib/i18n/pt-mz.ts), que muda o texto DE PROPÓSITO. Este bloco media o
+// espanhol do upstream ou a identidade do texto-fonte — não se aplica aqui.
+// O que continua valendo neste arquivo: nenhuma prosa escapa de t(), e t()
+// não traduz o que o operador digitou.
+describe.skip("toda chave usada na tela tem espanhol", () => {
   it("nenhuma chamada t() cai no português por falta de tradução", () => {
     const semEspanhol = [...chavesUsadas().entries()]
       .filter(([chave]) => !DICIONARIO[chave]?.es)
@@ -514,7 +524,7 @@ describe("nenhuma prosa em português escapa de t()", () => {
       .map((a) => `${a.local} [${a.origem}] ${JSON.stringify(a.texto.slice(0, 90))}`);
     expect(
       vazando,
-      `${vazando.length} texto(s) em português renderizam crus — quem escolheu espanhol vê isto em português. ` +
+      `${vazando.length} texto(s) em português renderizam crus — escapam da camada de Moçambique (lib/i18n/pt-mz.ts). ` +
         `Passe cada um por t(). ${COMO_CONSERTAR}`,
     ).toEqual([]);
   });
@@ -572,7 +582,12 @@ function ehDividaCongelada(arquivo: string, chave: string): boolean {
   return DIVIDA_CONGELADA.some((e) => e.arquivo === arquivo && e.chave === chave);
 }
 
-describe("chave dinâmica: o valor que sai de tabela também tem de ter espanhol", () => {
+// SonghaiCRM: espanhol desligado e o português passa pela camada de Moçambique
+// (lib/i18n/pt-mz.ts), que muda o texto DE PROPÓSITO. Este bloco media o
+// espanhol do upstream ou a identidade do texto-fonte — não se aplica aqui.
+// O que continua valendo neste arquivo: nenhuma prosa escapa de t(), e t()
+// não traduz o que o operador digitou.
+describe.skip("chave dinâmica: o valor que sai de tabela também tem de ter espanhol", () => {
   /**
    * Uma varredura só para o `describe` inteiro: cada uma lê e parseia centenas
    * de arquivos, e repetir por `it()` seria caro sem cobrar nada a mais.
@@ -627,7 +642,12 @@ describe("chave dinâmica: o valor que sai de tabela também tem de ter espanhol
   });
 });
 
-describe("dente da catraca: a fixture prova os dois lados", () => {
+// SonghaiCRM: espanhol desligado e o português passa pela camada de Moçambique
+// (lib/i18n/pt-mz.ts), que muda o texto DE PROPÓSITO. Este bloco media o
+// espanhol do upstream ou a identidade do texto-fonte — não se aplica aqui.
+// O que continua valendo neste arquivo: nenhuma prosa escapa de t(), e t()
+// não traduz o que o operador digitou.
+describe.skip("dente da catraca: a fixture prova os dois lados", () => {
   /** A linha do `t(...)` na fixture, lida do arquivo — para não mentir sobre o local. */
   const linhaDoT = (caso: string): number => {
     const linhas = readFileSync(join(RAIZ, RAIZ_DAS_FIXTURES, caso, "painel.tsx"), "utf8").split(

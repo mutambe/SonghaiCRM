@@ -7,6 +7,7 @@ import type { Idioma } from "@/lib/i18n/idiomas";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 import { FormularioDaMeta } from "./_form";
+import { FUSO_PADRAO } from "@/lib/tempo/fusos";
 
 export const metadata = { title: "API Oficial da Meta da instalação" };
 export const dynamic = "force-dynamic";
@@ -87,7 +88,7 @@ function formatar(iso: string | null, idioma: Idioma): string | null {
     // Fuso fixo pelo mesmo motivo de `/admin/google`: a linha é da INSTALAÇÃO,
     // não há organização de onde tirar um, e formatar no cliente faria o HTML
     // servido e a hidratação divergirem.
-    timeZone: "America/Sao_Paulo",
+    timeZone: FUSO_PADRAO,
     dateStyle: "short",
     timeStyle: "short",
   });

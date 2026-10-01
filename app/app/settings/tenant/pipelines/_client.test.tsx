@@ -180,7 +180,7 @@ describe("o input de opções de um campo de lista fechada", () => {
     const opcoes = screen.getByLabelText(/Opções do campo 1/i) as HTMLInputElement;
     // A vírgula final deixa um terceiro item vazio, que o input agora preserva.
     digitar(opcoes, "Dor, Orçamento,");
-    fireEvent.click(screen.getByRole("button", { name: /Salvar vocabulário e campos/i }));
+    fireEvent.click(screen.getByRole("button", { name: /Guardar vocabulário e campos/i }));
 
     // O save roda dentro de `startTransition`; o mock resolve num microtask.
     await vi.waitFor(() => expect(updatePipelineConfig).toHaveBeenCalledTimes(1));
@@ -200,7 +200,7 @@ describe("o input de opções de um campo de lista fechada", () => {
     // O espaço antes da vírgula sobrevive à digitação (a pessoa ainda pode
     // estar no meio da palavra); é o salvar que o apara.
     digitar(opcoes, "Clareamento Dental , Implantes ,");
-    fireEvent.click(screen.getByRole("button", { name: /Salvar vocabulário e campos/i }));
+    fireEvent.click(screen.getByRole("button", { name: /Guardar vocabulário e campos/i }));
 
     await vi.waitFor(() => expect(updatePipelineConfig).toHaveBeenCalledTimes(1));
 
@@ -283,7 +283,7 @@ describe("editor de obrigatorio_em do funil (#1536)", () => {
 
     fireEvent.click(screen.getByLabelText("Exigir em Avaliação — Procedimentos de interesse"));
     fireEvent.click(screen.getByLabelText("Ao ganhar — Procedimentos de interesse"));
-    fireEvent.click(screen.getByRole("button", { name: "Salvar vocabulário e campos" }));
+    fireEvent.click(screen.getByRole("button", { name: "Guardar vocabulário e campos" }));
 
     expect(updatePipelineConfig).toHaveBeenCalledTimes(1);
     expect(patchSalvo().fields?.[0]?.obrigatorio_em).toEqual({
@@ -299,7 +299,7 @@ describe("editor de obrigatorio_em do funil (#1536)", () => {
 
     fireEvent.click(screen.getByLabelText("Exigir em Avaliação — Dor"));
     fireEvent.click(screen.getByLabelText("Ao perder — Dor"));
-    fireEvent.click(screen.getByRole("button", { name: "Salvar vocabulário e campos" }));
+    fireEvent.click(screen.getByRole("button", { name: "Guardar vocabulário e campos" }));
 
     expect(patchSalvo().fields?.[0]).not.toHaveProperty("obrigatorio_em");
   });
@@ -318,7 +318,7 @@ describe("editor de obrigatorio_em do funil (#1536)", () => {
 describe("retomada de negócio encerrado (#1538)", () => {
   beforeEach(() => vi.mocked(updatePipelineConfig).mockClear());
   const salvar = () =>
-    fireEvent.click(screen.getByRole("button", { name: "Salvar vocabulário e campos" }));
+    fireEvent.click(screen.getByRole("button", { name: "Guardar vocabulário e campos" }));
 
   it("nasce desligada e ligar grava `reabertura: novo_negocio` na porta única de escrita", () => {
     render(<PipelinesClient pipelines={[FUNIL]} etapas={{}} podeEditarConfig />);

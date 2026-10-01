@@ -42,9 +42,14 @@ export function textoDoCompromisso({
   url: string | null;
   idioma: Idioma;
 }): string {
+  // Ano com 4 dígitos: o `dateStyle: "short"` do pt-MZ (CLDR pt-PT) escreve
+  // "02/01/30", ambíguo numa mensagem que o cliente lê no WhatsApp.
   const quando = new Intl.DateTimeFormat(tagDeIdioma(idioma), {
-    dateStyle: "short",
-    timeStyle: "short",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
     timeZone,
   }).format(new Date(startsAt));
 

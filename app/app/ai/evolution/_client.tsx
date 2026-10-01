@@ -35,7 +35,7 @@ import { useT } from "@/hooks/i18n/useT";
  */
 
 // DÓLAR: `outcome.cost_cents` vem de `llm_calls`, que `pricing.ts` grava em centavo de USD.
-const usd = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "USD" });
+const usd = new Intl.NumberFormat("pt-MZ", { style: "currency", currency: "USD" });
 
 /**
  * O bloco se chama "o que MUDOU", mas o payload traz um período só — não há
@@ -92,7 +92,7 @@ export function taxaDeAjuda(rate: number, t: (texto: string) => string = (texto)
   if (rate <= 0) return "0";
   const porCem = rate * 100;
   if (porCem < 0.1) return t("menos de 0,1 a cada 100");
-  return `${porCem.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} ${t("a cada 100")}`;
+  return `${porCem.toLocaleString("pt-MZ", { maximumFractionDigits: 1 })} ${t("a cada 100")}`;
 }
 
 /**
@@ -124,7 +124,7 @@ export function descricaoResultado(
 }
 
 function num(n: number): string {
-  return n.toLocaleString("pt-BR");
+  return n.toLocaleString("pt-MZ");
 }
 
 function diaCurto(s: string, idioma: string): string {

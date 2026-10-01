@@ -3,6 +3,7 @@
  * Importado por backend (route handlers) e frontend (editor) — não duplicar.
  */
 import { z } from "zod";
+import { FUSO_PADRAO } from "@/lib/tempo/fusos";
 
 // ---------------------------------------------------------------------------
 // Models permitidos (Vercel AI Gateway)
@@ -54,7 +55,7 @@ const guardrailWindowCheck = z.object({
   kind: z.literal("window_check"),
   start_hour: z.number().int().min(0).max(23),
   end_hour: z.number().int().min(0).max(23),
-  timezone: z.string().default("America/Sao_Paulo"),
+  timezone: z.string().default(FUSO_PADRAO),
   reason: z.string().min(1),
 });
 

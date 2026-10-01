@@ -168,7 +168,7 @@ function monta(over: Partial<Estado> = {}, deps: Partial<AvisoDeps> = {}) {
         return "Maria Aparecida";
       },
       async marcaDaOrganizacao() {
-        return { nome: "Acme CRM", idioma: "pt-BR" as const };
+        return { nome: "Acme CRM", idioma: "pt-MZ" as const };
       },
     },
     transporte: {

@@ -3,6 +3,7 @@
  * Sem I/O — puro, testável. A rota (webhooks/in/[token]) faz o resto.
  */
 import { createHmac, timingSafeEqual } from "node:crypto";
+import { normalizarTelefoneLocal } from "@/lib/channels/telefone-local";
 
 import { canonicalPhoneBR } from "@/lib/channels/phone-variants";
 
@@ -81,7 +82,8 @@ export function mapInboundPayload(
 
   return {
     name: nameHit?.value ?? null,
-    phone: normalizePhoneBR(phoneHit?.value),
+    // SonghaiCRM: sem indicativo, o número é moçambicano (lib/channels/telefone-local.ts).
+    phone: normalizarTelefoneLocal(phoneHit?.value),
     email: emailHit?.value ?? null,
     custom_fields,
     source_metadata,

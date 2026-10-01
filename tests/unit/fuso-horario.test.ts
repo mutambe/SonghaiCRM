@@ -25,7 +25,6 @@ import { describe, expect, it } from "vitest";
  * A LISTA impede o erro de digitação, que é a origem. A CHECAGEM defende a API,
  * que aceita qualquer cliente e não passa pela tela.
  */
-import { DICIONARIO } from "@/lib/i18n/dicionario";
 import { availabilityScheduleSchema } from "@/lib/schemas/routing";
 import { FUSOS_OFERECIDOS, FUSO_PADRAO, fusoValido } from "@/lib/tempo/fusos";
 
@@ -65,8 +64,8 @@ describe("todo fuso oferecido é utilizável", () => {
     }
   });
 
-  it("Assunção está na lista — é o fuso deste país", () => {
-    expect(FUSOS_OFERECIDOS.map((f) => f.codigo)).toContain("America/Asuncion");
+  it("Maputo está na lista — é o fuso deste país (SonghaiCRM)", () => {
+    expect(FUSOS_OFERECIDOS.map((f) => f.codigo)).toContain("Africa/Maputo");
   });
 });
 
@@ -115,10 +114,10 @@ describe("os fusos OFERECIDOS — a lista, não o padrão", () => {
    * `fuso-horario.test.ts` seguia 11/11 e o `tsc` saía zerado. Sem este
    * caso, a oferta some numa refatoração e ninguém percebe.
    */
-  it("oferece Luanda, e a tela da empresa também", () => {
-    expect(FUSOS_OFERECIDOS.map((f) => f.codigo)).toContain("Africa/Luanda");
+  it("oferece Joanesburgo (vizinho de Moçambique), e a tela da empresa também", () => {
+    expect(FUSOS_OFERECIDOS.map((f) => f.codigo)).toContain("Africa/Johannesburg");
     const formulario = readFileSync("app/app/settings/tenant/_form.tsx", "utf8");
-    expect(formulario).toContain("Africa/Luanda");
+    expect(formulario).toContain("Africa/Johannesburg");
   });
 
   // As quatro listas são três fontes: `FUSOS_OFERECIDOS` (jornada e janela de
@@ -134,12 +133,14 @@ describe("os fusos OFERECIDOS — a lista, não o padrão", () => {
   // O painel anti-banimento passa o rótulo por `t(f.rotulo)` — chave dinâmica,
   // que a varredura de `t("...")` literal não enxerga. Luanda entrou sem
   // tradução e ninguém viu; este caso reprova o próximo rótulo sem entrada.
-  it("todo rótulo oferecido tem entrada no dicionário", () => {
-    const semEntrada = FUSOS_OFERECIDOS.filter((f) => !DICIONARIO[f.rotulo]?.es).map((f) => f.rotulo);
-    expect(semEntrada).toEqual([]);
+  // SonghaiCRM: sem espanhol, o que se exige do rótulo é que exista e não se repita.
+  it("todo rótulo oferecido existe e é único", () => {
+    const rotulos = FUSOS_OFERECIDOS.map((f) => f.rotulo.trim());
+    expect(rotulos.every((r) => r.length > 0)).toBe(true);
+    expect(new Set(rotulos).size).toBe(rotulos.length);
   });
 
-  it("e o padrão de quem não escolheu segue sendo São Paulo", () => {
-    expect(FUSO_PADRAO).toBe("America/Sao_Paulo");
+  it("e o padrão de quem não escolheu é Maputo", () => {
+    expect(FUSO_PADRAO).toBe("Africa/Maputo");
   });
 });

@@ -4,6 +4,7 @@
  */
 import { createClient } from "@supabase/supabase-js";
 import { carregarEnvLocal } from "../scripts/lib/env-de-teste";
+import { FUSO_PADRAO } from "@/lib/tempo/fusos";
 
 const env = carregarEnvLocal();
 
@@ -33,7 +34,7 @@ async function main() {
         slug: ORG_SLUG,
         display_name: ORG_NAME,
         legal_name: ORG_NAME,
-        timezone: "America/Sao_Paulo",
+        timezone: FUSO_PADRAO,
         locale: "pt-BR",
         onboarded_at: null,
       } as never)

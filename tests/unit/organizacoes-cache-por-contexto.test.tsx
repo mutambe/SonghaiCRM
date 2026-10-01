@@ -6,7 +6,7 @@ import { Providers } from "@/app/providers";
 import { useOrganizationTransition } from "@/components/shell/OrganizationTransitionProvider";
 import type { AuthUser } from "@/lib/auth/types";
 vi.mock("@/lib/supabase/browser", () => ({ resetRealtimeAuthentication: vi.fn(), createClient: () => ({ auth: { refreshSession: vi.fn() } }) }));
-const user = { id: "user-a", organizations: [], idioma: "pt-BR", email: "a@example.test", full_name: null, avatar_url: null, is_platform_admin: false } as AuthUser;
+const user = { id: "user-a", organizations: [], idioma: "pt-MZ", email: "a@example.test", full_name: null, avatar_url: null, is_platform_admin: false } as AuthUser;
 function Data({ fetcher }: { fetcher: () => Promise<string> }) {
   const { data } = useQuery({ queryKey: ["same-unscoped-key"], queryFn: fetcher, staleTime: Infinity });
   return <div>{data ?? "Carregando"}</div>;

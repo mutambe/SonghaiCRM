@@ -48,7 +48,7 @@ describe("cartão do Google Ads", () => {
     const { container } = render(
       <FormularioDeConversoesGoogle
         estado={SEM_CONEXAO}
-        idioma="pt-BR"
+        idioma="pt-MZ"
         configurado={false}
         falta={["GOOGLE_ADS_DEVELOPER_TOKEN", "GOOGLE_ADS_OAUTH_CLIENT_SECRET"]}
       />,
@@ -64,7 +64,7 @@ describe("cartão do Google Ads", () => {
     const { container } = render(
       <FormularioDeConversoesGoogle
         estado={{ ...SEM_CONEXAO, temRefreshToken: true, customerId: "1234567890" }}
-        idioma="pt-BR"
+        idioma="pt-MZ"
         configurado={false}
         falta={["GOOGLE_ADS_DEVELOPER_TOKEN"]}
       />,
@@ -75,7 +75,7 @@ describe("cartão do Google Ads", () => {
 
   it("com as credenciais: o botão de conectar aparece", () => {
     const { container } = render(
-      <FormularioDeConversoesGoogle estado={SEM_CONEXAO} idioma="pt-BR" configurado falta={[]} />,
+      <FormularioDeConversoesGoogle estado={SEM_CONEXAO} idioma="pt-MZ" configurado falta={[]} />,
     );
     expect(linksDeConectar(container)).toHaveLength(1);
     expect(screen.queryByTestId("google-ads-nao-configurado")).toBeNull();

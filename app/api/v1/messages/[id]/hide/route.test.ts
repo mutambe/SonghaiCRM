@@ -11,7 +11,7 @@ const state = vi.hoisted(() => ({
 vi.mock("@/lib/impersonate/support", () => ({ requireSupportWrite: async () => null }));
 vi.mock("@/lib/auth/require-role", () => ({
   requireRole: async (role: string) => state.role === role
-    ? { ok: true, user: { id: "usuario-1", idioma: "pt-BR" }, org: { orgId: "org-1" } }
+    ? { ok: true, user: { id: "usuario-1", idioma: "pt-MZ" }, org: { orgId: "org-1" } }
     : { ok: false, response: new Response(null, { status: 403 }) },
 }));
 vi.mock("@/lib/audit", () => ({ audit: state.audit }));

@@ -38,7 +38,7 @@ const PLATFORM_ADMIN = {
   email: "pa@example.com",
   is_platform_admin: true,
   support: null,
-  idioma: "pt-BR",
+  idioma: "pt-MZ",
 };
 
 vi.mock("@/lib/auth/server", () => ({

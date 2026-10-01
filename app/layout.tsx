@@ -279,7 +279,7 @@ async function MarcaDosClientComponents({ children }: { children: React.ReactNod
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html
-      lang="pt-BR"
+      lang="pt-MZ"
       data-theme="light"
       suppressHydrationWarning
       className={`${atkinson.variable} ${plexMono.variable}`}

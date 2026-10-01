@@ -75,6 +75,7 @@ import { logger } from "@/lib/logger";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { moldeDoDegrau } from "@/lib/agenda/lembretes";
 import { autorizaCron } from "@/lib/auth/cron-auth";
+import { FUSO_PADRAO } from "@/lib/tempo/fusos";
 
 export const dynamic = "force-dynamic";
 
@@ -382,7 +383,7 @@ async function handle(req: NextRequest): Promise<Response> {
       nomeDoContato: nomeDoContato(contato),
       titulo: linha.title,
       quando: new Date(linha.starts_at),
-      timezone: organizacao?.timezone ?? "America/Sao_Paulo",
+      timezone: organizacao?.timezone ?? FUSO_PADRAO,
       local: linha.location_details ?? tipo.location_details ?? null,
       idioma: normalizarIdioma(organizacao?.locale),
       molde,

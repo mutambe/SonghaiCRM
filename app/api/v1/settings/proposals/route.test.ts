@@ -20,7 +20,7 @@ const USER_ID = "11111111-1111-4111-8111-111111111111";
 function montarMundo(storedProposals: Record<string, unknown> = {}) {
   vi.mocked(requireRole).mockResolvedValue({
     ok: true,
-    user: { id: USER_ID, idioma: "pt-BR" },
+    user: { id: USER_ID, idioma: "pt-MZ" },
     org: { orgId: ORG_ID },
   } as never);
 

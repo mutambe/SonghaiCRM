@@ -11,6 +11,7 @@ import { normalizarIdioma } from "@/lib/i18n/idiomas";
 import { traduzir } from "@/lib/i18n/dicionario";
 
 import { FormularioDaMarca } from "./_form";
+import { FUSO_PADRAO } from "@/lib/tempo/fusos";
 
 export const metadata = { title: "Marca da instalação" };
 export const dynamic = "force-dynamic";
@@ -26,7 +27,7 @@ export const dynamic = "force-dynamic";
 function instanteLegivel(iso: string | null, idioma: string): string | null {
   if (!iso) return null;
   return new Date(iso).toLocaleString(idioma, {
-    timeZone: "America/Sao_Paulo",
+    timeZone: FUSO_PADRAO,
     dateStyle: "short",
     timeStyle: "short",
   });

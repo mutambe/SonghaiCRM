@@ -91,7 +91,7 @@ describe("Novo Lead pelo funil — o lead nasce com contato", () => {
       />,
     );
 
-    await user.type(await screen.findByLabelText("Contato"), "Michelle");
+    await user.type(await screen.findByLabelText("Contacto"), "Michelle");
     await user.click(await screen.findByRole("button", { name: /Michelle/ }));
 
     await user.type(screen.getByLabelText("Título"), "Consulta trabalhista");
@@ -116,7 +116,7 @@ describe("Novo Lead pelo funil — o lead nasce com contato", () => {
       />,
     );
 
-    await user.type(await screen.findByLabelText("Contato"), "Michelle");
+    await user.type(await screen.findByLabelText("Contacto"), "Michelle");
     await user.click(await screen.findByRole("button", { name: /Michelle/ }));
 
     rerender(
@@ -176,7 +176,7 @@ describe("Novo Lead pelo funil — o lead nasce com contato", () => {
     );
 
     await user.type(await screen.findByLabelText("Título"), "Consulta trabalhista");
-    expect(screen.queryByLabelText("Contato")).toBeNull();
+    expect(screen.queryByLabelText("Contacto")).toBeNull();
     // O contato veio na prop; avisar que falta contato seria mentira.
     expect(screen.queryByText(/não recebe WhatsApp/i)).toBeNull();
   });

@@ -38,7 +38,7 @@ describe("formulários de conversão", () => {
       <FormularioDeCapturaDeUtm
         plataforma="google"
         estado={null}
-        idioma="pt-BR"
+        idioma="pt-MZ"
         slug="loja"
         numerosConectados={[]}
       />,
@@ -46,7 +46,7 @@ describe("formulários de conversão", () => {
     fireEvent.change(screen.getByLabelText("Para qual WhatsApp mandar"), {
       target: { value: "+5511999999999" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Salvar endereço de captura" }));
+    fireEvent.click(screen.getByRole("button", { name: "Guardar endereço de captura" }));
     await waitFor(() =>
       expect(mock.salvarCaptura).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -71,7 +71,7 @@ describe("formulários de conversão", () => {
           categoriaDaVenda: "PURCHASE",
           enviarTelefone: false,
         }}
-        idioma="pt-BR"
+        idioma="pt-MZ"
         configurado
         falta={[]}
       />,
@@ -79,8 +79,8 @@ describe("formulários de conversão", () => {
     fireEvent.change(screen.getByLabelText("Valor do negócio"), {
       target: { value: "quando_houver" },
     });
-    fireEvent.click(screen.getByLabelText("Enviar o telefone do contato criptografado"));
-    fireEvent.click(screen.getByRole("button", { name: "Salvar" }));
+    fireEvent.click(screen.getByLabelText("Enviar o telefone do contacto criptografado"));
+    fireEvent.click(screen.getByRole("button", { name: "Guardar" }));
     await waitFor(() =>
       expect(mock.salvarGoogle).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -120,7 +120,7 @@ describe("formulários de conversão", () => {
           },
         ]}
         regras={[]}
-        idioma="pt-BR"
+        idioma="pt-MZ"
         podeCriarAcao
       />,
     );
@@ -144,7 +144,7 @@ describe("formulários de conversão", () => {
         target: { value: "42" },
       },
     );
-    fireEvent.click(screen.getByRole("button", { name: "Salvar regras" }));
+    fireEvent.click(screen.getByRole("button", { name: "Guardar regras" }));
     await waitFor(() => expect(mock.salvarRegras).toHaveBeenCalledOnce());
     const enviadas = mock.salvarRegras.mock.calls[0]![0] as Array<Record<string, unknown>>;
     expect(enviadas).toHaveLength(3);
@@ -165,7 +165,7 @@ describe("formulários de conversão", () => {
 
 it("só gera o script com captura ativa salva, sem credenciais", () => {
   const { rerender } = render(
-    <ScriptDoSite slug="loja" google={null} meta={null} idioma="pt-BR" />,
+    <ScriptDoSite slug="loja" google={null} meta={null} idioma="pt-MZ" />,
   );
   expect(screen.queryByRole("button", { name: "Copiar script do site" })).toBeNull();
   rerender(
@@ -177,7 +177,7 @@ it("só gera o script com captura ativa salva, sem credenciais", () => {
         habilitada: true,
       }}
       meta={null}
-      idioma="pt-BR"
+      idioma="pt-MZ"
     />,
   );
   const code = screen.getByTestId("script-do-site").querySelector("code")!.textContent!;

@@ -179,8 +179,8 @@ describe("ExtensionsManager", () => {
     const configHeaders = new Headers((fetchMock.mock.calls[1]?.[1] as RequestInit).headers);
     expect(listHeaders.get("X-Expected-Organization-Id")).toBe(ORG_A);
     expect(configHeaders.get("X-Expected-Organization-Id")).toBe(ORG_A);
-    expect(await screen.findByText("Configuração salva.")).toBeVisible();
-    expect(toast.success).not.toHaveBeenCalledWith("Configuração salva.");
+    expect(await screen.findByText("Configuração guardada.")).toBeVisible();
+    expect(toast.success).not.toHaveBeenCalledWith("Configuração guardada.");
   });
 
   it.each([
@@ -213,7 +213,7 @@ describe("ExtensionsManager", () => {
     await user.click(screen.getByTestId(`extension-save-${INSTALLATION}`));
 
     await waitFor(() => expect(router.refresh).toHaveBeenCalled());
-    expect(screen.queryByText("Configuração salva.")).toBeNull();
+    expect(screen.queryByText("Configuração guardada.")).toBeNull();
     expect(readPendingReceipts(window.localStorage, ACTOR, ORG_A)).toEqual([
       expect.objectContaining({ id: receiptId, kind: "configure" }),
     ]);
@@ -283,7 +283,7 @@ describe("ExtensionsManager", () => {
     await userEvent.upload(input, file);
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      "O arquivo pode ter até 512 KiB. Escolha um arquivo menor.",
+      "O ficheiro pode ter até 512 KiB. Escolha um ficheiro menor.",
     );
     expect(arrayBuffer).not.toHaveBeenCalled();
   });
@@ -302,7 +302,7 @@ describe("ExtensionsManager", () => {
     await userEvent.click(screen.getByTestId("extension-catalog-submit"));
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      "Não foi possível ler este arquivo. Escolha o catálogo novamente e tente outra vez.",
+      "Não foi possível ler este ficheiro. Escolha o catálogo novamente e tente outra vez.",
     );
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
@@ -811,19 +811,19 @@ describe("ExtensionsManager", () => {
 
     await user.click(await screen.findByRole("switch", { name: "Ativa no CRM" }));
     await user.click(screen.getByTestId(`extension-save-${INSTALLATION}`));
-    expect(await screen.findByText("Configuração salva.")).toBeVisible();
+    expect(await screen.findByText("Configuração guardada.")).toBeVisible();
 
     // Outra sessão removeu e reinstalou: mesmo id, revisão da instalação nova.
     fireEvent(window, new Event("focus"));
     expect(await screen.findByTestId(`extension-reactivate-${INSTALLATION}`)).toBeVisible();
-    expect(screen.queryByText("Configuração salva.")).toBeNull();
+    expect(screen.queryByText("Configuração guardada.")).toBeNull();
   });
 
   it.each([
     [
-      "salva",
+      "guardada",
       (id: string) => json({ data: operation({ id, kind: "configure" }) }),
-      "Configuração salva.",
+      "Configuração guardada.",
     ],
     [
       "recusada por revisão divergente",
@@ -837,7 +837,7 @@ describe("ExtensionsManager", () => {
           },
           409,
         ),
-      "Outra pessoa alterou esta extensão. Recarregamos o valor atual; revise antes de salvar novamente.",
+      "Outra pessoa alterou esta extensão. Recarregamos o valor atual; revise antes de guardar novamente.",
     ],
   ])(
     "a mensagem da configuração %s sobrevive quando a recarga do próprio salvamento traz outra revisão da instalação",
@@ -894,7 +894,7 @@ describe("ExtensionsManager", () => {
     // DESLIGADA, que é a pré-condição do defeito — a remoção só marca vínculo ativo.
     await user.click(await screen.findByTestId(`extension-description-${INSTALLATION}`));
     await user.click(screen.getByTestId(`extension-save-${INSTALLATION}`));
-    expect(await screen.findByText("Configuração salva.")).toBeVisible();
+    expect(await screen.findByText("Configuração guardada.")).toBeVisible();
 
     // Removida por quem administra a instalação: esta organização nem vê o card.
     fireEvent(window, new Event("focus"));
@@ -903,7 +903,7 @@ describe("ExtensionsManager", () => {
     // Reinstalada: mesmo id, revisão nova, card novo — sem a frase da vida anterior.
     fireEvent(window, new Event("focus"));
     expect(await screen.findByTestId(`extension-installed-${INSTALLATION}`)).toBeVisible();
-    expect(screen.queryByText("Configuração salva.")).toBeNull();
+    expect(screen.queryByText("Configuração guardada.")).toBeNull();
   });
 
   it("a mensagem de um salvamento não atravessa a troca de organização", async () => {
@@ -924,7 +924,7 @@ describe("ExtensionsManager", () => {
 
     await user.click(await screen.findByRole("switch", { name: "Ativa no CRM" }));
     await user.click(screen.getByTestId(`extension-save-${INSTALLATION}`));
-    expect(await screen.findByText("Configuração salva.")).toBeVisible();
+    expect(await screen.findByText("Configuração guardada.")).toBeVisible();
 
     fireEvent(window, new Event("focus"));
     expect(await screen.findByTestId("extensions-unavailable")).toBeInTheDocument();
@@ -932,7 +932,7 @@ describe("ExtensionsManager", () => {
     await user.click(screen.getByRole("button", { name: "Tentar novamente" }));
 
     expect(await screen.findByTestId(`extension-installed-${INSTALLATION}`)).toBeVisible();
-    expect(screen.queryByText("Configuração salva.")).toBeNull();
+    expect(screen.queryByText("Configuração guardada.")).toBeNull();
   });
 
   it("desfazer ou configurar o que outra sessão removeu avisa fora do card e recarrega", async () => {
@@ -1431,7 +1431,7 @@ describe("ExtensionsManager", () => {
     );
     const botao = screen.getByTestId("extension-install-equipe-exemplo-rotina-comercial-1.1.0");
     expect(botao).toBeDisabled();
-    expect(botao).toHaveTextContent("Preparando…");
+    expect(botao).toHaveTextContent("A preparar…");
   });
 
   it("pedido de outro responsável pela instalação não oferece retomar, só cancelar", async () => {

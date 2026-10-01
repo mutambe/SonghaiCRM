@@ -30,7 +30,7 @@ describe("GET /api/v1/ai/routers/:id", () => {
         full_name: null,
         avatar_url: null,
         is_platform_admin: false,
-        idioma: "pt-BR" as const,
+        idioma: "pt-MZ" as const,
         organizations: [{ organization_id: ORG_ID, organization_name: "Org", role: "agent" }],
       },
       org: { orgId: ORG_ID, name: "Org", role: "agent" },

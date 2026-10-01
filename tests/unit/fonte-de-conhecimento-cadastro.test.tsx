@@ -436,7 +436,7 @@ describe("ChaveDeConhecimento — quem prepara a base", () => {
     render(<ChaveDeConhecimento estado={CHAVE_OK} onChaveCadastrada={() => {}} />);
     expect(screen.queryByTestId("conhecimento-trocar-provedor")).toBeNull();
     expect(screen.getByTestId("conhecimento-provedor")).toHaveTextContent(
-      "Para usar o Google, cadastre a chave dele em",
+      "Para usar o Google, registe a chave dele em",
     );
   });
 });

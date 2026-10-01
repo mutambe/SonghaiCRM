@@ -81,7 +81,7 @@ export async function GET(_req: NextRequest): Promise<Response> {
         .filter(Boolean),
     ),
   ]
-    .sort((a, b) => a.localeCompare(b, "pt-BR"))
+    .sort((a, b) => a.localeCompare(b, "pt-MZ"))
     .slice(0, TETO_DE_TAGS);
   return ok(tags, { requestId });
 }

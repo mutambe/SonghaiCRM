@@ -55,7 +55,7 @@ import { IDIOMAS_VISIVEIS, type IdiomaVisivel } from "./registro";
 export type Idioma = IdiomaVisivel["codigo"];
 export const IDIOMAS: readonly Idioma[] = IDIOMAS_VISIVEIS.map((idioma) => idioma.codigo);
 
-export const IDIOMA_PADRAO: Idioma = "pt-BR";
+export const IDIOMA_PADRAO: Idioma = "pt-MZ";
 
 /**
  * O que veio do perfil é um idioma que sabemos servir?

@@ -104,7 +104,7 @@ describe("vocabulário da trilha de demonstração", () => {
     const nos = Object.fromEntries(GRAFO.nodes.map((n) => [n.id, resumoDoNo(n)]));
     for (const [i, inscricao] of INSCRICOES.entries()) {
       for (const [j, passo] of inscricao.passos(idDaInscricao(i)).entries()) {
-        const legivel = descreveEvento({ id: `p${j}`, ...passo }, nos, "pt-BR");
+        const legivel = descreveEvento({ id: `p${j}`, ...passo }, nos, "pt-MZ");
         expect(legivel.detalhe ?? "", `"${inscricao.contato.nome}", passo ${passo.event_type}`).not.toMatch(/^código:/);
         expect(legivel.onde, `"${inscricao.contato.nome}": o passo aponta para um nó fora do grafo`).not.toMatch(
           /não existe mais/,

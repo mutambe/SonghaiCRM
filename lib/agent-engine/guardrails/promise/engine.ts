@@ -25,7 +25,7 @@ export interface DetectedPromise {
   /** preço em centavos; desconto em %; parcelamento em nº de parcelas. */
   value: number;
   /** Moeda que o PRÓPRIO texto escreveu, para o veto responder nela. Ausente = real. */
-  moeda?: 'EUR';
+  moeda?: 'EUR' | 'MZN';
 }
 
 export interface PromiseDecision {
@@ -53,6 +53,17 @@ const MONEY_EU =
   '(?<![\\d.,])(\\d{1,3}(?:[.\\u0020\\u00a0\\u202f]\\d{3})+(?:,\\d{2})?|\\d+(?:,\\d{2})?)(?![.,\\u0020\\u00a0\\u202f]?\\d)';
 const RE_PRICE_EUR_PREFIX = new RegExp(`€\\s*${MONEY_EU}`, 'gi');
 const RE_PRICE_EUR_SUFFIX = new RegExp(`${MONEY_EU}\\s*(?:€|euros?\\b|EUR\\b)`, 'gi');
+// Metical (SonghaiCRM): escreve-se como o euro — milhar por espaço, decimal por
+// vírgula —, com o símbolo antes (`MT 1 500,00`, `MZN 249,90`, que é o que o
+// `Intl` de pt-MZ escreve) ou depois (`1 500 MT`, `500 Mt`, `500 meticais`). Sem
+// isto a trava ficava cega em Moçambique: o agente podia prometer `1 MT` e nada
+// vetava. `MT`/`MZN` exigem borda de palavra dos dois lados, para não casar
+// dentro de outra palavra.
+const RE_PRICE_MZN_PREFIX = new RegExp(`\\b(?:MZN|MTn|MT|Mt)\\s*${MONEY_EU}`, 'g');
+const RE_PRICE_MZN_SUFFIX = new RegExp(
+  `${MONEY_EU}\\s*(?:MZN\\b|MTn\\b|MT\\b|Mt\\b|meticais\\b|metical\\b)`,
+  'gi',
+);
 // Desconto: exige a palavra "desconto"/"off" adjacente ao percentual (conservador —
 // "100% satisfação" não é desconto).
 const RE_DISCOUNT_PREFIX = /desconto\s+(?:de\s+)?(\d{1,3})\s*(?:%|por\s*cento)/gi;
@@ -91,6 +102,9 @@ export function extractPromises(body: string): DetectedPromise[] {
   for (const re of [RE_PRICE_EUR_PREFIX, RE_PRICE_EUR_SUFFIX])
     for (const cents of collect(re, body, (m) => moneyToCents(m[1] ?? '0')))
       out.push({ kind: 'price', value: cents, moeda: 'EUR' });
+  for (const re of [RE_PRICE_MZN_PREFIX, RE_PRICE_MZN_SUFFIX])
+    for (const cents of collect(re, body, (m) => moneyToCents(m[1] ?? '0')))
+      out.push({ kind: 'price', value: cents, moeda: 'MZN' });
   for (const pct of collect(RE_DISCOUNT_PREFIX, body, (m) => Number(m[1])))
     out.push({ kind: 'discount', value: pct });
   for (const pct of collect(RE_DISCOUNT_SUFFIX, body, (m) => Number(m[1])))
@@ -108,7 +122,7 @@ const brl = (cents: number): string =>
   `R$ ${(cents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 /** O veto responde na moeda que a mensagem escreveu: "mínimo R$ 39,00" a quem cobra em euro confunde o modelo. */
 const naMoeda = (cents: number, moeda: DetectedPromise['moeda']): string =>
-  moeda === 'EUR' ? formatCents(cents, 'EUR') : brl(cents);
+  moeda === 'EUR' || moeda === 'MZN' ? formatCents(cents, moeda) : brl(cents);
 
 /**
  * Vete quando um valor detectado CONTRADIZ claramente a tabela versionada da org

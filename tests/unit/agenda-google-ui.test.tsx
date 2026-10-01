@@ -80,7 +80,7 @@ afterEach(() => {
 });
 function open(child: React.ReactNode) {
   return render(
-    <IdiomaProvider locale="pt-BR">
+    <IdiomaProvider locale="pt-MZ">
       <QueryClientProvider client={client}>{child}</QueryClientProvider>
     </IdiomaProvider>,
   );
@@ -103,7 +103,7 @@ describe("seleção explícita de fontes e destino", () => {
         })),
       }),
     );
-    fireEvent.click(screen.getByRole("button", { name: "Salvar agendas" }));
+    fireEvent.click(screen.getByRole("button", { name: "Guardar agendas" }));
     await waitFor(() =>
       expect(api.patch).toHaveBeenCalledWith("/api/v1/agenda/google/calendarios", {
         sources: ["Principal", "Secundária"],

@@ -166,7 +166,7 @@ describe("createLeadHandler — moeda", () => {
       source: "manual",
     });
 
-    expect(inseridos[0]).toMatchObject({ currency: "BRL" });
+    expect(inseridos[0]).toMatchObject({ currency: "MZN" });
     expect(silenciado).toHaveBeenCalled();
     silenciado.mockRestore();
   });

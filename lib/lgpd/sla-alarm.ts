@@ -19,6 +19,7 @@ import { audit } from "@/lib/audit";
 import { env } from "@/lib/env";
 import { valorDaInstalacao } from "@/lib/instalacao/config";
 import type { LgpdRequest } from "./types";
+import { FUSO_PADRAO } from "@/lib/tempo/fusos";
 
 export type AlarmThreshold = "data_request_d5" | "redact_d10";
 
@@ -125,8 +126,8 @@ export async function triggerSlaAlarm(
           ? "D+5 (acesso a dados)"
           : "D+10 (anonimização/exclusão)";
 
-      const dueFmt = new Date(request.due_at).toLocaleString("pt-BR", {
-        timeZone: "America/Sao_Paulo",
+      const dueFmt = new Date(request.due_at).toLocaleString("pt-MZ", {
+        timeZone: FUSO_PADRAO,
         day: "2-digit",
         month: "2-digit",
         year: "numeric",
@@ -141,7 +142,7 @@ export async function triggerSlaAlarm(
           : `<p>O prazo vence em <strong>${dueFmt}</strong>.</p>`;
 
       const html = `<!doctype html>
-<html lang="pt-BR">
+<html lang="pt-MZ">
 <body style="font-family:-apple-system,Helvetica,Arial,sans-serif;color:${NEUTROS_DE_SAIDA.texto};line-height:1.5;max-width:560px;margin:0 auto;padding:24px;">
   <h2 style="margin:0 0 12px;font-size:18px;">[LGPD] Alerta de SLA — Solicitação #${shortId}</h2>
   <p>Olá,</p>

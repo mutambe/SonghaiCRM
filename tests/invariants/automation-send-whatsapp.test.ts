@@ -436,16 +436,17 @@ describe("send_whatsapp_message — postponeUntil (Task 11)", () => {
     // Paulo = DENTRO da janela, e `postponeUntil` devolvia null. O teste passava
     // na minha máquina (BRT) e falhava no CI — pelo fuso, não pelo código.
     //
-    // 2026-07-18T02:00:00Z é 23:00 de 17/07 em São Paulo, em qualquer máquina.
-    vi.setSystemTime(new Date("2026-07-18T02:00:00Z"));
+    // SonghaiCRM: o fuso padrão é Africa/Maputo (UTC+2).
+    // 2026-07-17T21:00:00Z é 23:00 de 17/07 em Maputo, em qualquer máquina.
+    vi.setSystemTime(new Date("2026-07-17T21:00:00Z"));
     const executor = getAction("send_whatsapp_message")!;
     const until = await executor.postponeUntil!(baseCtx(), {
       channel_session_id: SESSION_ID,
       template: "x",
     });
     expect(until).not.toBeNull();
-    const noFusoDoTenant = new Date(until!).toLocaleString("pt-BR", {
-      timeZone: "America/Sao_Paulo",
+    const noFusoDoTenant = new Date(until!).toLocaleString("pt-MZ", {
+      timeZone: "Africa/Maputo",
       day: "2-digit",
       month: "2-digit",
       hour: "2-digit",

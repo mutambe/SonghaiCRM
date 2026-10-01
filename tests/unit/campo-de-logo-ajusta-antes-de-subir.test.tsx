@@ -40,6 +40,7 @@ import { toast } from "sonner";
 
 import { CampoDeLogo } from "@/components/branding/CampoDeLogo";
 import { TAMANHO_MAXIMO_DO_LOGO } from "@/lib/branding/logo";
+import { paraPortuguesDeMocambique } from "@/lib/i18n/pt-mz";
 import { lerPng, montarPng, ruidoPuro, ruidoQuantizado } from "../helpers/png-sintetico";
 
 const LIMITE = TAMANHO_MAXIMO_DO_LOGO;
@@ -165,7 +166,7 @@ describe("o campo de logo ajusta a imagem antes de subir", () => {
 
     await waitFor(() => expect(toast.error).toHaveBeenCalled());
     expect(vi.mocked(toast.error).mock.calls[0]?.[0], "a frase é a MESMA da rota").toBe(
-      RAZAO_DA_ROTA,
+      paraPortuguesDeMocambique(RAZAO_DA_ROTA), // a tela passa por t() — camada pt-MZ
     );
     expect(fetchMock, "não se sobe megabyte para ouvir 'não' do servidor").not.toHaveBeenCalled();
   });

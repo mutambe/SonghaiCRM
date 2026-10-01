@@ -31,6 +31,7 @@
  * por cron que devia ser derivado).
  */
 import type { AvailabilitySchedule } from "@/lib/schemas/routing";
+import { FUSO_PADRAO } from "@/lib/tempo/fusos";
 
 /**
  * Status de conversa que contam como "carga" do atendente (aberta atribuída);
@@ -85,7 +86,7 @@ export function isWithinSchedule(
 ): boolean {
   const windows = schedule?.windows ?? [];
   if (windows.length === 0) return true;
-  const timezone = schedule?.timezone || "America/Sao_Paulo";
+  const timezone = schedule?.timezone || FUSO_PADRAO;
   const { dow, hhmm } = localMoment(now, timezone);
   return windows.some((w) => w.dow === dow && hhmm >= w.start && hhmm < w.end);
 }

@@ -179,7 +179,7 @@ function montarMundoDeEdicao(opts: MundoOpts = {}) {
 
 beforeEach(() => {
   vi.resetAllMocks();
-  mocks.requireRole.mockResolvedValue({ ok: true, user: { id: USER_ID, idioma: "pt-BR" }, org: { orgId: ORG_ID } });
+  mocks.requireRole.mockResolvedValue({ ok: true, user: { id: USER_ID, idioma: "pt-MZ" }, org: { orgId: ORG_ID } });
   mocks.requireSupportWrite.mockResolvedValue(null);
   mocks.audit.mockResolvedValue(undefined);
 });

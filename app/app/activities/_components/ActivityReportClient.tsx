@@ -227,7 +227,7 @@ export function ActivityReportClient() {
                     className="flex flex-wrap items-baseline gap-x-2 gap-y-1 rounded-md border border-border p-2 text-sm"
                   >
                     <span className="shrink-0 tabular-nums text-xs text-muted-foreground">
-                      {quandoLegivel(i.quando, "pt-BR")}
+                      {quandoLegivel(i.quando, "pt-MZ")}
                     </span>
                     <MarcadorDeAtor forma={i.atorForma} />
                     <span className="font-medium">{i.rotulo}</span>

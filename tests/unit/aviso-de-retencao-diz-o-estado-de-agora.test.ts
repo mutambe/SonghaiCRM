@@ -71,10 +71,10 @@ async function retencoes(tabelas: Record<string, unknown>) {
 beforeEach(() => {
   vi.mocked(requireRole).mockResolvedValue({
     ok: true,
-    user: { id: "u", idioma: "pt-BR" },
+    user: { id: "u", idioma: "pt-MZ" },
     org: { orgId: ORG, name: "Org", role: "admin" },
   } as never);
-  vi.mocked(loadAuthUser).mockResolvedValue({ idioma: "pt-BR" } as never);
+  vi.mocked(loadAuthUser).mockResolvedValue({ idioma: "pt-MZ" } as never);
   vi.mocked(resolveActiveOrg).mockResolvedValue({ orgId: ORG } as never);
 });
 

@@ -662,7 +662,7 @@ async function idiomaDaOrganizacao(pool: pg.Pool, tenantId: string): Promise<Idi
     );
     return normalizarIdioma(rows[0]?.locale ?? null);
   } catch {
-    return 'pt-BR';
+    return 'pt-MZ';
   }
 }
 

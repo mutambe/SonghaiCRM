@@ -49,7 +49,7 @@ import {
   montarCodigoDeOrigemDoSite,
   TAMANHO_MAXIMO_DO_CODIGO,
 } from "@/lib/leads/origem-do-site";
-import { formatCentsBRL } from "@/lib/money";
+import { formatCentsPadrao } from "@/lib/money";
 import {
   faltaParaConectarOGoogleAds,
   googleAdsEstaConfigurado,
@@ -405,7 +405,7 @@ export default async function ConversoesPage({
                               : "—"}
                         </td>
                         <td className="p-3 whitespace-nowrap">
-                          {p.valorCentavos === null ? "—" : formatCentsBRL(p.valorCentavos)}
+                          {p.valorCentavos === null ? "—" : formatCentsPadrao(p.valorCentavos)}
                         </td>
                         <td className="p-3">
                           <span>{t(MOTIVO_LEGIVEL[p.motivo ?? ""] ?? p.motivo ?? "—")}</span>

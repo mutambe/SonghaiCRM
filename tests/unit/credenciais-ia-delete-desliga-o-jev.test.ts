@@ -128,7 +128,7 @@ beforeEach(() => {
   vi.mocked(requireRole).mockResolvedValue({
     ok: true,
     org: { orgId: ORG, role: "admin", name: "Org" },
-    user: { id: USUARIO, idioma: "pt-BR" },
+    user: { id: USUARIO, idioma: "pt-MZ" },
   } as Awaited<ReturnType<typeof requireRole>>);
   vi.mocked(createAdminClient).mockReturnValue(
     fakeAdmin() as unknown as ReturnType<typeof createAdminClient>,

@@ -15,7 +15,7 @@ import { IdiomaProvider, useT } from "@/lib/i18n/IdiomaProvider";
  * controle: a frase dele tem de sair idêntica à de antes.
  */
 
-function gradeComFalhaDeCarga(locale: "pt-BR" | "es") {
+function gradeComFalhaDeCarga(locale: "pt-MZ" | "es") {
   return render(
     createElement(IdiomaProvider, {
       locale,
@@ -33,7 +33,8 @@ function gradeComFalhaDeCarga(locale: "pt-BR" | "es") {
 }
 
 describe("o bloco da agenda fala o idioma de quem lê", () => {
-  it("em espanhol, a data, a hora e o motivo saem traduzidos", () => {
+  // SonghaiCRM: espanhol desligado — este caso media a saída em espanhol.
+  it.skip("em espanhol, a data, a hora e o motivo saem traduzidos", () => {
     gradeComFalhaDeCarga("es");
     const bloco = screen.getByTestId("bloco-2026-09-14-09:00");
     expect(bloco).toBeDisabled();
@@ -44,7 +45,7 @@ describe("o bloco da agenda fala o idioma de quem lê", () => {
   });
 
   it("em português, a frase é a mesma de antes de passar por t()", () => {
-    gradeComFalhaDeCarga("pt-BR");
+    gradeComFalhaDeCarga("pt-MZ");
     const bloco = screen.getByTestId("bloco-2026-09-14-09:00");
     expect(bloco.getAttribute("aria-label")).toBe(
       "14 de setembro às 09:00 — não consegui carregar os horários",
@@ -54,12 +55,13 @@ describe("o bloco da agenda fala o idioma de quem lê", () => {
 });
 
 describe("o atributo lang do documento acompanha o idioma", () => {
-  it("troca junto com o provider, e o texto troca junto", () => {
+  // SonghaiCRM: espanhol desligado — este caso media a saída em espanhol.
+  it.skip("troca junto com o provider, e o texto troca junto", () => {
     function BotaoSalvar() {
       const t = useT();
       return createElement("button", null, t("Salvar"));
     }
-    const pagina = (locale: "pt-BR" | "es") =>
+    const pagina = (locale: "pt-MZ" | "es") =>
       createElement(IdiomaProvider, { locale, children: createElement(BotaoSalvar) });
 
     const { rerender } = render(pagina("es"));
@@ -68,8 +70,8 @@ describe("o atributo lang do documento acompanha o idioma", () => {
     // lido com a voz do português.
     expect(document.documentElement.lang).toBe("es");
 
-    rerender(pagina("pt-BR"));
+    rerender(pagina("pt-MZ"));
     expect(screen.getByRole("button")).toHaveTextContent("Salvar");
-    expect(document.documentElement.lang).toBe("pt-BR");
+    expect(document.documentElement.lang).toBe("pt-MZ");
   });
 });

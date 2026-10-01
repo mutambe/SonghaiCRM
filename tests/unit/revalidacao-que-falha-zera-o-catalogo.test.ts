@@ -119,7 +119,7 @@ beforeEach(() => {
   vi.mocked(requireRole).mockResolvedValue({
     ok: true,
     org: { orgId: org, role: "admin", name: "Org" },
-    user: { id: "actor", idioma: "pt-BR" },
+    user: { id: "actor", idioma: "pt-MZ" },
   } as Awaited<ReturnType<typeof requireRole>>);
 });
 

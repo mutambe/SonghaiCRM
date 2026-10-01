@@ -300,7 +300,7 @@ export async function listMessagesHandler(
         "invalid_cursor",
         undefined,
         ctx.requestId,
-        traduzir("Cursor inválido.", ctx.idioma ?? "pt-BR"),
+        traduzir("Cursor inválido.", ctx.idioma ?? "pt-MZ"),
       );
     }
     query = query.or(`sent_at.lt.${c.sent_at},and(sent_at.eq.${c.sent_at},id.lt.${c.id})`);
@@ -433,7 +433,7 @@ export async function sendMessageHandler(
       "not_found",
       undefined,
       ctx.requestId,
-      traduzir("Conversa não encontrada.", ctx.idioma ?? "pt-BR"),
+      traduzir("Conversa não encontrada.", ctx.idioma ?? "pt-MZ"),
     );
   }
 
@@ -469,7 +469,7 @@ export async function sendMessageHandler(
       "forbidden",
       undefined,
       ctx.requestId,
-      traduzir("Contato bloqueou o atendimento.", ctx.idioma ?? "pt-BR"),
+      traduzir("Contato bloqueou o atendimento.", ctx.idioma ?? "pt-MZ"),
     );
   }
 
@@ -514,7 +514,7 @@ export async function sendMessageHandler(
         ctx.requestId,
         traduzir(
           "Janela de 24 horas fechada: texto livre é recusado pela plataforma (131047). Envie um modelo aprovado ou aguarde o cliente escrever.",
-          ctx.idioma ?? "pt-BR",
+          ctx.idioma ?? "pt-MZ",
         ),
       );
     }
@@ -572,7 +572,7 @@ export async function sendMessageHandler(
           "not_found",
           undefined,
           ctx.requestId,
-          traduzir("Contato não encontrado.", ctx.idioma ?? "pt-BR"),
+          traduzir("Contato não encontrado.", ctx.idioma ?? "pt-MZ"),
         );
       }
       const row = shared as {
@@ -589,7 +589,7 @@ export async function sendMessageHandler(
           "contact_anonymized",
           undefined,
           ctx.requestId,
-          traduzir("Contato anonimizado não pode ser compartilhado.", ctx.idioma ?? "pt-BR"),
+          traduzir("Contato anonimizado não pode ser compartilhado.", ctx.idioma ?? "pt-MZ"),
         );
       }
       if (!row.phone_number) {
@@ -598,7 +598,7 @@ export async function sendMessageHandler(
           "missing_phone_number",
           undefined,
           ctx.requestId,
-          traduzir("Contato sem telefone para envio como cartão.", ctx.idioma ?? "pt-BR"),
+          traduzir("Contato sem telefone para envio como cartão.", ctx.idioma ?? "pt-MZ"),
         );
       }
       const displayName = nomeDoContato(row) ?? row.phone_number;
@@ -621,7 +621,7 @@ export async function sendMessageHandler(
           "invalid_payload",
           undefined,
           ctx.requestId,
-          traduzir("Telefone inválido para envio como cartão.", ctx.idioma ?? "pt-BR"),
+          traduzir("Telefone inválido para envio como cartão.", ctx.idioma ?? "pt-MZ"),
         );
       }
       const nameRaw = typeof o.name === "string" ? o.name.trim() : "";
@@ -639,7 +639,7 @@ export async function sendMessageHandler(
         ctx.requestId,
         traduzir(
           "Informe metadata.shared_contact_id ou metadata.shared_contact com telefone.",
-          ctx.idioma ?? "pt-BR",
+          ctx.idioma ?? "pt-MZ",
         ),
       );
     }
@@ -672,7 +672,7 @@ export async function sendMessageHandler(
         "validation_error",
         undefined,
         ctx.requestId,
-        traduzir("A mensagem citada não é desta conversa.", ctx.idioma ?? "pt-BR"),
+        traduzir("A mensagem citada não é desta conversa.", ctx.idioma ?? "pt-MZ"),
       );
     }
     citada = alvo as { id: string; external_id: string | null };
@@ -694,7 +694,7 @@ export async function sendMessageHandler(
       ctx.requestId,
       traduzir(
         "Envio em nome de outro usuário exige o escopo messages:on_behalf.",
-        ctx.idioma ?? "pt-BR",
+        ctx.idioma ?? "pt-MZ",
       ),
     );
   }

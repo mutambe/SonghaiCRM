@@ -238,7 +238,7 @@ describe("recusaDeCamposObrigatorios — a frase da recusa", () => {
         { chave: "concorrente", rotulo: "Concorrente" },
         { chave: "data_prevista", rotulo: "Data prevista" },
       ],
-      "pt-BR",
+      "pt-MZ",
     );
     expect(recusa.codigo).toBe("required_fields_missing");
     expect(recusa.mensagem).toContain("Concorrente, Data prevista");
@@ -248,7 +248,7 @@ describe("recusaDeCamposObrigatorios — a frase da recusa", () => {
 describe("recusaDeMotivoDoGanho — a lista do funil", () => {
   it("sem lista cadastrada o motivo é texto livre (não há o que recusar)", () => {
     expect(
-      recusaDeMotivoDoGanho({ motivo: "Qualquer coisa", settingsDoFunil: {}, idioma: "pt-BR" }),
+      recusaDeMotivoDoGanho({ motivo: "Qualquer coisa", settingsDoFunil: {}, idioma: "pt-MZ" }),
     ).toBeNull();
     expect(
       recusaDeMotivoDoGanho({ motivo: null, settingsDoFunil: { won_reasons: ["X"] } }),
@@ -259,13 +259,13 @@ describe("recusaDeMotivoDoGanho — a lista do funil", () => {
     const settings = { won_reasons: ["Expansão de contrato", "Renovação"] };
 
     expect(
-      recusaDeMotivoDoGanho({ motivo: "Renovação", settingsDoFunil: settings, idioma: "pt-BR" }),
+      recusaDeMotivoDoGanho({ motivo: "Renovação", settingsDoFunil: settings, idioma: "pt-MZ" }),
     ).toBeNull();
 
     const recusa = recusaDeMotivoDoGanho({
       motivo: "Mentira comercial",
       settingsDoFunil: settings,
-      idioma: "pt-BR",
+      idioma: "pt-MZ",
     });
     expect(recusa).toMatchObject({ codigo: "won_reason_invalid" });
     expect(recusa?.mensagem).toContain("não está na lista");

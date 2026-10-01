@@ -34,7 +34,7 @@ function authUserFixture(role: Role | null, platformAdmin = false): AuthUser {
     full_name: null,
     avatar_url: null,
     is_platform_admin: platformAdmin,
-    idioma: "pt-BR" as const,
+    idioma: "pt-MZ" as const,
     organizations: role
       ? [{ organization_id: ORG_ID, organization_name: "Org", role }]
       : [],

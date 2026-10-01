@@ -152,7 +152,7 @@ function usuario(): AuthUser {
     full_name: "Quem Atende",
     avatar_url: null,
     is_platform_admin: false,
-    idioma: "pt-BR",
+    idioma: "pt-MZ",
     organizations: [],
   } as AuthUser;
 }

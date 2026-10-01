@@ -234,7 +234,7 @@ export const AGENT_TOOL_DEFS = {
     description:
       'Envia UMA mensagem de WhatsApp ao lead desta conversa. É o ÚNICO jeito de falar com o lead; texto fora desta tool nunca é enviado.',
     inputSchema: z.object({
-      body: z.string().min(1).describe('corpo da mensagem, em pt-br, pronto para envio'),
+      body: z.string().min(1).describe('corpo da mensagem, em português de Moçambique (pt-MZ), pronto para envio'),
       produto_codigo: z
         .string()
         .optional()
@@ -333,7 +333,7 @@ export const AGENT_TOOL_DEFS = {
       'invente o que não encontrar. Sem resultados = diga que vai confirmar, nunca chute.',
     inputSchema: z
       .object({
-        query: z.string().min(2).describe('a pergunta ou termos a buscar, em pt-br'),
+        query: z.string().min(2).describe('a pergunta ou termos a buscar, em português'),
       })
       .passthrough(),
   },
@@ -417,7 +417,7 @@ export const AGENT_TOOL_DEFS = {
     inputSchema: z
       .object({
         title: z.string().describe('título curto, ex.: "Liberar acesso ao painel"'),
-        summary: z.string().describe('o que o lead precisa, em pt-br'),
+        summary: z.string().describe('o que o lead precisa, em português de Moçambique (pt-MZ)'),
         blocker: z.string().describe('por que você não consegue resolver sozinho'),
         // O assunto serve para quem TRIA a fila separar antes de ler. O detalhe
         // continua no título e no resumo — este campo não os substitui, e por

@@ -447,7 +447,7 @@ export async function GET(_req: NextRequest, ctx: RouteCtx): Promise<Response> {
     return fail("unauthenticated", "Auth required.", 401, { requestId });
   }
   const authUser = await loadAuthUser();
-  const t = (texto: string) => traduzir(texto, authUser?.idioma ?? "pt-BR");
+  const t = (texto: string) => traduzir(texto, authUser?.idioma ?? "pt-MZ");
 
   const [
     { data: pipeline, error: pipelineErr },

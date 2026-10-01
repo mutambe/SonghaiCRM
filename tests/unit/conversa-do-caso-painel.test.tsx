@@ -185,7 +185,7 @@ describe("CaseChatPanel — recusas e avisos sobre o contato", () => {
     expect(screen.queryByPlaceholderText("Pergunte à IA sobre este caso…")).not.toBeInTheDocument();
     expect(
       screen.getByText(
-        "Este contato foi anonimizado a pedido dele. A IA não responde sobre casos de contato anonimizado.",
+        "Este contacto foi anonimizado a pedido dele. A IA não responde sobre casos de contacto anonimizado.",
       ),
     ).toBeInTheDocument();
   });
@@ -196,7 +196,7 @@ describe("CaseChatPanel — recusas e avisos sobre o contato", () => {
 
     expect(
       screen.getByText(
-        "Este contato pediu para não receber mensagens. Dá para entender o caso aqui, mas nada pode ser enviado a ele.",
+        "Este contacto pediu para não receber mensagens. Dá para entender o caso aqui, mas nada pode ser enviado a ele.",
       ),
     ).toBeInTheDocument();
     // Bloqueado NÃO é recusa: perguntar continua valendo.
@@ -301,7 +301,7 @@ describe("CaseChatPanel — a thread", () => {
 
     const thread = screen.getByRole("log");
     expect(thread).toHaveAttribute("aria-live", "polite");
-    expect(within(thread).getByText("Pergunta da equipe")).toBeInTheDocument();
+    expect(within(thread).getByText("Pergunta da equipa")).toBeInTheDocument();
     expect(within(thread).getByText("Por que a IA não resolveu sozinha?")).toBeInTheDocument();
     // O nome da persona identifica QUEM respondeu — a promessa da feature.
     expect(within(thread).getByText("Ana")).toBeInTheDocument();
@@ -360,7 +360,7 @@ describe("CaseChatPanel — a thread", () => {
       }),
     );
     pintar();
-    expect(screen.getByText("Mensagem apagada a pedido do contato.")).toBeInTheDocument();
+    expect(screen.getByText("Mensagem apagada a pedido do contacto.")).toBeInTheDocument();
   });
 });
 
@@ -371,7 +371,7 @@ describe("CaseChatPanel — pensando", () => {
     pintar();
 
     expect(screen.getByText("A IA está lendo o caso…")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Perguntando…" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "A perguntar…" })).toBeDisabled();
   });
 });
 

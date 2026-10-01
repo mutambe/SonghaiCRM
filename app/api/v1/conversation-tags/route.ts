@@ -56,7 +56,7 @@ export async function GET(_req: NextRequest): Promise<Response> {
 
   const usadas = (emUso ?? []).map((l: { tag: string }) => l.tag);
   const tags = [...new Set([...canonicas, ...usadas])].sort((a, b) =>
-    a.localeCompare(b, "pt-BR"),
+    a.localeCompare(b, "pt-MZ"),
   );
   return ok(tags, { requestId });
 }

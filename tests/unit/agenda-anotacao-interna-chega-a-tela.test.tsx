@@ -88,7 +88,7 @@ afterEach(() => {
 
 function abrir() {
   render(
-    <IdiomaProvider locale="pt-BR">
+    <IdiomaProvider locale="pt-MZ">
       <QueryClientProvider client={client}>
         <DetalheDoCompromisso id="appointment" onClose={() => {}} />
       </QueryClientProvider>

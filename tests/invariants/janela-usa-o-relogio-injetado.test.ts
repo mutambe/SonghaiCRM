@@ -81,10 +81,10 @@ const CONV = "dddddddd-0000-4000-8000-0000000000a4";
 const MSG = "dddddddd-0000-4000-8000-0000000000a5";
 const CRM_EVENT = "dddddddd-0000-4000-8000-0000000000a6";
 
-/** Terça, 15h BRT — dentro da janela anti-ban padrão (7h–22h). */
+/** Terça, 20h em Maputo — dentro da janela anti-ban padrão (7h–22h). */
 const DENTRO_DA_JANELA = new Date("2026-07-28T18:00:00Z");
-/** Terça, 3h BRT — fora dela, com folga dos dois lados. */
-const FORA_DA_JANELA = new Date("2026-07-28T06:00:00Z");
+/** Terça, 3h em Maputo (fuso padrão, UTC+2) — fora dela, com folga dos dois lados. */
+const FORA_DA_JANELA = new Date("2026-07-28T01:00:00Z");
 
 interface EnvioCapturado {
   body: string;

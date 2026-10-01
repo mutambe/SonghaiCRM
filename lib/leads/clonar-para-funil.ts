@@ -23,6 +23,7 @@
  */
 import type { CreateLeadInput } from "@/lib/schemas";
 import { type ModoReabertura } from "@/lib/leads/reabertura";
+import { MOEDA_PADRAO } from "@/lib/money";
 
 /** O negócio de origem, como a rota o lê do banco. */
 export interface OrigemParaClonar {
@@ -221,7 +222,7 @@ export function montaPayloadDoClone(
     description: origem.description ?? null,
     contact_id: origem.contact_id ?? null,
     value_cents: origem.value_cents ?? null,
-    currency: origem.currency ?? "BRL",
+    currency: origem.currency ?? MOEDA_PADRAO,
     ...dono,
     // O dono é o da origem: se ele não pode mais ser dono, o clone nasce sem
     // dono em vez de a troca de funil falhar (ver `createLeadHandler`).

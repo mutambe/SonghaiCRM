@@ -11,7 +11,7 @@
  * prompt antigos, `ai_agent_versions` vazia.
  *
  * **1. Sem número, não salvava.** `channel_session_id` era exigido pela régua de
- * campo do formulário — a mesma que habilita "Salvar rascunho" —, e o seletor de
+ * campo do formulário — a mesma que habilita "Guardar rascunho" —, e o seletor de
  * número abria vazio, porque não existe número nenhum numa instalação nova.
  * Escolher por onde o agente atende é requisito para ATENDER; rascunhar quem ele
  * é não depende de aparelho pareado. (Coluna anulável: migration 0239.)
@@ -137,7 +137,7 @@ function abrirEditor(
       />
     </QueryClientProvider>,
   );
-  const botaoSalvar = () => screen.getByRole("button", { name: /salvar rascunho/i });
+  const botaoSalvar = () => screen.getByRole("button", { name: /guardar rascunho/i });
   const botaoPublicar = () => screen.getByRole("button", { name: /publicar/i });
   return { botaoSalvar, botaoPublicar, container };
 }
@@ -187,7 +187,7 @@ describe("editor do agente sem número conectado", () => {
     expect(botaoPublicar()).toBeDisabled();
     const dica = botaoPublicar().closest("span")?.getAttribute("title") ?? "";
     expect(dica).toMatch(/número de WhatsApp/i);
-    expect(dica, "a dica não diz que o trabalho está guardado").toMatch(/rascunho está salvo/i);
+    expect(dica, "a dica não diz que o trabalho está guardado").toMatch(/rascunho está guardado/i);
   });
 
   // ─── O defeito 2 ─────────────────────────────────────────────────────────

@@ -43,7 +43,7 @@ beforeEach(() => {
   vi.unstubAllEnvs();
   vi.clearAllMocks();
   mocks.support.mockResolvedValue(null);
-  mocks.guard.mockResolvedValue({ ok: true, user: { id: AGENTE, idioma: "pt-BR" }, org: { orgId: ORG } });
+  mocks.guard.mockResolvedValue({ ok: true, user: { id: AGENTE, idioma: "pt-MZ" }, org: { orgId: ORG } });
 });
 
 /** Postgres de mentira: `roteiroValido` diz se a consulta de roteiros o acha (mesma empresa + atendimento). */

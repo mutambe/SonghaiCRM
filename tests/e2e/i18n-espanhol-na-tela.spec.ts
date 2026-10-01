@@ -146,7 +146,7 @@ async function textosVisiveis(page: Page): Promise<string[]> {
  *
  * O botão mostra o código em vigor ("PT"/"ES"), então ele é a própria sonda.
  */
-async function porIdiomaEm(page: Page, codigo: "pt-BR" | "es"): Promise<void> {
+async function porIdiomaEm(page: Page, codigo: "pt-MZ" | "es"): Promise<void> {
   const curto = codigo === "es" ? "ES" : "PT";
   const botao = page.getByTestId("seletor-de-idioma");
   if ((await botao.innerText()).trim() === curto) return;
@@ -187,7 +187,7 @@ async function porIdiomaEm(page: Page, codigo: "pt-BR" | "es"): Promise<void> {
  *
  * Por isso a restauração é `afterAll` e vai DIRETO AO BANCO, não pela tela: se
  * a falha foi na tela, restaurar pela tela falharia junto. `null` (e não
- * "pt-BR") porque `null` é a ausência de preferência, que é como a conta nasce
+ * "pt-MZ") porque `null` é a ausência de preferência, que é como a conta nasce
  * do seed — devolver um valor onde não havia nenhum é deixar outro rastro.
  */
 /**
@@ -287,7 +287,7 @@ test.describe("o idioma escolhido chega à tela", () => {
     // não medição.
     await page.goto(TELAS[0]!);
     await page.waitForLoadState("networkidle", { timeout: PRAZO });
-    await porIdiomaEm(page, "pt-BR");
+    await porIdiomaEm(page, "pt-MZ");
 
     // ── 1. O retrato em português, ANTES de qualquer troca ──────────────────
     const antes = new Map<string, string[]>();
@@ -405,7 +405,7 @@ test.describe("o idioma escolhido chega à tela", () => {
     // como a garantia que ela não é.
     await page.goto(TELAS[0]!);
     await page.waitForLoadState("networkidle", { timeout: PRAZO });
-    await porIdiomaEm(page, "pt-BR");
+    await porIdiomaEm(page, "pt-MZ");
     for (const tela of TELAS) {
       await page.goto(tela);
       await page.waitForLoadState("networkidle", { timeout: PRAZO });

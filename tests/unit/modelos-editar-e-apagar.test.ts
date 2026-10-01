@@ -173,7 +173,7 @@ const post = (body: unknown) =>
 
 beforeEach(() => {
   vi.clearAllMocks();
-  h.role.mockResolvedValue({ ok: true, org: { orgId: "org" }, user: { id: "u-1", idioma: "pt-BR" } });
+  h.role.mockResolvedValue({ ok: true, org: { orgId: "org" }, user: { id: "u-1", idioma: "pt-MZ" } });
   h.find.mockResolvedValue({ id: "sess-1", archivedAt: null });
   h.list.mockResolvedValue([]);
   h.update.mockResolvedValue({});

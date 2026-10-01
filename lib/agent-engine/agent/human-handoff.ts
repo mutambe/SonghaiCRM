@@ -349,7 +349,7 @@ async function idiomaDaOrganizacao(db: pg.Pool, tenantId: string, log: Logger): 
     log.warn('idioma da organização não lido — aviso da Central em português', {
       error: err instanceof Error ? err.message.slice(0, 120) : 'erro desconhecido',
     });
-    return 'pt-BR';
+    return 'pt-MZ';
   }
 }
 

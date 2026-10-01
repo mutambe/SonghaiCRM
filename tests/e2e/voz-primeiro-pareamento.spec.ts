@@ -100,7 +100,7 @@ test("a primeira sessão mostra o QR depois de aceitar e ligar a voz", async ({
       display_name: "Empresa de teste de voz",
       legal_name: "Empresa de teste de voz",
       timezone: "America/Sao_Paulo",
-      locale: "pt-BR",
+      locale: "pt-MZ",
       onboarded_at: new Date().toISOString(),
     });
     expect(org.error).toBeNull();

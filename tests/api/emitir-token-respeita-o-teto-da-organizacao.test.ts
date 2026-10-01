@@ -55,7 +55,7 @@ beforeEach(() => {
   deps.support.mockResolvedValue(null);
   deps.role.mockResolvedValue({
     ok: true,
-    user: { id: "human", idioma: "pt-BR" },
+    user: { id: "human", idioma: "pt-MZ" },
     org: { orgId: "org-teto" },
   });
 });

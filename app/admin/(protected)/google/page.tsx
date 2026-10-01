@@ -7,6 +7,7 @@ import { tagDeIdioma } from "@/lib/i18n/datas";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 import { FormularioDoGoogle } from "./_form";
+import { FUSO_PADRAO } from "@/lib/tempo/fusos";
 
 export const metadata = { title: "Google Agenda da instalação" };
 export const dynamic = "force-dynamic";
@@ -78,7 +79,7 @@ export default async function Page() {
               // Fuso fixo porque a coluna é da INSTALAÇÃO: não há organização
               // resolvida nesta tela de onde tirar um, e formatar no cliente
               // faria o HTML servido e a hidratação divergirem.
-              timeZone: "America/Sao_Paulo",
+              timeZone: FUSO_PADRAO,
               dateStyle: "short",
               timeStyle: "short",
             })

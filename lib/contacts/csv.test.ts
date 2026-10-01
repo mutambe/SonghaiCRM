@@ -210,22 +210,19 @@ describe("CSV em espanhol de ponta a ponta (parseCsv → mapHeader → mapLinha)
 
 describe("normalizaTelefone", () => {
   it.each([
-    ["+5511999998888", "+5511999998888"],
-    ["+55 11 99999-8888", "+5511999998888"],
-    // ⚠️ ERA `+11999998888` — número quebrado: o `11` é DDD e estava ocupando o
-    // lugar do DDI (`+11` são os Estados Unidos). Decisão do dono, 2026-08-24:
-    // planilha sem DDI é brasileira, e a regra é a mesma da ingestão de webhook.
-    ["(11) 99999-8888", "+5511999998888"],
-    ["11999998888", "+5511999998888"],
-    ["(11) 3333-4444", "+551133334444"],
-    ["5511999998888", "+5511999998888"],
-    ["3284793302", "+5532984793302"],
-    ["+553284793302", "+5532984793302"],
+    // SonghaiCRM: planilha sem indicativo é MOÇAMBICANA (lib/channels/telefone-local.ts).
+    ["+258841234567", "+258841234567"],
+    ["+258 84 123 4567", "+258841234567"],
+    ["84 123 4567", "+258841234567"],
+    ["841234567", "+258841234567"],
+    ["21 123 456", "+25821123456"],
+    ["258841234567", "+258841234567"],
+    ["+351 912 345 678", "+351912345678"],
   ])("%s → %s", (raw, esperado) => {
     expect(normalizaTelefone(raw)).toBe(esperado);
   });
 
-  it.each(["123", "abc", "+5511", "999998888"])("recusa %s", (raw) => {
+  it.each(["123", "abc", "+5511", "999998888", "11999998888"])("recusa %s", (raw) => {
     expect(normalizaTelefone(raw)).toBeNull();
   });
 
@@ -328,7 +325,7 @@ describe("mapHeader / mapLinha — mensagens de erro passam por t()", () => {
   it("mapLinha: telefone inválido traduz por completo, incluindo o texto após o valor cru", () => {
     const { motivo } = mapLinha(["Ana", "123", "", ""], indices, gritar);
     expect(motivo).toBe(
-      'TELÉFONO INVÁLIDO: "123" (USA EL NÚMERO CON EL CÓDIGO DEL PAÍS, POR EJEMPLO +5511999998888)',
+      'TELÉFONO INVÁLIDO: "123" (USA EL NÚMERO CON EL CÓDIGO DEL PAÍS, POR EJEMPLO +258841234567)',
     );
   });
 
@@ -340,7 +337,7 @@ describe("mapHeader / mapLinha — mensagens de erro passam por t()", () => {
   it("mapLinha: sem t, comportamento idêntico ao de antes (degrada para o texto original)", () => {
     const { motivo } = mapLinha(["Ana", "123", "", ""], indices);
     expect(motivo).toBe(
-      'telefone inválido: "123" (use o número com o código do país, por exemplo +5511999998888)',
+      'telefone inválido: "123" (use o número com o código do país, por exemplo +258841234567)',
     );
   });
 });

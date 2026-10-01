@@ -18,7 +18,7 @@ import { showApiError } from "@/components/feedback/ApiErrorToast";
 import { Button } from "@/components/ui/button";
 import { useT } from "@/hooks/i18n/useT";
 import { apiClient } from "@/lib/api/client";
-import { formatCents, parseReaisToCents } from "@/lib/money";
+import { formatCents, parseReaisToCents, MOEDA_PADRAO } from "@/lib/money";
 
 import { AtendimentosSemComanda, type Pendente } from "./_pendentes";
 
@@ -162,7 +162,7 @@ export function Comandas({
   });
 
   const comanda = detalhe.data ?? null;
-  const moeda = comanda?.currency ?? "BRL";
+  const moeda = comanda?.currency ?? MOEDA_PADRAO;
 
   // O saldo de pontos do cliente, ao lado da comanda dele. Sem isto, quem está
   // no balcão teria de abrir a ficha em outra tela para saber se o prêmio já

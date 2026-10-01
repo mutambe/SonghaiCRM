@@ -44,7 +44,7 @@ afterEach(() => {
 
 function abrir(value: string[]) {
   return render(
-    <IdiomaProvider locale="pt-BR">
+    <IdiomaProvider locale="pt-MZ">
       <QueryClientProvider client={client}>
         <ToolPicker value={value} onChange={() => undefined} />
       </QueryClientProvider>

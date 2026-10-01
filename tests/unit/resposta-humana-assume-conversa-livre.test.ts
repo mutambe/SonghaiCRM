@@ -49,7 +49,7 @@ beforeEach(() => {
     actor: { type: "user", id: userId },
     // Exercitamos a rota real com somente o banco dublado.
     supabase: { rpc, from } as never,
-    idioma: "pt-BR",
+    idioma: "pt-MZ",
   });
   vi.mocked(sendMessageHandler).mockResolvedValue({
     id: "message-1",

@@ -18,6 +18,7 @@ import { estaPresente } from "@/lib/atendimento/presenca";
 import { ROLE_RANK, type Role } from "@/lib/auth/types";
 import { isAttendantEligible, OPEN_LOAD_STATUSES } from "@/lib/routing/eligibility";
 import { availabilityScheduleSchema } from "@/lib/schemas/routing";
+import { FUSO_PADRAO } from "@/lib/tempo/fusos";
 
 const COLUNAS_DISPONIBILIDADE =
   "user_id, is_available, capacity, schedule, updated_at, last_heartbeat_at";
@@ -116,7 +117,7 @@ export async function carregarRosterDeAtendimento(
       papel: m.role,
       disponivel: a?.is_available ?? false,
       capacidade: a?.capacity ?? null,
-      agenda: a?.schedule ?? { timezone: "America/Sao_Paulo", windows: [] },
+      agenda: a?.schedule ?? { timezone: FUSO_PADRAO, windows: [] },
       atualizadoEm: a?.updated_at ?? null,
       cargaAtual: cargaPorUsuario.get(m.user_id) ?? 0,
       // Quem nunca emitiu sinal tem `last_heartbeat_at` null, e o roster diz

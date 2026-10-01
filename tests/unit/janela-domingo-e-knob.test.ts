@@ -19,11 +19,11 @@ import { describe, expect, it } from "vitest";
 import { PACING_DEFAULTS } from "@/lib/agent-engine/pacing/defaults";
 import { decidePacing } from "@/lib/agent-engine/pacing/engine";
 
-/** 2026-08-23 é DOMINGO. 13h UTC = 10h BRT, dentro da janela 7h-22h. */
+/** 2026-08-23 é DOMINGO. 13h UTC = 15h em Maputo, dentro da janela 7h-22h. */
 const DOMINGO_COMERCIAL = new Date("2026-08-23T13:00:00Z");
-/** Mesmo domingo, 06h UTC = 03h BRT — fora da janela por HORA, não por dia. */
-const DOMINGO_MADRUGADA = new Date("2026-08-23T06:00:00Z");
-/** Terça, 10h BRT — controle. */
+/** Mesmo domingo, 01h UTC = 03h em Maputo — fora da janela por HORA, não por dia. */
+const DOMINGO_MADRUGADA = new Date("2026-08-23T01:00:00Z");
+/** Terça, 15h em Maputo — controle. */
 const TERCA_COMERCIAL = new Date("2026-07-28T13:00:00Z");
 
 function input(now: Date, over: Partial<typeof PACING_DEFAULTS> = {}) {
@@ -71,7 +71,7 @@ describe("o knob continua existindo — quem faz prospecção desliga", () => {
   it("e o próximo horário permitido cai FORA do domingo", () => {
     const d = decidePacing(input(DOMINGO_COMERCIAL, { allowSunday: false }));
     if (d.allow) throw new Error("deveria ter vetado");
-    // Em America/Sao_Paulo (UTC-3): segunda 07h local = 10h UTC.
+    // Em Africa/Maputo (UTC+2): segunda 07h local = 05h UTC.
     expect(d.nextAllowedAt.getUTCDay(), "não pode reagendar para outro domingo").not.toBe(0);
   });
 });

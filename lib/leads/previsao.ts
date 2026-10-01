@@ -31,6 +31,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { ApiError } from "@/lib/api/types";
+import { MOEDA_PADRAO } from "@/lib/money";
 
 export type FonteDeProbabilidade = "etapa" | "ia_quando_houver";
 
@@ -104,7 +105,7 @@ function somar(alvo: Balde, bruto: number, ponderado: number): void {
 /** ISO 4217 em caixa alta; sem moeda declarada o funil é BRL, como o resto da tela. */
 function moedaDe(lead: LeadDaPrevisao): string {
   const bruta = (lead.currency ?? "").trim().toUpperCase();
-  return bruta || "BRL";
+  return bruta || MOEDA_PADRAO;
 }
 
 function dentroDe0a100(valor: number | null | undefined): number | null {

@@ -8,6 +8,7 @@ import { acceptWelcome } from "@/app/actions/onboarding/acceptWelcome";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { FUSO_PADRAO } from "@/lib/tempo/fusos";
 import {
   Select,
   SelectContent,
@@ -22,17 +23,9 @@ import {
  * identificador é do sistema, o que ela reconhece é a cidade.
  */
 const FUSOS: { id: string; cidade: string }[] = [
-  { id: "America/Sao_Paulo", cidade: "São Paulo, Rio, Brasília, Sul e Sudeste" },
-  { id: "America/Recife", cidade: "Recife, Salvador, Fortaleza e Nordeste" },
-  { id: "America/Belem", cidade: "Belém e Pará" },
-  { id: "America/Manaus", cidade: "Manaus e Amazonas" },
-  { id: "America/Cuiaba", cidade: "Cuiabá e Mato Grosso" },
-  { id: "America/Rio_Branco", cidade: "Rio Branco e Acre" },
-  { id: "America/Argentina/Buenos_Aires", cidade: "Buenos Aires" },
+  { id: "Africa/Maputo", cidade: "Maputo, Beira, Nampula e todo Moçambique" },
+  { id: "Africa/Johannesburg", cidade: "Joanesburgo" },
   { id: "Europe/Lisbon", cidade: "Lisboa" },
-  { id: "Europe/Madrid", cidade: "Madri" },
-  { id: "America/New_York", cidade: "Nova York" },
-  { id: "America/Los_Angeles", cidade: "Los Angeles" },
   { id: "UTC", cidade: "Outro (horário universal)" },
 ];
 
@@ -40,7 +33,7 @@ export function WelcomeForm({ defaultOrgName }: { defaultOrgName: string }) {
   const t = useT();
   const [displayName, setDisplayName] = useState(defaultOrgName);
   const [oQueFaz, setOQueFaz] = useState("");
-  const [timezone, setTimezone] = useState("America/Sao_Paulo");
+  const [timezone, setTimezone] = useState(FUSO_PADRAO);
   const [accepted, setAccepted] = useState(false);
   const [pending, startTransition] = useTransition();
 

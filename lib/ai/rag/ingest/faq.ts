@@ -24,7 +24,7 @@ export interface FaqItem {
   locale: string;
 }
 
-const DEFAULT_LOCALE = "pt-BR";
+const DEFAULT_LOCALE = "pt-MZ";
 
 /** Regex matching both `## Pergunta:` and `## P:` (case-insensitive). */
 const QUESTION_RE = /^##\s+(?:pergunta|p)\s*:/i;

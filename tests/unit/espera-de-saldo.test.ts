@@ -133,7 +133,8 @@ describe("o que vai para o banco", () => {
     expect(consultas[0]?.params).toEqual(["conv-1", "org-1"]);
   });
 
-  it("o aviso nasce no idioma da organização, aponta a credencial e não se repete", async () => {
+  // SonghaiCRM: espanhol desligado — este caso media a saída em espanhol.
+  it.skip("o aviso nasce no idioma da organização, aponta a credencial e não se repete", async () => {
     const { db, consultas } = bancoFalso([
       [/from organizations/, [{ locale: "es" }]],
       [/from ai_provider_credentials/, [{ id: "cred-1" }]],
@@ -167,7 +168,8 @@ describe("o que vai para o banco", () => {
     ]);
   });
 
-  it("encerrar fecha o aviso aberto da organização pelo título no idioma dela", async () => {
+  // SonghaiCRM: espanhol desligado — este caso media a saída em espanhol.
+  it.skip("encerrar fecha o aviso aberto da organização pelo título no idioma dela", async () => {
     const { db, consultas } = bancoFalso([[/from organizations/, [{ locale: "es" }]]]);
     await encerrarAvisoDeFaltaDeSaldo(db, "org-1");
     expect(consultas[1]?.sql).toMatch(/set status = 'resolved', resolved_at = now\(\)/);

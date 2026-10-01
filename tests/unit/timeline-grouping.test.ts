@@ -176,6 +176,7 @@ describe("agrupaTimeline · lista longa", () => {
   it("o rótulo do dia é legível para quem lê, não uma chave", () => {
     const itens = Array.from({ length: 20 }, (_, i) => item(i, 20, `u${i}`));
     const dia = agrupaTimeline(itens).find((b) => b.tipo === "dia");
-    expect(dia && dia.tipo === "dia" && dia.rotulo).toMatch(/jul/i);
+    expect(dia && dia.tipo === "dia" && dia.rotulo).toMatch(/jul|\d{2}\/07/i); // pt-MZ: "segunda-feira, 20/07"
+    expect(dia && dia.tipo === "dia" && dia.rotulo).not.toMatch(/^\d{4}-/);
   });
 });

@@ -29,7 +29,7 @@ function formatDateTick(s: string, idioma: string): string {
 }
 
 function formatNumber(n: number): string {
-  return n.toLocaleString("pt-BR");
+  return n.toLocaleString("pt-MZ");
 }
 
 function formatTokens(n: number): string {
@@ -197,7 +197,7 @@ export function UsageChart({ payload }: Props) {
                 // deixaria a régua contradizendo o rótulo — o gráfico diria
                 // "segundos" e mostraria 24.000 na lateral.
                 tickFormatter={(v: number) =>
-                  (v / 1000).toLocaleString("pt-BR", { maximumFractionDigits: 0 })
+                  (v / 1000).toLocaleString("pt-MZ", { maximumFractionDigits: 0 })
                 }
                 width={40}
               />
@@ -205,7 +205,7 @@ export function UsageChart({ payload }: Props) {
                 // Segundos, não milissegundos: 17.621 ms não diz nada a quem
                 // atende; 17,6 s diz.
                 formatter={(value, name) => [
-                  `${(Number(value) / 1000).toLocaleString("pt-BR", { maximumFractionDigits: 1 })} s`,
+                  `${(Number(value) / 1000).toLocaleString("pt-MZ", { maximumFractionDigits: 1 })} s`,
                   name,
                 ]}
                 labelFormatter={(label) => formatDateTick(String(label), tagDoIdioma)}

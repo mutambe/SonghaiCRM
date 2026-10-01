@@ -664,7 +664,7 @@ it("entrega real controlada: fila→gates→ledger→handler→HTTP; replay não
     expect(state.meeting_delivery.state, JSON.stringify(db.errors)).toBe("sent");
     expect(bodies).toHaveLength(1);
     expect(bodies[0]!.text).toContain("https://meet.google.com/abc-defg-hij");
-    expect(bodies[0]!.text).toContain("America/Sao_Paulo");
+    expect(bodies[0]!.text).toContain("Africa/Maputo"); // fuso padrão da distribuição
     const messages = (
       await pool.query("select * from messages where organization_id=$1 and contact_id=$2", [
         f.org,

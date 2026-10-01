@@ -81,7 +81,7 @@ beforeEach(() => {
   h.espelho = [];
   h.tabelas = {};
   h.ligado.mockReturnValue(true);
-  h.role.mockResolvedValue({ ok: true, org: { orgId: "org-da-sessao" }, user: { id: "u-1", idioma: "pt-BR" } });
+  h.role.mockResolvedValue({ ok: true, org: { orgId: "org-da-sessao" }, user: { id: "u-1", idioma: "pt-MZ" } });
   h.find.mockResolvedValue({ id: "sess-1", archivedAt: null });
   h.list.mockResolvedValue([
     { name: "boas_vindas", language: "pt_BR", status: "APPROVED", category: "UTILITY", components: CORPO },

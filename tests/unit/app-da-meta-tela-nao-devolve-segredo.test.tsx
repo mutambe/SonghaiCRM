@@ -35,7 +35,7 @@ const TOKEN_GERADO = "tOkEn_gerado_pelo_servidor_0123456789abcdef";
 
 let linha: Record<string, string | null> | null = null;
 let erroDaLeitura: { code: string; message: string } | null = null;
-let usuario: { is_platform_admin: boolean; idioma: "pt-BR" } | null = null;
+let usuario: { is_platform_admin: boolean; idioma: "pt-MZ" } | null = null;
 
 vi.mock("@/lib/auth/server", () => ({ loadAuthUser: async () => usuario }));
 
@@ -80,7 +80,7 @@ import { FormularioDaMeta } from "@/app/admin/(protected)/meta/_form";
 const ORIGINAL = { ...process.env };
 
 beforeEach(() => {
-  usuario = { is_platform_admin: true, idioma: "pt-BR" };
+  usuario = { is_platform_admin: true, idioma: "pt-MZ" };
   linha = null;
   erroDaLeitura = null;
   process.env.META_APP_SECRET = SEGREDO_DO_ENV;
@@ -128,7 +128,8 @@ describe("/admin/meta — o que a página entrega ao navegador", () => {
       temNoAmbiente: true,
       leituraFalhou: false,
     });
-    expect(props.tokenGeradoEm).toBe("15/09/2026, 10:00");
+    // 13:00Z em Maputo (UTC+2), no formato curto de pt-MZ.
+    expect(props.tokenGeradoEm).toBe("15/09/26, 15:00");
     expect(decifrar).not.toHaveBeenCalled();
   });
 
@@ -152,7 +153,7 @@ describe("/admin/meta — o que a página entrega ao navegador", () => {
   });
 
   it("quem não administra a instalação não enxerga a tela", async () => {
-    usuario = { is_platform_admin: false, idioma: "pt-BR" };
+    usuario = { is_platform_admin: false, idioma: "pt-MZ" };
 
     await expect(Page()).rejects.toThrow("NEXT_NOT_FOUND");
   });
@@ -193,7 +194,7 @@ describe("/admin/meta — o formulário", () => {
     render(<FormularioDaMeta {...TUDO_CONFIGURADO} />);
 
     expect(screen.getByLabelText("Chave secreta do aplicativo").getAttribute("placeholder")).toMatch(
-      /já cadastrada/,
+      /já registada/,
     );
     expect(screen.getByTestId("meta-token-estado").textContent).toBe("Gerado em 15/09/2026, 10:00.");
     expect(screen.getByTestId("meta-gerar-token").textContent).toBe("Gerar novo token");

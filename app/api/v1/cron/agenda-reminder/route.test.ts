@@ -101,7 +101,8 @@ describe("montarLembrete", () => {
       timezone: "America/Sao_Paulo",
       local: null,
     });
-    expect(texto.startsWith("Oi!")).toBe(true);
+    // pt-MZ: a camada de vocabulário troca "Oi" por "Olá" no texto ao cliente.
+    expect(texto.startsWith("Olá!")).toBe(true);
     expect(texto).not.toContain("null");
     expect(texto).not.toContain("undefined");
   });

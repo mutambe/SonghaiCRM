@@ -70,7 +70,7 @@ function montarMundoDeAplicar(opts: MundoOpts = {}) {
       full_name: "Test User",
       avatar_url: null,
       is_platform_admin: false,
-      idioma: "pt-BR",
+      idioma: "pt-MZ",
       organizations: [],
     },
     org: { orgId: ORG_ID, name: "Test Org", role: "agent" },

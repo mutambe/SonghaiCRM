@@ -47,7 +47,7 @@ function deps(patch: Partial<DepsDoAvisoDeTeste> = {}) {
   const base: DepsDoAvisoDeTeste = {
     db: {
       carregaCanal: vi.fn(async () => canalSaudavel),
-      marcaDaOrganizacao: vi.fn(async () => ({ nome: "Acme", idioma: "pt-BR" as const })),
+      marcaDaOrganizacao: vi.fn(async () => ({ nome: "Acme", idioma: "pt-MZ" as const })),
       destinoEhDaPropriaOrganizacao: vi.fn(async () => false),
     },
     transporte: {

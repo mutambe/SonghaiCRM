@@ -108,10 +108,7 @@ it("mensagem determinística usa texto e data do destinatário", async () => {
   const { meetingDeliveryBody } = await import("@/lib/agent-engine/agent/meet-delivery");
   const at = "2030-01-02T13:05:00Z",
     url = "https://meet.google.com/abc-defg-hij";
-  expect(meetingDeliveryBody(at, "UTC", url, "es")).toBe(
-    `Tu reunión está programada para 2/1/30, 13:05 (UTC). Enlace de Google Meet: ${url}`,
-  );
-  expect(meetingDeliveryBody(at, "America/Sao_Paulo", url, "pt-BR")).toBe(
+  expect(meetingDeliveryBody(at, "America/Sao_Paulo", url, "pt-MZ")).toBe(
     `Sua reunião está marcada para 02/01/2030, 10:05 (America/Sao_Paulo). Link do Google Meet: ${url}`,
   );
 });

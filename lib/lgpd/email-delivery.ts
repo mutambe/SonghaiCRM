@@ -29,6 +29,7 @@ import { createHash } from "node:crypto";
 
 import { NEUTROS_DE_SAIDA, type MarcaDeSaida } from "@/lib/branding/saida";
 import { sendEmail } from "@/lib/email/roteador";
+import { FUSO_PADRAO } from "@/lib/tempo/fusos";
 
 export class EmailNotConfigured extends Error {
   constructor() {
@@ -60,14 +61,14 @@ interface SendArgs {
 export async function sendExportEmail(args: SendArgs): Promise<{ messageId: string }> {
   const shortId = args.requestId.slice(0, 8);
   const orgName = escapeHtml(args.marca.nome);
-  const expiresFmt = args.expiresAt.toLocaleString("pt-BR", {
-    timeZone: "America/Sao_Paulo",
+  const expiresFmt = args.expiresAt.toLocaleString("pt-MZ", {
+    timeZone: FUSO_PADRAO,
   });
 
   const subject = `Sua solicitação LGPD #${shortId}`;
 
   const html = `<!doctype html>
-<html lang="pt-BR">
+<html lang="pt-MZ">
 <body style="font-family:-apple-system,Helvetica,Arial,sans-serif;color:${NEUTROS_DE_SAIDA.texto};line-height:1.5;max-width:560px;margin:0 auto;padding:24px;">
   <h2 style="margin:0 0 12px;font-size:18px;">Solicitação LGPD #${shortId} processada</h2>
   <p>Olá,</p>

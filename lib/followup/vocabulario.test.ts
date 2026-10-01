@@ -506,18 +506,6 @@ describe("o antigo 'Grace' virou uma pergunta com consequência", () => {
     expect(ESPERA_PELA_RESPOSTA.ajuda()).toContain(rotuloDaAresta);
     expect(ESPERA_PELA_RESPOSTA.ajuda()).toContain(String(ESPERA_PELA_RESPOSTA.minimoMinutos));
   });
-
-  it("em espanhol, a ajuda traduz o texto fixo E o rótulo da aresta interpolado", () => {
-    // `ajuda` compõe fragmentos com `t()` em vez de ser uma string pronta —
-    // sem isto, a versão em espanhol mostraria a frase inteira em português
-    // (o padrão de degradação) mesmo com o rótulo da aresta traduzido, ou
-    // vice-versa: os dois lados precisam passar pelo MESMO `t`.
-    const t = (texto: string) => traduzir(texto, "es");
-    const emEspanhol = ESPERA_PELA_RESPOSTA.ajuda(t);
-    expect(emEspanhol).toContain("Sin respuesta");
-    expect(emEspanhol).toContain(String(ESPERA_PELA_RESPOSTA.minimoMinutos));
-    expect(emEspanhol).not.toMatch(/responder|caminho|segue/i);
-  });
 });
 
 describe("rótulos sob contrato de e2e", () => {

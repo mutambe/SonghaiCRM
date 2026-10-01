@@ -63,28 +63,27 @@ describe("a régua é o fuso do TENANT, não o relógio de quem roda", () => {
   });
 });
 
-describe("as duas horas que a régua antiga errava, em Brasília", () => {
-  // 22:30Z = 19:30 em São Paulo. A régua antiga comparava 22 contra o fim da
-  // janela (22) e FECHAVA: o envio das 19h30 ficava represado até as 4h da
-  // manhã. Dentro de 7h–22h no fuso do tenant, ele sai na hora.
-  it("19h30 de Brasília envia — antes ficava represado até as 4h", async () => {
-    expect(await adiarAteAJanelaAbrir(SEM_LINHA, ORG, CANAL, new Date("2026-07-17T22:30:00Z")))
+// SonghaiCRM: o fuso padrão é Africa/Maputo (UTC+2). As mesmas duas regressões
+// da régua antiga (que comparava a HORA UTC com a janela local), nas horas em
+// que ela erraria em Moçambique.
+describe("as duas horas que a régua antiga errava, em Maputo", () => {
+  // 05:30Z = 07:30 em Maputo. A régua antiga via "5h", achava que estava fora de
+  // 7h–22h e REPRESAVA o envio. Dentro de 7h–22h no fuso do tenant, sai na hora.
+  it("07h30 de Maputo envia — antes ficava represado", async () => {
+    expect(await adiarAteAJanelaAbrir(SEM_LINHA, ORG, CANAL, new Date("2026-07-17T05:30:00Z")))
       .toBeNull();
   });
 
-  // 08:00Z = 05:00 em São Paulo. A régua antiga via "8h", achava que estava
-  // dentro de 7h–22h e MANDAVA — mensagem no celular do cliente às 5h da manhã.
-  it("05h de Brasília adia — antes mandava mensagem de madrugada", async () => {
-    const quando = await adiarAteAJanelaAbrir(SEM_LINHA, ORG, CANAL, new Date("2026-07-17T08:00:00Z"));
+  // 21:30Z = 23:30 em Maputo. A régua antiga via "21h", achava que estava dentro
+  // de 7h–22h e MANDAVA — mensagem no telemóvel do cliente às 23h30.
+  it("23h30 de Maputo adia — antes mandava mensagem de noite", async () => {
+    const quando = await adiarAteAJanelaAbrir(SEM_LINHA, ORG, CANAL, new Date("2026-07-17T21:30:00Z"));
     expect(quando).not.toBeNull();
 
-    // A próxima abertura é 7h de São Paulo do MESMO dia = 10:00Z — mais um
-    // JITTER de até `jitterMaxMs`, que não é ruído e não deve ser cravado:
-    // `proximaAberturaDaJanela` soma `jitterOf(Math.random)` de propósito.
-    // Sem ele, cem automações represadas na madrugada abririam todas às
-    // 07:00:00.000 do mesmo segundo — que é a assinatura de robô que a janela
-    // existe para evitar. Por isso a asserção é de FAIXA, não de igualdade.
-    const abertura = Date.parse("2026-07-17T10:00:00.000Z");
+    // A próxima abertura é 7h de Maputo do dia SEGUINTE = 05:00Z — mais um
+    // JITTER de até `jitterMaxMs` (ver o upstream: a asserção é de FAIXA, para
+    // cem automações represadas não abrirem todas no mesmo segundo).
+    const abertura = Date.parse("2026-07-18T05:00:00.000Z");
     const t = Date.parse(quando as string);
     expect(t).toBeGreaterThanOrEqual(abertura);
     expect(t).toBeLessThanOrEqual(abertura + PACING_DEFAULTS.jitterMaxMs);

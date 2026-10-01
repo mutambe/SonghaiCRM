@@ -79,7 +79,7 @@ describe("PATCH .../versions/:vid — atualização parcial", () => {
       full_name: null,
       avatar_url: null,
       is_platform_admin: false,
-      idioma: "pt-BR",
+      idioma: "pt-MZ",
       organizations: [{ organization_id: ORG, organization_name: "Org", role: "admin" }],
     };
     vi.mocked(requireRole).mockResolvedValue({

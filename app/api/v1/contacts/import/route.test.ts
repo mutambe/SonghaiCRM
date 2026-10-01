@@ -101,7 +101,7 @@ beforeEach(() => {
       full_name: "Operador",
       avatar_url: null,
       is_platform_admin: false,
-      idioma: "pt-BR",
+      idioma: "pt-MZ",
       organizations: [{ organization_id: ORG, organization_name: "Org", role: "agent" }],
     },
     org: { orgId: ORG, name: "Org", role: "agent" },
@@ -275,11 +275,12 @@ describe("POST /api/v1/contacts/import — a planilha segue o PAÍS da organiza�
     expect(db.tentativas).toHaveLength(0);
   });
 
-  it("sem país declarado nada muda para quem já usa: o Brasil de sempre", async () => {
+  // SonghaiCRM: sem país declarado vale Moçambique — o documento é o NUIT.
+  it("sem país declarado vale Moçambique: o documento é o NUIT", async () => {
     const db = banco();
-    const { corpo } = await importarCom("nome,telefone,cpf", [`Ana,${PHONE},111.111.111-11`]);
+    const { corpo } = await importarCom("nome,telefone,nuit", [`Ana,${PHONE},111 111 111`]);
 
-    expect(corpo.data?.errors[0]?.motivo).toContain("CPF inválido");
+    expect(corpo.data?.errors[0]?.motivo).toContain("NUIT inválido");
     expect(db.tentativas).toHaveLength(0);
   });
 });

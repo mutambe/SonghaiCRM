@@ -19,7 +19,7 @@
 import { partesNoFuso } from "@/lib/agenda/fuso";
 
 /** Fuso de quem não declarou o seu — o mesmo padrão do resto do produto. */
-export const FUSO_PADRAO = "America/Sao_Paulo";
+export const FUSO_PADRAO = "Africa/Maputo";
 
 /**
  * A hora local em que a varredura age.

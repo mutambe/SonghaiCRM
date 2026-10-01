@@ -75,7 +75,7 @@ function montarMundoDeProposta(opts: MundoOpts = {}) {
     }
     return {
       ok: true,
-      user: { id: USER_ID, idioma: "pt-BR" },
+      user: { id: USER_ID, idioma: "pt-MZ" },
       org: { orgId: ORG_ID },
     } as never;
   });

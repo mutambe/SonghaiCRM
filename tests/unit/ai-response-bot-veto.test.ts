@@ -75,7 +75,7 @@ function convRow(assigneeKind: string | null) {
     contacts: {
       id: "66666666-6666-4666-8666-666666666666",
       display_name: null, // sem PII em teste (LGPD)
-      locale: "pt-BR",
+      locale: "pt-MZ",
       is_blocked: false,
       force_human: false,
     },

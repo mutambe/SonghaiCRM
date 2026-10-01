@@ -161,7 +161,7 @@ describe("loadAuthUser — falha de permissão não vira 'sem organização'", (
           role: "admin",
           organizations: {
             display_name: "Stolia",
-            locale: "pt-BR",
+            locale: "pt-MZ",
             timezone: "Europe/Lisbon",
             currency: "EUR",
             country: "PT",

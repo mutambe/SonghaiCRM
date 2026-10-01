@@ -102,10 +102,4 @@ describe("textos do Jev para quem opera", () => {
       expect(aviso.join(" ")).not.toMatch(/O Jev usa esta chave/);
     });
   });
-
-  it("o aviso sai no idioma da organização", () => {
-    const es = avisoDoJevNaCentral("contrato_invalido", true, (t) => traduzir(t, "es"));
-    expect(es.title).toBe(DICIONARIO[AVISO_DO_JEV.titulo]?.es);
-    expect(es.body).not.toContain("Enquanto isso");
-  });
 });

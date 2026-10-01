@@ -14,7 +14,7 @@ import {
   MAXIMO_DE_ETIQUETAS_NO_FILTRO,
   MODOS_DE_ETIQUETA,
 } from "@/lib/inbox/marcador-da-conversa";
-import { isValidCpf, type PerfilDoPais } from "@/lib/legal/perfil-do-pais";
+import { isValidNuit, type PerfilDoPais } from "@/lib/legal/perfil-do-pais";
 
 const PHONE_REGEX = /^\+\d{8,15}$/;
 
@@ -33,13 +33,15 @@ const customFieldsSchema = z
   });
 
 /**
- * O mod-11 da Receita Federal mora no PERFIL do país
- * (`lib/legal/perfil-do-pais.ts`), porque é ele quem responde pelo documento do
- * titular — aqui fica só o re-export, para não existirem duas implementações da
- * mesma regra. Quem importava deste módulo (rota de importação, testes,
- * `lib/schemas/index.ts`) continua importando.
+ * A régua do documento do titular mora no PERFIL do país
+ * (`lib/legal/perfil-do-pais.ts`) — aqui fica só o re-export, para não
+ * existirem duas implementações da mesma regra.
+ *
+ * O campo da API continua chamado `cpf` (decisão do upstream, issue #1033:
+ * "o vocabulário de TELA muda, o schema não"): é o DOCUMENTO DO TITULAR, que
+ * nesta distribuição é o NUIT. É vocabulário de código, como os `lgpd_*`.
  */
-export { isValidCpf };
+export { isValidNuit };
 
 export const contactCreateSchema = z.object({
   name: z.string().min(1).max(200).optional(),
@@ -47,9 +49,10 @@ export const contactCreateSchema = z.object({
   email: z.string().email().optional(),
   phone_number: z
     .string()
-    .regex(PHONE_REGEX, "Telefone deve estar em formato E.164 (+5511999998888)")
+    .regex(PHONE_REGEX, "Telefone deve estar em formato E.164 (+258841234567)")
     .optional(),
-  cpf: z.string().refine(isValidCpf, "CPF inválido").optional(),
+  // Documento do titular = NUIT (ver o re-export acima).
+  cpf: z.string().refine(isValidNuit, "NUIT inválido (9 dígitos)").optional(),
   birthdate: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/)
@@ -72,7 +75,7 @@ export type ContactPatch = z.infer<typeof contactPatchSchema>;
 /**
  * O documento do titular vem do PERFIL DO PAÍS da organização (issue #1033).
  *
- * `contactCreateSchema` continua sendo a régua brasileira, para quem não tem um
+ * `contactCreateSchema` é a régua do país padrão (Moçambique), para quem não tem um
  * perfil em mãos. Estas fábricas trocam o campo do documento e a MENSAGEM do
  * telefone (o E.164 é universal; o exemplo não era): tudo o mais é o MESMO
  * schema, estendido, e não uma segunda cópia — duas listas de campos divergem

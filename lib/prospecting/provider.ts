@@ -78,7 +78,7 @@ export async function startSearch(key: string, input: SearchInput) {
         searchStringsArray: [input.niche],
         locationQuery: input.location,
         maxCrawledPlacesPerSearch: input.limit,
-        language: "pt-BR",
+        language: "pt-MZ",
         countryCode: "br",
         skipClosedPlaces: true,
         scrapeContacts: input.enrich,

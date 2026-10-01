@@ -45,6 +45,7 @@ import type { ChannelConversionResult } from "@/lib/channels/types";
 import type { EventHandler, EventRow, HandlerResult } from "@/lib/event-log/dispatcher";
 import { lerCredencial } from "@/lib/plataformas-de-anuncio/credenciais";
 import { transporteDe, ehPlataformaConhecida } from "@/lib/plataformas-de-anuncio/registry";
+import { MOEDA_PADRAO } from "@/lib/money";
 import type {
   ConversaoOffline,
   NomeDoEvento,
@@ -255,7 +256,7 @@ export async function processarConversao(
           occurredAt: new Date(lead.closed_at ?? row.created_at ?? Date.now()),
           phone: telefone,
           valueCents: lead.value_cents,
-          currency: lead.currency ?? "BRL",
+          currency: lead.currency ?? MOEDA_PADRAO,
         });
         return desfecho(doCanal(pelo), false);
       }
@@ -306,7 +307,7 @@ export async function processarConversao(
     telefone,
     // A coluna tem `DEFAULT 'BRL'` e um CHECK de ISO-4217; o fallback só cobre a
     // linha que teve a moeda apagada à mão.
-    moeda: lead.currency ?? "BRL",
+    moeda: lead.currency ?? MOEDA_PADRAO,
     valorCentavos: qualificacao ? null : valorDaVenda,
   };
 

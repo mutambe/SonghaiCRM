@@ -25,9 +25,9 @@ describe("isoLocalComOffset", () => {
     expect(isoLocalComOffset(instante, "Europe/Berlin")).toBe("2026-09-02T12:00:00+02:00");
   });
 
-  it("fuso ausente/inválido cai no padrão do produto (America/Sao_Paulo) em vez de lançar", () => {
+  it("fuso ausente/inválido cai no padrão do produto (Africa/Maputo) em vez de lançar", () => {
     const instante = new Date("2026-09-02T18:45:38Z");
-    expect(isoLocalComOffset(instante, "")).toBe(isoLocalComOffset(instante, "America/Sao_Paulo"));
-    expect(isoLocalComOffset(instante, "Nao/Existe")).toBe(isoLocalComOffset(instante, "America/Sao_Paulo"));
+    expect(isoLocalComOffset(instante, "")).toBe(isoLocalComOffset(instante, "Africa/Maputo"));
+    expect(isoLocalComOffset(instante, "Nao/Existe")).toBe(isoLocalComOffset(instante, "Africa/Maputo"));
   });
 });

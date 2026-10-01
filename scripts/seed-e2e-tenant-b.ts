@@ -19,6 +19,7 @@ import * as crypto from "node:crypto";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { anunciarDestino, credenciaisSupabaseDeTeste } from "./lib/env-de-teste";
+import { FUSO_PADRAO } from "@/lib/tempo/fusos";
 
 // `process.env` VENCE o `.env.local` (ver scripts/lib/env-de-teste.ts).
 //
@@ -123,7 +124,7 @@ async function ensureOrg(): Promise<string> {
       slug: ORG_SLUG,
       display_name: ORG_NAME,
       legal_name: ORG_NAME,
-      timezone: "America/Sao_Paulo",
+      timezone: FUSO_PADRAO,
       locale: "pt-BR",
       onboarded_at: new Date().toISOString(),
     } as never)

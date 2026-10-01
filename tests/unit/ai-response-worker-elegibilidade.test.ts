@@ -68,7 +68,7 @@ function makeAdminStub(opts: ConvOpts, queried: string[]) {
     contacts: {
       id: CONTACT_ID,
       display_name: null,
-      locale: "pt-BR",
+      locale: "pt-MZ",
       is_blocked: false,
       force_human: false,
       ai_authorized_at: opts.aiAuthorizedAt ?? null,

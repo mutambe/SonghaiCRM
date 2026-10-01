@@ -84,7 +84,7 @@ function managerSession(rows: Array<Record<string, unknown>>, spy: QuerySpy) {
     full_name: null,
     avatar_url: null,
     is_platform_admin: false,
-    idioma: "pt-BR" as const,
+    idioma: "pt-MZ" as const,
     organizations: [{ organization_id: ORG_ID, organization_name: "Org", role: "manager" }],
   };
   vi.mocked(loadAuthUser).mockResolvedValue(user);

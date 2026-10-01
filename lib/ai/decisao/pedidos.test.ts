@@ -32,6 +32,7 @@ import {
 import { DICIONARIO } from "@/lib/i18n/dicionario";
 import { ehPedidoDeOptOut } from "@/lib/opt-out/deteccao";
 import { regraDeHoje as regraDoWorker } from "@/workers/ai-sentiment-worker.pedidos";
+import { paraPortuguesDeMocambique } from "@/lib/i18n/pt-mz";
 
 const ADMIN = "22222222-2222-4222-8222-222222222222";
 const ACEITE = { em: "2026-09-23T12:00:00.000Z", por: ADMIN };
@@ -220,7 +221,7 @@ function entrada(over: Partial<EntradaDosPedidos> = {}): EntradaDosPedidos {
     contactId: "55555555-5555-4555-8555-555555555555",
     agentId: "66666666-6666-4666-8666-666666666666",
     mensagem: "quero falar com alguém de verdade, meu telefone é (11) 98765-4321",
-    idioma: "pt-BR",
+    idioma: "pt-MZ",
     config: LIGADO,
     regraPegou: { humano: false, opt_out: false },
     turno: TURNO_QUE_RODA,
@@ -393,8 +394,8 @@ describe("Avisar a equipe", () => {
         organization_id: e.organizationId,
         kind: "jev_pedido_de_humano",
         severity: "warn",
-        title: AVISOS_DOS_PEDIDOS.humano.titulo,
-        body: AVISOS_DOS_PEDIDOS.humano.corpo,
+        title: paraPortuguesDeMocambique(AVISOS_DOS_PEDIDOS.humano.titulo),
+        body: paraPortuguesDeMocambique(AVISOS_DOS_PEDIDOS.humano.corpo),
         ref_kind: "conversation",
         ref_id: e.conversationId,
       },
@@ -450,15 +451,6 @@ describe("Avisar a equipe", () => {
         expect(ehPedidoDeOptOut(palavra), `"${palavra}" em: ${texto.slice(0, 60)}…`).toBe(true);
       }
     }
-  });
-
-  it("no idioma da organização: a Central mostra o aviso como ele foi gravado", async () => {
-    const { admin, inseridas } = adminFalso();
-    await observarEAvisar(admin, entrada({ idioma: "es", config: AVISANDO({ opt_out: "decidindo" }) }), { humano: 0.02, opt_out: 0.95 });
-    const [aviso] = inseridas.agent_inbox_items!;
-    expect(aviso).toMatchObject({ kind: "jev_parar_de_receber" });
-    expect(aviso!.title).toBe(DICIONARIO[AVISOS_DOS_PEDIDOS.opt_out.titulo]?.es);
-    expect(aviso!.body).toBe(DICIONARIO[AVISOS_DOS_PEDIDOS.opt_out.corpo]?.es);
   });
 
   it.each([

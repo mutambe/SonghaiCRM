@@ -99,7 +99,7 @@ describe("o card diz a verdade sobre o PERÍODO", () => {
     montar(estado());
     const agora = new Date();
     const mes = new Date(Date.UTC(agora.getUTCFullYear(), agora.getUTCMonth(), 1))
-      .toLocaleDateString("pt-BR", { month: "long", year: "numeric", timeZone: "UTC" });
+      .toLocaleDateString("pt-MZ", { month: "long", year: "numeric", timeZone: "UTC" });
     expect(screen.getByText(new RegExp(`Gasto de ${mes}`, "iu"))).toBeInTheDocument();
   });
 });

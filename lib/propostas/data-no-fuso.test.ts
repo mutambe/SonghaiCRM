@@ -50,6 +50,6 @@ describe("fusoDaOrganizacao", () => {
       maybeSingle: vi.fn(async () => ({ data: { timezone: "São Paulo" }, error: null })),
     };
     const db = { from: vi.fn(() => chain) } as unknown as SupabaseClient;
-    expect(await fusoDaOrganizacao(db, "org-1")).toBe("America/Sao_Paulo");
+    expect(await fusoDaOrganizacao(db, "org-1")).toBe("Africa/Maputo");
   });
 });

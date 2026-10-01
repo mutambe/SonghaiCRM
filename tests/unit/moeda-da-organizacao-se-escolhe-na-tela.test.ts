@@ -67,9 +67,9 @@ function entrada(over: Record<string, unknown> = {}) {
     display_name: "Loja",
     legal_name: "Loja SA",
     cnpj: null,
-    timezone: "America/Sao_Paulo",
-    locale: "es",
-    currency: "MXN",
+    timezone: "Africa/Maputo",
+    locale: "pt-MZ",
+    currency: "ZAR",
     media_retention_days: 365,
     dpo_email: null,
     privacy_policy_url: null,
@@ -99,9 +99,9 @@ describe("a moeda da organização", () => {
     const r = await updateTenant(entrada() as never);
 
     expect(r).toEqual({ ok: true });
-    // ⚠️ MXN e não BRL: com o padrão chumbado este caso passaria verde e a
+    // ⚠️ ZAR e não MZN: com o padrão chumbado este caso passaria verde e a
     // escolha da tela seria decorativa.
-    expect(atualizado).toMatchObject({ currency: "MXN" });
+    expect(atualizado).toMatchObject({ currency: "ZAR" });
     // ⚠️ E NADA de `settings`. Esta action lia o jsonb inteiro, espalhava em
     // memória e regravava o objeto (PR #1209 tirou); com dois round-trips, uma
     // escrita concorrente some sem erro — `visibility_mode` já voltou de `own`

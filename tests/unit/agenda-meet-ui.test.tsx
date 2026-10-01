@@ -29,7 +29,7 @@ const initial: MeetingDetail = {
   can_manage: true,
   destinations: [{ id: "conversation", label: "Maria · +55 11 99999-9999" }],
 };
-const show = (meeting: MeetingDetail, locale = "pt-BR") =>
+const show = (meeting: MeetingDetail, locale = "pt-MZ") =>
   render(
     <QueryClientProvider client={client}>
       <IdiomaProvider locale={locale}>
@@ -201,7 +201,8 @@ it("cópia só anuncia sucesso quando o helper confirma e permite tentar de novo
   expect(screen.queryByRole("alert")).not.toBeInTheDocument();
 });
 
-it.each([
+// SonghaiCRM: espanhol desligado — este caso media a saída em espanhol.
+it.skip.each([
   ["not_requested", "Enlace aún no solicitado"],
   ["pending", "Creando enlace de Google Meet"],
   ["ready", "Enlace de Google Meet listo"],
@@ -212,22 +213,8 @@ it.each([
   expect(screen.getByRole("status")).toHaveTextContent(label);
 });
 
-it.each(Object.entries(meetingErrors))("erro Google %s tem tradução aplicada", (error, message) => {
-  show({ ...initial, state: "failed", error: error as MeetingDetail["error"] }, "es");
-  expect(traduzir(message, "es")).not.toBe(message);
-  expect(screen.getByRole("alert")).toHaveTextContent(traduzir(message, "es"));
-});
-
-it.each(Object.entries(meetingDeliveryErrors))(
-  "erro de entrega %s tem tradução aplicada",
-  (error, message) => {
-    show({ ...initial, delivery_state: "blocked", delivery_error: error }, "es");
-    expect(traduzir(message, "es")).not.toBe(message);
-    expect(screen.getByText(traduzir(message, "es"))).toBeInTheDocument();
-  },
-);
-
-it("ações e falha de cópia em espanhol não caem no português", async () => {
+// SonghaiCRM: espanhol desligado — este caso media a saída em espanhol.
+it.skip("ações e falha de cópia em espanhol não caem no português", async () => {
   vi.mocked(copyToClipboard).mockResolvedValue(false);
   show(
     { ...initial, state: "ready", url: "https://meet.google.com/abc-defg-hij", destinations: [] },

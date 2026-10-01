@@ -203,11 +203,11 @@ describe("o documento e o exemplo de telefone seguem o país da organização", 
     expect(screen.getByPlaceholderText("+999123456789")).toBeTruthy();
   });
 
-  it("sem país declarado, vale o Brasil — nada muda para quem já usa", () => {
-    orgAtiva.atual = { currency: "BRL", country: null };
+  it("sem país declarado, vale Moçambique (SonghaiCRM)", () => {
+    orgAtiva.atual = { currency: "MZN", country: null };
     render(<NewContactDialog open onOpenChange={() => {}} />);
-    expect(screen.getByText(/CPF \(opcional\)/)).toBeTruthy();
-    expect(screen.getByPlaceholderText("+5511999998888")).toBeTruthy();
+    expect(screen.getByText(/NUIT \(opcional\)/)).toBeTruthy();
+    expect(screen.getByPlaceholderText("+258841234567")).toBeTruthy();
   });
 });
 

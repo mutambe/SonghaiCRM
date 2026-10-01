@@ -62,6 +62,9 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 BASELINE="$ROOT/supabase/baseline.sql"
+# SonghaiCRM: o apêndice da distribuição vai na mesma sessão, logo depois.
+APENDICE="$ROOT/supabase/songhai.sql"
+baseline_e_apendice() { cat "$BASELINE"; if [ -f "$APENDICE" ]; then cat "$APENDICE"; fi; }
 CONTAINER="deskcomm-update-dados-$$"
 # A major, pelo mesmo mecanismo do `scripts/test-db.sh` (o comentário longo
 # está lá): quem PEDE escolhe, quem não pede fica no PISO. Assim o mesmo script
@@ -145,7 +148,7 @@ psql_stop <<<"$prelude"
 echo "    ✓ prelude ok ($(wc -l <<<"$prelude" | tr -d ' ') linhas, extraídas do harness)"
 
 echo "==> INSTALL: baseline.sql com ON_ERROR_STOP=1"
-psql_stop < "$BASELINE" >/dev/null
+baseline_e_apendice | psql_stop >/dev/null
 echo "    ✓ install ok"
 
 echo "==> SEMEANDO DADOS — é isto que o test:db não faz"
@@ -299,7 +302,7 @@ oid_antes=$(oid_da_view)
   echo "       Sem ela, este passo mediria o vazio — o install é o controle dele." >&2
   exit 1
 }
-psql_stop < "$BASELINE" >/dev/null
+baseline_e_apendice | psql_stop >/dev/null
 echo "    ✓ update ok — nenhuma constraint quebrou sobre dado existente"
 preco_1998=$(docker exec "$CONTAINER" psql -U postgres -d postgres -tAc "
   select count(*) || '/' || coalesce(min(prompt_cents_per_million_tokens)::int::text, '-')
@@ -380,7 +383,7 @@ if ! tem_title; then
 fi
 
 oid_antes=$(oid_da_view)
-if ! psql_stop < "$BASELINE" >/dev/null; then
+if ! baseline_e_apendice | psql_stop >/dev/null; then
   echo "FATAL: o update sobre o clone antigo FALHOU. O clone que ainda tem a view com" >&2
   echo "       title não sai do lugar sem a guarda de forma dos blocos 0225/0261 —" >&2
   echo "       é a migração da issue #1086 que quebrou, não o update em geral." >&2
@@ -400,7 +403,7 @@ echo "    ✓ clone antigo migrou: OID $oid_antes -> $oid_migrado, sem o title"
 
 echo "==> e, migrada, a passada seguinte não pode mexer nela outra vez (issue #1086)"
 oid_antes="$oid_migrado"
-psql_stop < "$BASELINE" >/dev/null
+baseline_e_apendice | psql_stop >/dev/null
 oid_depois=$(oid_da_view)
 if [ "$oid_antes" != "$oid_depois" ]; then
   echo "FATAL: depois de migrar, a passada seguinte derrubou a view de novo" >&2

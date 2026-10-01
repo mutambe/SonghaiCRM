@@ -70,7 +70,7 @@ describe("MessageBubble — ações sobre mensagem própria", () => {
     await user.click(screen.getByRole("button", { name: "Opções da mensagem" }));
     await user.click(await screen.findByRole("menuitem", { name: "Editar mensagem" }));
     fireEvent.change(screen.getByRole("textbox", { name: "Editar mensagem" }), { target: { value: "novo texto" } });
-    fireEvent.click(screen.getByRole("button", { name: "Salvar" }));
+    fireEvent.click(screen.getByRole("button", { name: "Guardar" }));
     await waitFor(() => expect(onEditar).toHaveBeenCalledWith("novo texto"));
     await user.click(screen.getByRole("button", { name: "Opções da mensagem" }));
     await user.click(await screen.findByRole("menuitem", { name: "Apagar para todos" }));
@@ -110,7 +110,7 @@ describe("MessageBubble — ações sobre mensagem própria", () => {
         behavior: "smooth", block: "nearest", inline: "nearest",
       }));
       expect(screen.getByRole("textbox", { name: "Editar mensagem" })).toHaveFocus();
-      expect(screen.getByRole("button", { name: "Salvar" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Guardar" })).toBeInTheDocument();
     } finally {
       HTMLElement.prototype.scrollIntoView = original;
     }
@@ -171,9 +171,9 @@ describe("MessageBubble — ocultação local de recebida", () => {
 });
 
 describe("MessageBubble — rótulo de origem", () => {
-  it("resposta pelo celular (external_device) mostra 'Celular'", () => {
+  it("resposta pelo celular (external_device) mostra 'Telemóvel'", () => {
     render(<MessageBubble message={msg({ sent_via: "external_device" })} />);
-    expect(screen.getByText("Celular")).toBeInTheDocument();
+    expect(screen.getByText("Telemóvel")).toBeInTheDocument();
   });
 
   it("automação tem rótulo próprio — o motor passou a gravar esse valor (#652)", () => {
@@ -234,7 +234,7 @@ describe("MessageBubble — rótulo de origem", () => {
     render(
       <MessageBubble message={msg({ sent_via: "external_device", direction: "inbound" })} />,
     );
-    expect(screen.queryByText("Celular")).not.toBeInTheDocument();
+    expect(screen.queryByText("Telemóvel")).not.toBeInTheDocument();
   });
 
   it("system leva 'Sistema' — a integração respondeu, mas não foi a IA", () => {

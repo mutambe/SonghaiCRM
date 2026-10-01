@@ -28,7 +28,7 @@ import { loginComoAdmin, lerCreds, type CredsE2E } from "./helpers/login-admin";
 import { CONFERENCIAS_DE_SAIDA, CONFERENCIA_DE_ENTRADA } from "@/lib/ai/guardrails/lista-de-conferencia";
 let creds: CredsE2E = lerCreds();
 
-test.use({ locale: "pt-BR" });
+test.use({ locale: "pt-MZ" });
 
 // Mesmo orçamento dos vizinhos: o login pode disparar uma re-semeadura de
 // credenciais quando outra sessão rotaciona o fator TOTP deste banco.
@@ -66,7 +66,7 @@ test.describe.configure({ mode: "serial" });
 let pagina: Page;
 
 test.beforeAll(async ({ browser }: { browser: Browser }) => {
-  const contexto = await browser.newContext({ locale: "pt-BR" });
+  const contexto = await browser.newContext({ locale: "pt-MZ" });
   pagina = await contexto.newPage();
   creds = await loginComoAdmin(pagina, creds);
 });

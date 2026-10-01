@@ -34,6 +34,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { cn } from "@/lib/utils";
 import { rotuloDoContato } from "@/lib/contacts/rotulo-do-contato";
 import { phoneForDisplay } from "@/lib/channels/phone-variants";
+import { MOEDA_PADRAO } from "@/lib/money";
 
 interface Props {
   conversation: ConversationWithContact | null;
@@ -250,9 +251,9 @@ function MarcarProximoPasso({ demandaId, onPronto }: { demandaId: string; onPron
 
 function formatMoney(cents: number | null, currency: string | null): string {
   if (cents == null) return "—";
-  const cur = currency ?? "BRL";
+  const cur = currency ?? MOEDA_PADRAO;
   try {
-    return new Intl.NumberFormat("pt-BR", { style: "currency", currency: cur }).format(
+    return new Intl.NumberFormat("pt-MZ", { style: "currency", currency: cur }).format(
       cents / 100,
     );
   } catch {

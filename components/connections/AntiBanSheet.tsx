@@ -484,7 +484,7 @@ export function AntiBanSheet({ item, canWrite, onClose }: Props) {
               ))}
             </select>
             <p className="text-xs text-muted-foreground">
-              {t("A janela de envio é avaliada neste fuso (ex.: America/Sao_Paulo).")}
+              {t("A janela de envio é avaliada neste fuso (ex.: Africa/Maputo).")}
             </p>
           </fieldset>
 

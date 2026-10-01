@@ -77,7 +77,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     throw err;
   }
 
-  const t = (texto: string) => traduzir(texto, idioma ?? "pt-BR");
+  const t = (texto: string) => traduzir(texto, idioma ?? "pt-MZ");
 
   // Idempotency-Key, quando vem, tem de ser UUID — mesma régua de
   // `message-templates` e do contrato (spec 01 §7.3). Chave malformada não vira

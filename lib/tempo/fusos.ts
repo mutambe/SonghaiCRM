@@ -31,25 +31,11 @@
  * termina — e a busca é justamente onde ele digita errado.
  */
 export const FUSOS_OFERECIDOS: { codigo: string; rotulo: string }[] = [
-  { codigo: "America/Asuncion", rotulo: "Assunção (Paraguai)" },
-  { codigo: "America/Argentina/Buenos_Aires", rotulo: "Buenos Aires (Argentina)" },
-  { codigo: "America/Montevideo", rotulo: "Montevidéu (Uruguai)" },
-  { codigo: "America/Santiago", rotulo: "Santiago (Chile)" },
-  { codigo: "America/La_Paz", rotulo: "La Paz (Bolívia)" },
-  { codigo: "America/Lima", rotulo: "Lima (Peru)" },
-  { codigo: "America/Bogota", rotulo: "Bogotá (Colômbia)" },
-  { codigo: "America/Mexico_City", rotulo: "Cidade do México (México)" },
-  { codigo: "America/Sao_Paulo", rotulo: "São Paulo (Brasil)" },
-  { codigo: "America/Manaus", rotulo: "Manaus (Brasil)" },
-  { codigo: "America/Belem", rotulo: "Belém (Brasil)" },
-  { codigo: "America/Recife", rotulo: "Recife (Brasil)" },
-  { codigo: "America/Fortaleza", rotulo: "Fortaleza (Brasil)" },
-  // Fora da América do Sul, e de propósito: quem instala em Angola fala
-  // português e usava a lista inteira errada. Aditivo — `FUSO_PADRAO` segue
-  // `America/Sao_Paulo`, então ninguém que já escolheu muda de relógio.
-  { codigo: "Africa/Luanda", rotulo: "Luanda (Angola)" },
-  // Mesmo motivo, em Portugal: sem Lisboa, quem opera lá ficava entre um fuso
-  // do Brasil e UTC — e UTC erra uma hora no verão europeu.
+  // SonghaiCRM é para Moçambique: um fuso só no país inteiro (CAT, UTC+2, sem
+  // horário de verão). Os vizinhos e Lisboa ficam para quem atende cliente de
+  // fora; os fusos do Brasil e da América Latina do upstream saíram.
+  { codigo: "Africa/Maputo", rotulo: "Maputo (Moçambique)" },
+  { codigo: "Africa/Johannesburg", rotulo: "Joanesburgo (África do Sul)" },
   { codigo: "Europe/Lisbon", rotulo: "Lisboa (Portugal)" },
   { codigo: "UTC", rotulo: "UTC" },
 ];
@@ -61,7 +47,7 @@ export const FUSOS_OFERECIDOS: { codigo: string; rotulo: string }[] = [
  *
  * Existe para quem precisa DEGRADAR: leitor que encontra a coluna com um valor
  * que o `Intl` recusa não pode lançar nem inventar UTC — UTC daria três horas
- * de erro numa instalação brasileira, calado. Cair no mesmo valor que o banco
+ * de erro numa instalação moçambicana, calado. Cair no mesmo valor que o banco
  * já usa como padrão mantém uma verdade só.
  *
  * ⚠️ NÃO é o fuso do pacing. `PACING_DEFAULTS.timezone` tem o mesmo texto e
@@ -69,7 +55,7 @@ export const FUSOS_OFERECIDOS: { codigo: string; rotulo: string }[] = [
  * linha em `channel_knobs`). Coincidem hoje; unificar os dois faria uma
  * decisão de anti-ban mudar o relógio do agente.
  */
-export const FUSO_PADRAO = "America/Sao_Paulo";
+export const FUSO_PADRAO = "Africa/Maputo";
 
 /**
  * O runtime consegue usar este fuso?

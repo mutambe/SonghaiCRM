@@ -38,7 +38,7 @@ describe("leitura da planilha de leads", () => {
   });
 
   it("aceita o ; do Excel em português e o cabeçalho com acento", () => {
-    const r = ok("Nome;Telefone;Observação\nAna Souza;11988887777;retorno em junho");
+    const r = ok("Nome;Telefone;Observação\nAna Souza;849876543;retorno em junho");
     expect(r.leads).toHaveLength(1);
     expect(r.leads[0]!.title).toBe("Ana Souza");
     expect(r.leads[0]!.description).toBe("retorno em junho");
@@ -58,7 +58,7 @@ describe("leitura da planilha de leads", () => {
 
   it("sem coluna de título, o nome do CONTATO nomeia o card", () => {
     // O original punha "Lead importado" — 300 cards com o mesmo nome.
-    const r = ok("nome do contato,telefone\nAna Souza,11988887777");
+    const r = ok("nome do contato,telefone\nAna Souza,849876543");
     expect(r.leads[0]!.title).toBe("Ana Souza");
     expect(r.leads[0]!.nome_do_contato).toBe("Ana Souza");
   });
@@ -70,9 +70,9 @@ describe("leitura da planilha de leads", () => {
   });
 
   it("telefone com máscara vira E.164; o ilegível NÃO derruba o negócio", () => {
-    const r = ok("nome,telefone\nAna,(11) 98888-7777\nBruno,não tem");
+    const r = ok("nome,telefone\nAna,84 987 6543\nBruno,não tem");
     expect(r.leads).toHaveLength(2);
-    expect(r.leads[0]!.telefone).toBe("+5511988887777");
+    expect(r.leads[0]!.telefone).toBe("+258849876543");
     // O negócio de Bruno entra sem contato — corrigir um card é mais barato que
     // reimportar a planilha —, mas o aviso fica: o número não some calado.
     expect(r.leads[1]!.telefone).toBeNull();

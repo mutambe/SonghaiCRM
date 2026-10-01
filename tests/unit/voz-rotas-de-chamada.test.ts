@@ -117,7 +117,7 @@ const wacalls = {
 function autorizadoComo(userId: string) {
   vi.mocked(requireRole).mockResolvedValue({
     ok: true,
-    user: { id: userId, idioma: "pt-BR" },
+    user: { id: userId, idioma: "pt-MZ" },
     org: { orgId: ORG, role: "agent" },
   } as never);
 }

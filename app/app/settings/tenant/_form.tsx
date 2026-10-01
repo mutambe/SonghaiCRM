@@ -24,16 +24,7 @@ interface Props {
   initial: TenantInput;
 }
 
-const TIMEZONES = [
-  "Africa/Luanda",
-  "America/Sao_Paulo",
-  "America/Manaus",
-  "America/Belem",
-  "America/Recife",
-  "America/Fortaleza",
-  "Europe/Lisbon",
-  "UTC",
-];
+const TIMEZONES = ["Africa/Maputo", "Africa/Johannesburg", "Europe/Lisbon", "UTC"];
 
 export function TenantForm({ initial }: Props) {
   const t = useT();

@@ -89,6 +89,23 @@ export function scrubMessage(input: string): string {
 
 function apagarCpfETelefone(trecho: string): string {
   return trecho
+    // MOÇAMBIQUE PRIMEIRO (SonghaiCRM). As regras do upstream abaixo têm a forma
+    // brasileira e comiam o número moçambicano pela metade: `84 123 4567` e
+    // `21 123 456` escapavam inteiros, e `+258841234567` deixava um dígito à
+    // mostra. Celular = 8[2-7] + 7 dígitos; fixo = 2[1-9] + 6; separador
+    // opcional entre quaisquer dígitos. Com o indicativo 258 casa sempre; SEM
+    // ele exige um separador (o lookahead), porque 9 dígitos colados são
+    // indistinguíveis de um NUIT e caem na regra do NUIT logo abaixo —
+    // mascarados do mesmo jeito. As bordas são as mesmas do upstream: nada de
+    // dígito ou `+` colado antes, nada de dígito depois.
+    .replace(
+      /(?<![\d+])\+?258[\s.-]?(?:8[2-7](?:[\s.-]?\d){7}|2[1-9](?:[\s.-]?\d){6})(?!\d)/g,
+      "[PHONE]",
+    )
+    .replace(/(?<![\d+])(?=\d{2,8}[\s.-])8[2-7](?:[\s.-]?\d){7}(?!\d)/g, "[PHONE]")
+    .replace(/(?<![\d+])(?=\d{2,7}[\s.-])2[1-9](?:[\s.-]?\d){6}(?!\d)/g, "[PHONE]")
+    // NUIT: 9 dígitos colados, sem borda de dígito dos dois lados.
+    .replace(/(?<!\d)\d{9}(?!\d)/g, "[NUIT]")
     // Telefone como se escreve no Brasil: +55 opcional, DDD opcional (com ou
     // sem parênteses), 8 ou 9 dígitos (o 9 da frente pode vir solto), e hífen,
     // ponto, espaço ou nada entre os blocos — `11-98765-4321` e `11.98765.4321`

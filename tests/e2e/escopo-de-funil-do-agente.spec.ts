@@ -31,7 +31,7 @@ import { loginComoAdmin, lerCreds, type CredsE2E } from "./helpers/login-admin";
 
 let creds: CredsE2E = lerCreds();
 
-test.use({ locale: "pt-BR" });
+test.use({ locale: "pt-MZ" });
 
 // Mesmo orçamento dos vizinhos: o login pode disparar uma re-semeadura de
 // credenciais quando outra sessão rotaciona o fator TOTP deste banco.
@@ -53,7 +53,7 @@ test.beforeAll(async ({ browser }: { browser: Browser }) => {
   // a próxima janela TOTP; ambos estouram 30 s com folga, e a falha aparece
   // como "hook timeout", que não diz nada sobre a tela.
   test.setTimeout(180_000);
-  const contexto = await browser.newContext({ locale: "pt-BR" });
+  const contexto = await browser.newContext({ locale: "pt-MZ" });
   pagina = await contexto.newPage();
 
   // ⚠️ ORDEM. O login vem PRIMEIRO porque, quando o fator TOTP em disco não

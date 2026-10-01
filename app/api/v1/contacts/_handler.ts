@@ -239,7 +239,7 @@ export async function listContactsHandler(
         "invalid_cursor",
         undefined,
         ctx.requestId,
-        traduzir("Cursor inválido.", ctx.idioma ?? "pt-BR"),
+        traduzir("Cursor inválido.", ctx.idioma ?? "pt-MZ"),
       );
     }
     const op = asc ? "gt" : "lt";
@@ -361,7 +361,7 @@ export async function getContactHandler(
       "not_found",
       undefined,
       ctx.requestId,
-      traduzir("Contato não encontrado.", ctx.idioma ?? "pt-BR"),
+      traduzir("Contato não encontrado.", ctx.idioma ?? "pt-MZ"),
     );
   }
   const contact = data as Contact;
@@ -486,7 +486,7 @@ export async function createContactHandler(
           "contact_exists",
           { contact_id: existente.id },
           ctx.requestId,
-          traduzir("Já existe um contato com este telefone.", ctx.idioma ?? "pt-BR"),
+          traduzir("Já existe um contato com este telefone.", ctx.idioma ?? "pt-MZ"),
         );
       }
     }
@@ -571,7 +571,7 @@ export async function patchContactHandler(
       "not_found",
       undefined,
       ctx.requestId,
-      traduzir("Contato não encontrado.", ctx.idioma ?? "pt-BR"),
+      traduzir("Contato não encontrado.", ctx.idioma ?? "pt-MZ"),
     );
   }
   if (existing.is_anonymized) {
@@ -580,7 +580,7 @@ export async function patchContactHandler(
       "lgpd_anonymization_irreversible",
       undefined,
       ctx.requestId,
-      traduzir("Contato anonimizado — edição bloqueada (LGPD).", ctx.idioma ?? "pt-BR"),
+      traduzir("Contato anonimizado — edição bloqueada (LGPD).", ctx.idioma ?? "pt-MZ"),
     );
   }
 
@@ -636,7 +636,7 @@ export async function patchContactHandler(
       "invalid_request",
       undefined,
       ctx.requestId,
-      traduzir("Nenhum campo para atualizar.", ctx.idioma ?? "pt-BR"),
+      traduzir("Nenhum campo para atualizar.", ctx.idioma ?? "pt-MZ"),
     );
   }
 
@@ -662,7 +662,7 @@ export async function patchContactHandler(
       "not_found",
       undefined,
       ctx.requestId,
-      traduzir("Contato não encontrado após update.", ctx.idioma ?? "pt-BR"),
+      traduzir("Contato não encontrado após update.", ctx.idioma ?? "pt-MZ"),
     );
   }
 
@@ -747,7 +747,7 @@ export async function patchContactHandler(
 function throwOnDbError(
   err: { code?: string; message: string } | null,
   requestId: string,
-  idioma: Idioma = "pt-BR",
+  idioma: Idioma = "pt-MZ",
 ): void {
   if (!err) return;
   // conversations/messages apontam para contacts com ON DELETE RESTRICT.
@@ -809,7 +809,7 @@ export async function deleteContactHandler(
       "not_found",
       undefined,
       ctx.requestId,
-      traduzir("Contato não encontrado.", ctx.idioma ?? "pt-BR"),
+      traduzir("Contato não encontrado.", ctx.idioma ?? "pt-MZ"),
     );
   }
 
@@ -862,7 +862,7 @@ export async function deleteContactHandler(
       "state_conflict",
       { vinculos, por_tabela },
       ctx.requestId,
-      traduzir("Não foi possível excluir: o contato ainda tem registros vinculados.", ctx.idioma ?? "pt-BR"),
+      traduzir("Não foi possível excluir: o contato ainda tem registros vinculados.", ctx.idioma ?? "pt-MZ"),
     );
   }
 
@@ -914,7 +914,7 @@ export async function deleteContactHandler(
       "not_found",
       undefined,
       ctx.requestId,
-      traduzir("Contato não encontrado.", ctx.idioma ?? "pt-BR"),
+      traduzir("Contato não encontrado.", ctx.idioma ?? "pt-MZ"),
     );
   }
 

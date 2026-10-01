@@ -32,6 +32,7 @@ import * as path from "node:path";
 import { createClient } from "@supabase/supabase-js";
 
 import { anunciarDestino, credenciaisSupabaseDeTeste } from "./lib/env-de-teste";
+import { FUSO_PADRAO } from "@/lib/tempo/fusos";
 
 const credenciais = credenciaisSupabaseDeTeste();
 anunciarDestino("seed-e2e-duas-organizacoes", credenciais);
@@ -109,7 +110,7 @@ async function orgB(): Promise<string> {
       slug: ORG_B_SLUG,
       display_name: ORG_B_NOME,
       legal_name: ORG_B_NOME,
-      timezone: "America/Sao_Paulo",
+      timezone: FUSO_PADRAO,
       locale: "pt-BR",
       onboarded_at: new Date().toISOString(),
     } as never)

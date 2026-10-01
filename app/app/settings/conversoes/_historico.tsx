@@ -6,7 +6,7 @@
  * abre (`<details>`) com o que se procura no gerenciador da plataforma: o ID
  * do evento (o mesmo em todas as tentativas), o protocolo e a ação.
  */
-import { formatCentsBRL } from "@/lib/money";
+import { formatCentsPadrao } from "@/lib/money";
 import {
   PERIODOS,
   rotuloDoEvento,
@@ -221,7 +221,7 @@ export function HistoricoDeEnvios({
                       <dd>
                         {l.valorCentavos === null
                           ? t("sem valor")
-                          : formatCentsBRL(l.valorCentavos)}
+                          : formatCentsPadrao(l.valorCentavos)}
                       </dd>
                       {l.ocorridoEm && (
                         <>

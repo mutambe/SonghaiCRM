@@ -23,7 +23,7 @@ import { montarAvisoDeCaso, primeiroNome } from "@/lib/escalacao/texto-do-aviso"
 
 const BASE = {
   marca: "Acme CRM",
-  idioma: "pt-BR" as const,
+  idioma: "pt-MZ" as const,
   kind: "financeiro",
   source: "agent" as const,
   title: "Desconto acima da política",
@@ -151,14 +151,6 @@ describe("montarAvisoDeCaso", () => {
     expect(texto).toContain("Assunto: A IA prometeu algo e travou");
     expect(texto).not.toContain("Promessa não cumprida");
     expect(texto).toContain("(resumo escrito pela IA a partir da conversa)");
-  });
-
-  it("espanhol: as frases fixas são traduzidas", () => {
-    const texto = montarAvisoDeCaso({ ...BASE, idioma: "es" });
-    expect(texto).toContain("nuevo caso esperando por ti");
-    expect(texto).toContain("Cliente: Maria");
-    expect(texto).toContain("Por qué se atoró la IA");
-    expect(texto).not.toContain("Por que a IA travou");
   });
 
   it("a marca vem de fora — o texto não conhece nome de produto nenhum", () => {

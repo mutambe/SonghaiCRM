@@ -58,7 +58,7 @@ export async function listarModelosDaOrganizacao(db: SupabaseClient, organizatio
   const daEmpresa: ModeloListado[] = linhas
     .filter((l) => !Object.hasOwn(ROTULO_DO_MODELO, l.slug))
     .map((l) => ({ slug: l.slug, nome: l.nome?.trim() || l.slug, origem: "empresa" as const, secoes: contar(l.sections), version: l.version, oculto: false }))
-    .sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
+    .sort((a, b) => a.nome.localeCompare(b.nome, "pt-MZ"));
 
   return [...daPlataforma, ...daEmpresa];
 }

@@ -162,13 +162,13 @@ describe("motivos de perda configurados no funil", () => {
     // motivo já cadastrado, e sem esta frase não diz onde se cadastra um novo.
     abrir(comFunil({ lost_reasons: ["Sem orçamento"] }));
     fireEvent.click(radio("other"));
-    expect(screen.getByText(/cadastre em Configurações/)).toBeTruthy();
+    expect(screen.getByText(/registe em Configurações/)).toBeTruthy();
   });
 
   it("sem funil configurado a frase NÃO aparece antes de digitar — nada a corrigir ainda", () => {
     abrir(comFunil({}));
     fireEvent.click(radio("other"));
-    expect(screen.queryByText(/cadastre em Configurações/)).toBeNull();
+    expect(screen.queryByText(/registe em Configurações/)).toBeNull();
   });
 
   it("BUG REPRODUZIDO (crm.fabrasoftware.com.br): sem funil configurado, texto livre em 'Outro' é recusado ANTES do clique, não 500 depois", () => {
@@ -188,7 +188,7 @@ describe("motivos de perda configurados no funil", () => {
     expect(screen.getByRole("alert").textContent).toBe(
       "Esse motivo de perda não está na lista deste funil — escolha um dos motivos configurados.",
     );
-    expect(screen.getByText(/cadastre em Configurações/)).toBeTruthy();
+    expect(screen.getByText(/registe em Configurações/)).toBeTruthy();
   });
 
   it("sem funil configurado, o padrão do produto e o 'other' vazio continuam valendo", async () => {

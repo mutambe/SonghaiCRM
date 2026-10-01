@@ -25,7 +25,7 @@ import { cleanup } from "@testing-library/react";
 
 const SENHA_EM_CLARO = "senha-do-smtp-que-nao-pode-vazar";
 
-let usuario: { is_platform_admin: boolean; idioma: "pt-BR" } | null = null;
+let usuario: { is_platform_admin: boolean; idioma: "pt-MZ" } | null = null;
 let config: Record<string, unknown>;
 
 vi.mock("@/lib/auth/server", () => ({ loadAuthUser: async () => usuario }));
@@ -48,7 +48,7 @@ import Page from "@/app/admin/(protected)/email/page";
 import { FormularioDeSmtp } from "@/app/admin/(protected)/email/_form";
 
 beforeEach(() => {
-  usuario = { is_platform_admin: true, idioma: "pt-BR" };
+  usuario = { is_platform_admin: true, idioma: "pt-MZ" };
   resendLigada = false;
   config = {
     host: "smtp.revenda.com.br",
@@ -124,7 +124,7 @@ describe("/admin/email — o que a página entrega ao navegador", () => {
   });
 
   it("quem não é dono da instalação não vê a tela", async () => {
-    usuario = { is_platform_admin: false, idioma: "pt-BR" };
+    usuario = { is_platform_admin: false, idioma: "pt-MZ" };
 
     await expect(propsDaPagina()).rejects.toThrow("NEXT_NOT_FOUND");
   });

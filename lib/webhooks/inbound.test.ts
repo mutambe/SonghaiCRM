@@ -20,8 +20,9 @@ describe("normalizePhoneBR", () => {
 
 describe("mapInboundPayload", () => {
   it("aliases default: nome/telefone/email", () => {
-    const m = mapInboundPayload({ nome: "Ana", telefone: "11998765432", email: "a@b.com" });
-    expect(m).toMatchObject({ name: "Ana", phone: "+5511998765432", email: "a@b.com" });
+    // SonghaiCRM: sem indicativo, o número é moçambicano.
+    const m = mapInboundPayload({ nome: "Ana", telefone: "84 123 4567", email: "a@b.com" });
+    expect(m).toMatchObject({ name: "Ana", phone: "+258841234567", email: "a@b.com" });
   });
   it("whatsapp como alias de phone; extras viram custom_fields; utm_* vira source_metadata", () => {
     const m = mapInboundPayload({ name: "Bo", whatsapp: "+5511998765432", empresa: "ACME", utm_source: "instagram" });

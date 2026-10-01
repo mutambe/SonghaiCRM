@@ -66,13 +66,13 @@ describe("o que o banco devolve de verdade", () => {
   it("TIMEZONE AUSENTE cai no padrão declarado, e nunca no fuso do processo", () => {
     // Este é o teste que impede o defeito invertido de voltar. Em produção o
     // processo roda em UTC (alpine sem tzdata, e o serviço `app` sem `TZ`), e
-    // herdar isso deslocaria a jornada de toda clínica brasileira em 3 horas.
+    // herdar isso deslocaria a jornada de toda clínica moçambicana em 2 horas.
     const r = lerJornadaDoBanco({ windows: [{ dow: 1, start: "09:00", end: "18:00" }] });
     expect(r.ok).toBe(true);
     if (!r.ok) return;
-    expect(r.jornada.timezone).toBe("America/Sao_Paulo");
+    expect(r.jornada.timezone).toBe("Africa/Maputo");
     expect(r.jornada.timezone).not.toBe(
-      Intl.DateTimeFormat().resolvedOptions().timeZone === "America/Sao_Paulo"
+      Intl.DateTimeFormat().resolvedOptions().timeZone === "Africa/Maputo"
         ? "__nunca__"
         : Intl.DateTimeFormat().resolvedOptions().timeZone,
     );
@@ -198,11 +198,11 @@ describe("o erro tem duas plateias, e elas não podem receber a mesma frase", ()
 });
 
 describe("fusoSuposto — a distinção que o parse apaga", () => {
-  it("quem NUNCA configurou e quem ESCOLHEU São Paulo são indistinguíveis DEPOIS do parse", () => {
-    // Medido: os dois devolvem {timezone:"America/Sao_Paulo", windows:[]}.
+  it("quem NUNCA configurou e quem ESCOLHEU Maputo (o padrão) são indistinguíveis DEPOIS do parse", () => {
+    // Medido: os dois devolvem {timezone:"Africa/Maputo", windows:[]}.
     // Por isso a marca é capturada antes, e não derivada do resultado.
     const nunca = lerJornadaDoBanco({});
-    const escolheu = lerJornadaDoBanco({ timezone: "America/Sao_Paulo" });
+    const escolheu = lerJornadaDoBanco({ timezone: "Africa/Maputo" });
     expect(nunca.ok && escolheu.ok).toBe(true);
     if (!nunca.ok || !escolheu.ok) return;
     expect(nunca.jornada).toEqual(escolheu.jornada);

@@ -129,7 +129,7 @@ export const pacingKnobsUpdateSchema = z
     allow_sunday: z.boolean().nullable().optional(),
     timezone: z
       .string()
-      .refine(isValidTimezone, "timezone IANA inválida (ex.: America/Sao_Paulo)")
+      .refine(isValidTimezone, "timezone IANA inválida (ex.: Africa/Maputo)")
       .nullable()
       .optional(),
     daily_message_limit: z

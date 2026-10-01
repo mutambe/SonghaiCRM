@@ -35,6 +35,9 @@ export default defineConfig({
       ".next",
       "dist",
       ".claude/**",
+      // Worktrees locais de outras branches (SonghaiCRM): sem isto a suíte roda
+      // as cópias de teste delas também, contra o código desta branch.
+      ".worktrees/**",
       "tests/e2e/**",
       "tests/invariants/**",
       "tests/journeys/**",

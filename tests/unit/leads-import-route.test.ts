@@ -54,7 +54,7 @@ function sessao(papel: Role) {
     full_name: "Ana",
     avatar_url: null,
     is_platform_admin: false,
-    idioma: "pt-BR" as const,
+    idioma: "pt-MZ" as const,
     organizations: [{ organization_id: ORG, organization_name: "Org", role: papel }],
   };
   vi.mocked(requireRole).mockImplementation(async (min: Role) =>
@@ -277,7 +277,7 @@ describe("POST /api/v1/leads/import", () => {
 
     await POST(
       pedido(
-        "nome,telefone\nAna,11988887777\nAna (2),(11) 98888-7777\nAna (3),+5511988887777",
+        "nome,telefone\nAna,849876543\nAna (2),84 987 6543\nAna (3),+258849876543",
       ),
     );
 
@@ -288,7 +288,7 @@ describe("POST /api/v1/leads/import", () => {
     const espiao = fazerSupabase({ id: "contato-existente" });
     const { POST } = await import("@/app/api/v1/leads/import/route");
 
-    await POST(pedido("nome,telefone\nAna,11988887777"));
+    await POST(pedido("nome,telefone\nAna,849876543"));
 
     expect(espiao.inseridos).toHaveLength(0);
     expect(vi.mocked(createLeadHandler).mock.calls[0]![2]).toMatchObject({

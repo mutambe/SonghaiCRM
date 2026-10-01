@@ -206,7 +206,7 @@ beforeEach(() => {
   vi.mocked(requireRole).mockResolvedValue({
     ok: true,
     org: { orgId: ORG, role: "manager", name: "Org" },
-    user: { id: USUARIO, idioma: "pt-BR" },
+    user: { id: USUARIO, idioma: "pt-MZ" },
   } as Awaited<ReturnType<typeof requireRole>>);
   vi.mocked(createClient).mockResolvedValue(clientFalso() as never);
   tabela = [];

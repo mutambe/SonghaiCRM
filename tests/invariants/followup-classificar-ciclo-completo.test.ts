@@ -491,7 +491,7 @@ describe("classificar a resposta: o ciclo inteiro", () => {
     expect(espera[0]!.node_id).toBe("c1");
     expect(new Date(String(espera[0]!.payload.until)).getTime()).toBe(new Date(depois.next_eval_at!).getTime());
     // E o dossiê o diz em português, pela mesma função que a tela chama.
-    const lido = descreveEvento(espera[0]!, {}, "pt-BR");
+    const lido = descreveEvento(espera[0]!, {}, "pt-MZ");
     expect(lido.titulo).toBe("Esperando a resposta do cliente");
     expect(lido.detalhe).toMatch(/^se ele não responder até .+, o fluxo segue sem a resposta$/);
     expect(promptsAoModelo).toHaveLength(0);
@@ -553,7 +553,7 @@ describe("classificar a resposta: o ciclo inteiro", () => {
     expect((await enrollment(c.enrollmentId)).current_node_id).toBe("e_sem");
     const saida = (await eventos(c.enrollmentId)).filter((e) => e.node_id === "c1" && e.event_type === "node_advanced");
     expect(saida.map((e) => e.payload)).toEqual([{ next_node_id: "e_sem", class: "no_reply" }]);
-    expect(descreveEvento(saida[0]!, {}, "pt-BR").titulo).toBe("O cliente não respondeu dentro do prazo");
+    expect(descreveEvento(saida[0]!, {}, "pt-MZ").titulo).toBe("O cliente não respondeu dentro do prazo");
     expect(await jobsPendentes(c.enrollmentId)).toHaveLength(0);
     expect(promptsAoModelo).toHaveLength(0);
   });

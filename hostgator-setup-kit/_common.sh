@@ -1199,10 +1199,21 @@ reaplicar_baseline() {
   local raw rc causa
   BASELINE_PASSADAS=1
   [ -z "$log" ] || : > "$log"
+  # SonghaiCRM: o apêndice da distribuição (`supabase/songhai.sql`) vai na MESMA
+  # chamada, logo depois do baseline — mesma saída, mesmo critério de erro, e a
+  # última palavra é a de Moçambique. Ausente (clone do upstream), nada muda.
+  local apendice args_apendice=()
+  apendice="$(dirname "$arquivo")/songhai.sql"
+  [ -f "$apendice" ] && args_apendice=(-v "$apendice:/s.sql:ro")
   while :; do
     rc=0
-    raw="$(pg_container -i -v "$arquivo:/b.sql:ro" postgres:17-alpine \
-          psql "$(url_do_schema)" -q -f /b.sql 2>&1)" || rc=$?
+    if [ "${#args_apendice[@]}" -gt 0 ]; then
+      raw="$(pg_container -i -v "$arquivo:/b.sql:ro" "${args_apendice[@]}" postgres:17-alpine \
+            psql "$(url_do_schema)" -q -f /b.sql -f /s.sql 2>&1)" || rc=$?
+    else
+      raw="$(pg_container -i -v "$arquivo:/b.sql:ro" postgres:17-alpine \
+            psql "$(url_do_schema)" -q -f /b.sql 2>&1)" || rc=$?
+    fi
     [ -z "$log" ] || printf '── passada %s de %s (saída %s) ──\n%s\n' "$BASELINE_PASSADAS" "$tentativas" "$rc" "$raw" >> "$log"
     BASELINE_INESPERADO="$(printf '%s\n' "$raw" | grep -iE 'ERROR|FATAL' | grep -viE "$BASELINE_ERROS_BENIGNOS" || true)"
     # Sem ON_ERROR_STOP o psql sai 0 mesmo com erro de SQL: saída diferente de

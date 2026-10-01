@@ -31,11 +31,11 @@ describe("Configurações › Propostas", () => {
     mocks.get.mockResolvedValue({ data: { enabled: false, default_valid_days: 15, default_conditions: null } });
     mocks.patch.mockResolvedValue({ data: { ok: true } });
     render(
-      <IdiomaProvider locale="pt-BR">
+      <IdiomaProvider locale="pt-MZ">
         <ProposalsSettingsClient />
       </IdiomaProvider>,
     );
-    fireEvent.click(await screen.findByRole("button", { name: /Salvar/ }));
+    fireEvent.click(await screen.findByRole("button", { name: /Guardar/ }));
     await waitFor(() => expect(mocks.refresh).toHaveBeenCalledTimes(1));
   });
 
@@ -43,11 +43,11 @@ describe("Configurações › Propostas", () => {
     mocks.get.mockResolvedValue({ data: { enabled: false, default_valid_days: 15, default_conditions: null } });
     mocks.patch.mockRejectedValue(new Error("boom"));
     render(
-      <IdiomaProvider locale="pt-BR">
+      <IdiomaProvider locale="pt-MZ">
         <ProposalsSettingsClient />
       </IdiomaProvider>,
     );
-    fireEvent.click(await screen.findByRole("button", { name: /Salvar/ }));
+    fireEvent.click(await screen.findByRole("button", { name: /Guardar/ }));
     await waitFor(() => expect(mocks.patch).toHaveBeenCalled());
     expect(mocks.refresh).not.toHaveBeenCalled();
   });

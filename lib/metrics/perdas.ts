@@ -73,7 +73,7 @@ export const SEM_ETAPA = "Etapa desconhecida";
 function ordena(mapa: Map<string, number>): Contagem[] {
   return [...mapa.entries()]
     .map(([chave, quantidade]) => ({ chave, quantidade }))
-    .sort((a, b) => b.quantidade - a.quantidade || a.chave.localeCompare(b.chave, "pt-BR"));
+    .sort((a, b) => b.quantidade - a.quantidade || a.chave.localeCompare(b.chave, "pt-MZ"));
 }
 
 /**
@@ -139,7 +139,7 @@ export function agruparPerdas(
     porMoeda: [...moedas.values()].sort(
       (a, b) =>
         Number(a.moeda === SEM_MOEDA) - Number(b.moeda === SEM_MOEDA) ||
-        a.moeda.localeCompare(b.moeda, "pt-BR"),
+        a.moeda.localeCompare(b.moeda, "pt-MZ"),
     ),
     total,
   };

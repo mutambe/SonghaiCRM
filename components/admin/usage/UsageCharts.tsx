@@ -27,7 +27,7 @@ function formatDateTick(date: string, idioma: string): string {
 const formatCurrency = formatCentsUSD;
 
 function formatNumber(n: number): string {
-  return n.toLocaleString("pt-BR");
+  return n.toLocaleString("pt-MZ");
 }
 
 function EmptyChart() {

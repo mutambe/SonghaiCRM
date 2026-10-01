@@ -85,7 +85,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(requireRole).mockResolvedValue({
     ok: true,
-    user: { id: ADMIN, idioma: "pt-BR" },
+    user: { id: ADMIN, idioma: "pt-MZ" },
     org: { orgId: ORG, role: "admin" },
   } as never);
 });

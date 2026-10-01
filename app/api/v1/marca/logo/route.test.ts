@@ -120,7 +120,7 @@ function usuarioAdminDeOrganizacao(): AuthUser {
     full_name: null,
     avatar_url: null,
     is_platform_admin: false,
-    idioma: "pt-BR",
+    idioma: "pt-MZ",
     organizations: [{ organization_id: ORG_ID, organization_name: "Org", role: "admin" }],
   } as AuthUser;
 }
@@ -132,7 +132,7 @@ function usuarioDonoDoServidor(): AuthUser {
     full_name: null,
     avatar_url: null,
     is_platform_admin: true,
-    idioma: "pt-BR",
+    idioma: "pt-MZ",
     organizations: [],
   } as AuthUser;
 }

@@ -10,7 +10,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 const { modulosLigadosMock } = vi.hoisted(() => ({ modulosLigadosMock: vi.fn() }));
 
 vi.mock("@/lib/auth/server", () => ({
-  requireAuth: vi.fn().mockResolvedValue({ idioma: "pt-BR", is_platform_admin: false, support: false }),
+  requireAuth: vi.fn().mockResolvedValue({ idioma: "pt-MZ", is_platform_admin: false, support: false }),
   resolveActiveOrg: vi.fn().mockResolvedValue({ role: "admin", interface_settings: undefined }),
 }));
 vi.mock("@/lib/instalacao/modulos", () => ({ modulosLigados: modulosLigadosMock }));

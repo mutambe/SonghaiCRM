@@ -58,7 +58,7 @@ const usuario: AuthUser = {
   full_name: "Ana",
   avatar_url: null,
   is_platform_admin: false,
-  idioma: "pt-BR" as const,
+  idioma: "pt-MZ" as const,
   organizations: [{ organization_id: ORG, organization_name: "Clínica", role: "agent" }],
 };
 const orgAtiva: ActiveOrg = { orgId: ORG, name: "Clínica", role: "agent" };

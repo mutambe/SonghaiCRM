@@ -14,7 +14,6 @@ import { describeNodeConfig, NODE_VISUAL_LIST, NODE_VISUALS, configPadraoDaAcao 
 
 /** Em português o dicionário devolve a própria chave — é o `t` do provider na língua da chave. */
 const pt = (texto: string) => texto;
-const es = (texto: string) => traduzir(texto, "es");
 
 describe("describeNodeConfig — nó final", () => {
   it.each([
@@ -78,8 +77,8 @@ describe("describeNodeConfig — nó de condição", () => {
 describe("nenhum card fala a língua do banco", () => {
   const JARGAO = /\b(grace|timeout|class_match|no_reply|branch|steps_taken|lead_stage|per_check)\b/i;
 
-  it.each(NODE_VISUAL_LIST.map((v) => [v.type, v] as const))("o card de '%s' em pt e em es", (_tipo, visual) => {
-    for (const idioma of [pt, es]) {
+  it.each(NODE_VISUAL_LIST.map((v) => [v.type, v] as const))("o card de '%s' em português", (_tipo, visual) => {
+    for (const idioma of [pt]) {
       const texto = describeNodeConfig(visual.type, visual.defaultConfig(), idioma);
       expect(texto, `subtítulo de ${visual.type}: ${texto}`).not.toMatch(JARGAO);
       expect(texto.trim()).not.toBe("");
@@ -96,29 +95,10 @@ describe("nenhum card fala a língua do banco", () => {
     expect(describeNodeConfig("wait", { mode: "fixed", duration_ms: 600_000 }, pt)).toBe("10 min");
   });
 
-  it("em espanhol o card de repetição e o de casar resposta também traduzem", () => {
-    // Os dois chegaram por outra branch chamando `describeNodeConfig` sem `t`, e
-    // o padrão identidade escondia o esquecimento de quem só lê em português.
-    expect(describeNodeConfig("repeat", { max_count: 12 }, es)).toBe("hasta 12 vueltas");
-    expect(describeNodeConfig("repeat", { max_count: 1 }, es)).toBe("hasta 1 vuelta");
-    expect(
-      describeNodeConfig(
-        "match_reply",
-        { branches: [{ id: "br_sim", label: "Sim", op: "contains", pattern: "sim" }], grace_timeout_ms: 900_000 },
-        es,
-      ),
-    ).toBe("1 regla · espera 15 min");
-  });
+
 });
 
 describe("o nó de classificação nasce falando português", () => {
-  it("as classes padrão dizem o critério, e ficam FORA do dicionário", () => {
-    const { classes } = NODE_VISUALS.ai_classify.defaultConfig() as { classes: string[] };
-    expect(classes).toEqual(["Interessado", "Sem interesse"]);
-    // Classe é dado do usuário: se virasse chave, o card mostraria uma palavra e
-    // o motor compararia outra para quem usa espanhol.
-    for (const classe of classes) expect(traduzir(classe, "es")).toBe(classe);
-  });
 
   it("nenhum nome padrão colide com um ramo reservado do contrato", () => {
     const { classes } = NODE_VISUALS.ai_classify.defaultConfig() as { classes: string[] };

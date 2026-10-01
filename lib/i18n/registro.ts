@@ -54,12 +54,28 @@ export interface IdiomaRegistrado {
 
 export const REGISTRO_DE_IDIOMAS = [
   {
+    // SonghaiCRM: o ÚNICO idioma visível. O texto das telas nasce em português
+    // do Brasil no upstream e passa por `t()`; a camada de vocabulário de
+    // `./pt-mz.ts` o devolve em português de Moçambique. Datas no `pt`
+    // europeu do date-fns; números e moeda pela etiqueta `pt-MZ` do ICU.
+    codigo: "pt-MZ",
+    nomeNativo: "Português (Moçambique)",
+    rotuloCurto: "PT",
+    tagBcp47: "pt-MZ",
+    subtagsDoNavegador: ["pt"],
+    nivel: "completo",
+    mantenedor: "Songhai, Lda",
+  },
+  {
+    // A LÍNGUA-FONTE do upstream, escondida: nada aqui é referente ao Brasil
+    // (decisão do dono do produto). Fica no registro só porque o texto das
+    // telas está escrito nela; `em_construcao` a tira de toda escolha.
     codigo: "pt-BR",
     nomeNativo: "Português (BR)",
     rotuloCurto: "PT",
     tagBcp47: "pt-BR",
-    subtagsDoNavegador: ["pt"],
-    nivel: "completo",
+    subtagsDoNavegador: [],
+    nivel: "em_construcao",
     mantenedor: "mantenedores do projeto",
   },
   {
@@ -70,7 +86,7 @@ export const REGISTRO_DE_IDIOMAS = [
     // navegador resolve pela região de quem lê.
     tagBcp47: "es",
     subtagsDoNavegador: ["es"],
-    nivel: "completo",
+    nivel: "em_construcao" /* SonghaiCRM: espanhol desligado */,
     mantenedor: "mantenedores do projeto",
   },
   {

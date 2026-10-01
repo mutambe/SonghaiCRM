@@ -44,7 +44,7 @@ beforeEach(() => {
       full_name: "Ana",
       avatar_url: null,
       is_platform_admin: false,
-      idioma: "pt-BR" as const,
+      idioma: "pt-MZ" as const,
       organizations: [{ organization_id: ORG, organization_name: "Clínica", role: "agent" }],
     },
     org: { orgId: ORG, name: "Clínica", role: "agent" },
@@ -69,21 +69,17 @@ describe("DELETE /api/v1/contacts/[id] — 409 por vínculo", () => {
 });
 
 describe("mensagemDeBloqueioPorVinculo", () => {
-  const pt = (s: string) => traduzir(s, "pt-BR");
-  const es = (s: string) => traduzir(s, "es");
+  const pt = (s: string) => traduzir(s, "pt-MZ");
 
   it("singular com 1 compromisso", () => {
     expect(mensagemDeBloqueioPorVinculo({ por_tabela: { calendar_appointments: 1 } }, pt)).toBe(
-      "Este contato tem 1 compromisso na Agenda. Cancele ou apague o compromisso antes de excluir.",
+      "Este contacto tem 1 compromisso na Agenda. Cancele ou apague o compromisso antes de excluir.",
     );
   });
 
-  it("plural com o número, e em espanhol sai em espanhol", () => {
+  it("plural com o número", () => {
     expect(mensagemDeBloqueioPorVinculo({ por_tabela: { calendar_appointments: 3 } }, pt)).toBe(
-      "Este contato tem 3 compromissos na Agenda. Cancele ou apague os compromissos antes de excluir.",
-    );
-    expect(mensagemDeBloqueioPorVinculo({ por_tabela: { calendar_appointments: 3 } }, es)).toBe(
-      "Este contacto tiene 3 citas en la Agenda. Cancela o elimina las citas antes de eliminar el contacto.",
+      "Este contacto tem 3 compromissos na Agenda. Cancele ou apague os compromissos antes de excluir.",
     );
   });
 

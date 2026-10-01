@@ -287,30 +287,31 @@ describe("validarRespostaDoFluxo", () => {
       expect(r).toEqual({ resultado: "respondeu", respostas: [{ campo: "moto_troca", valor: "Honda CG 125" }] });
     });
 
-    it("CPF com dígito errado é recusado; o certo entra, e a correção confere o dígito", async () => {
-      const perguntas = [{ key: "cpf", label: "CPF", type: "cpf" as const }];
-      respostaDoModelo({ respostas: [{ campo: "cpf", valor: "12345678900" }] });
+    // SonghaiCRM: o tipo `cpf` é o NUIT (forma de 9 dígitos).
+    it("NUIT com forma errada é recusado; o certo entra, e a correção confere a forma", async () => {
+      const perguntas = [{ key: "cpf", label: "NUIT", type: "cpf" as const }];
+      respostaDoModelo({ respostas: [{ campo: "cpf", valor: "40012345" }] });
       expect(
         await validarRespostaDoFluxo(db, cfg, { tenantId: "o", leadId: "l", jobId: "j" },
-          { perguntas, preenchidos: [], mensagens: [], textoAtual: "meu cpf é 123.456.789-00" }, { log: logger }),
+          { perguntas, preenchidos: [], mensagens: [], textoAtual: "meu nuit é 4001 2345" }, { log: logger }),
       ).toEqual({ resultado: "nao_respondeu" });
 
-      respostaDoModelo({ respostas: [{ campo: "cpf", valor: "52998224725" }] });
+      respostaDoModelo({ respostas: [{ campo: "cpf", valor: "400123456" }] });
       expect(
         await validarRespostaDoFluxo(db, cfg, { tenantId: "o", leadId: "l", jobId: "j" },
-          { perguntas, preenchidos: [], mensagens: [], textoAtual: "529.982.247-25" }, { log: logger }),
-      ).toEqual({ resultado: "respondeu", respostas: [{ campo: "cpf", valor: "52998224725" }] });
+          { perguntas, preenchidos: [], mensagens: [], textoAtual: "400 123 456" }, { log: logger }),
+      ).toEqual({ resultado: "respondeu", respostas: [{ campo: "cpf", valor: "400123456" }] });
 
-      respostaDoModelo({ respostas: [{ campo: "cpf", valor: "11144477735" }] });
+      respostaDoModelo({ respostas: [{ campo: "cpf", valor: "500234567" }] });
       expect(
         await validarRespostaDoFluxo(db, cfg, { tenantId: "o", leadId: "l", jobId: "j" },
           {
             perguntas: [],
-            preenchidos: [{ key: "cpf", label: "CPF", valor: "52998224725", type: "cpf" }],
+            preenchidos: [{ key: "cpf", label: "NUIT", valor: "400123456", type: "cpf" }],
             mensagens: [],
-            textoAtual: "opa, digitei errado, o certo é 111.444.777-35",
+            textoAtual: "opa, digitei errado, o certo é 500 234 567",
           }, { log: logger }),
-      ).toEqual({ resultado: "respondeu", respostas: [{ campo: "cpf", valor: "11144477735" }] });
+      ).toEqual({ resultado: "respondeu", respostas: [{ campo: "cpf", valor: "500234567" }] });
     });
 
     it("sem a mensagem do cliente, nada tem lastro", async () => {
@@ -365,14 +366,14 @@ describe("validarRespostaDoFluxo", () => {
       ).toEqual({ resultado: "respondeu", respostas: [{ campo: "nascimento", valor: "1990-03-12" }] });
     });
 
-    it("rajada: o CPF da segunda mensagem do lote tem lastro", async () => {
-      modelo({ respostas: [{ campo: "cpf", valor: "529.982.247-25" }] });
+    it("rajada: o NUIT da segunda mensagem do lote tem lastro", async () => {
+      modelo({ respostas: [{ campo: "cpf", valor: "400 123 456" }] });
       expect(
         await validarRespostaDoFluxo(db, cfg, ids, {
-          perguntas: [{ key: "cpf", label: "CPF", type: "cpf" }],
-          preenchidos: [], mensagens: [], textoAtual: "oi\nmeu cpf é 529.982.247-25", perguntaAtual: "cpf",
+          perguntas: [{ key: "cpf", label: "NUIT", type: "cpf" }],
+          preenchidos: [], mensagens: [], textoAtual: "oi\nmeu nuit é 400 123 456", perguntaAtual: "cpf",
         }, { log: logger }),
-      ).toEqual({ resultado: "respondeu", respostas: [{ campo: "cpf", valor: "52998224725" }] });
+      ).toEqual({ resultado: "respondeu", respostas: [{ campo: "cpf", valor: "400123456" }] });
     });
   });
 });

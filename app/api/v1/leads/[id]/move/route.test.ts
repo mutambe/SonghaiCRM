@@ -120,7 +120,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(requireRole).mockResolvedValue({
     ok: true,
-    user: { id: USER_ID, idioma: "pt-BR" },
+    user: { id: USER_ID, idioma: "pt-MZ" },
     org: { orgId: ORG_ID },
   } as never);
   vi.mocked(createClient).mockResolvedValue(bancoFalso() as never);

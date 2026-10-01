@@ -66,7 +66,7 @@ export async function GET(req: NextRequest, ctx: RouteCtx): Promise<Response> {
     return fail("unauthenticated", "Auth required.", 401, { requestId });
   }
   const authUser = await loadAuthUser();
-  const t = (texto: string) => traduzir(texto, authUser?.idioma ?? "pt-BR");
+  const t = (texto: string) => traduzir(texto, authUser?.idioma ?? "pt-MZ");
 
   const url = new URL(req.url);
   const types = url.searchParams.getAll("type").filter(Boolean);

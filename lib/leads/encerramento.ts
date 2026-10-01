@@ -104,7 +104,7 @@ export async function encerraDemanda(
       "validation_failed",
       undefined,
       ctx.requestId,
-      traduzir("Informe o motivo da perda.", ctx.idioma ?? "pt-BR"),
+      traduzir("Informe o motivo da perda.", ctx.idioma ?? "pt-MZ"),
     );
   }
 
@@ -124,7 +124,7 @@ export async function encerraDemanda(
       "not_found",
       undefined,
       ctx.requestId,
-      traduzir("Lead não encontrado.", ctx.idioma ?? "pt-BR"),
+      traduzir("Lead não encontrado.", ctx.idioma ?? "pt-MZ"),
     );
   }
 
@@ -157,7 +157,7 @@ export async function encerraDemanda(
         input.desfecho === "won"
           ? "Pipeline não tem stage de fechamento como ganho."
           : "Pipeline não tem stage de fechamento como perda.",
-        ctx.idioma ?? "pt-BR",
+        ctx.idioma ?? "pt-MZ",
       ),
     );
   }

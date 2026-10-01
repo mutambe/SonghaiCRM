@@ -45,7 +45,7 @@ const credencial: CredentialRow = {
 
 function montar(usageCount: number) {
   return render(
-    <IdiomaProvider locale="pt-BR">
+    <IdiomaProvider locale="pt-MZ">
       <QueryClientProvider client={client}>
         <CredentialCard credential={credencial} canWrite usageCount={usageCount} />
       </QueryClientProvider>
@@ -78,7 +78,7 @@ describe("CredentialCard — editar/rotacionar", () => {
     fireEvent.change(screen.getByLabelText(/nova chave/i), {
       target: { value: "sk-ant-api03-NOVA-1234567890" },
     });
-    fireEvent.click(screen.getByRole("button", { name: /^salvar$/i }));
+    fireEvent.click(screen.getByRole("button", { name: /^guardar$/i }));
 
     await waitFor(() =>
       expect(api.patch).toHaveBeenCalledWith(
@@ -94,7 +94,7 @@ describe("CredentialCard — editar/rotacionar", () => {
     fireEvent.click(screen.getByRole("button", { name: /editar credencial/i }));
     const campoNome = await screen.findByLabelText("Nome");
     fireEvent.change(campoNome, { target: { value: "Produção 2" } });
-    fireEvent.click(screen.getByRole("button", { name: /^salvar$/i }));
+    fireEvent.click(screen.getByRole("button", { name: /^guardar$/i }));
 
     await waitFor(() =>
       expect(api.patch).toHaveBeenCalledWith(
@@ -108,7 +108,7 @@ describe("CredentialCard — editar/rotacionar", () => {
     montar(0);
     fireEvent.click(screen.getByRole("button", { name: /editar credencial/i }));
     await screen.findByLabelText("Nome");
-    expect(screen.getByRole("button", { name: /^salvar$/i })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /^guardar$/i })).toBeDisabled();
     expect(api.patch).not.toHaveBeenCalled();
   });
 });

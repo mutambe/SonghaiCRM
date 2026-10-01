@@ -122,7 +122,7 @@ function monta(existente: Record<string, unknown> | null) {
         return "Maria";
       },
       async marcaDaOrganizacao() {
-        return { nome: "Acme", idioma: "pt-BR" as const };
+        return { nome: "Acme", idioma: "pt-MZ" as const };
       },
     },
     transporte: {

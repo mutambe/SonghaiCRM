@@ -40,7 +40,7 @@ const MOTIVOS_DE_BLOQUEIO =
 
 let creds: CredsE2E = lerCreds();
 
-test.use({ locale: "pt-BR" });
+test.use({ locale: "pt-MZ" });
 
 // 240s, como a vizinha `agente-novo-e-uso`: o orçamento inclui UMA re-semeadura
 // de credenciais, que o login dispara sozinho quando outra sessão rotaciona o

@@ -44,7 +44,7 @@ describe("AddCredentialDialog — ajuda ao escolher", () => {
     montar("typesafe");
     expect(screen.getByLabelText("Nome")).not.toBeRequired();
     fireEvent.change(screen.getByLabelText("Chave"), { target: { value: "apikey_0123456789abcdef" } });
-    fireEvent.click(screen.getByRole("button", { name: "Salvar e validar" }));
+    fireEvent.click(screen.getByRole("button", { name: "Guardar e validar" }));
     await waitFor(() => expect(api.post).toHaveBeenCalledTimes(1));
     expect(api.post).toHaveBeenCalledWith("/api/v1/ai/credentials", {
       provider: "typesafe",
@@ -77,7 +77,7 @@ describe("AddCredentialDialog — ajuda ao escolher", () => {
     fireEvent.change(screen.getByLabelText("Endereço (base URL)"), {
       target: { value: "https://gw.exemplo/v1" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Salvar e validar" }));
+    fireEvent.click(screen.getByRole("button", { name: "Guardar e validar" }));
 
     await waitFor(() =>
       expect(api.post).toHaveBeenCalledWith("/api/v1/ai/credentials/test", {
@@ -108,7 +108,7 @@ describe("AddCredentialDialog — ajuda ao escolher", () => {
     fireEvent.change(screen.getByLabelText("Endereço (base URL)"), {
       target: { value: "https://gw.exemplo/v1" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Salvar e validar" }));
+    fireEvent.click(screen.getByRole("button", { name: "Guardar e validar" }));
 
     await waitFor(() =>
       expect(api.post).toHaveBeenCalledWith("/api/v1/ai/credentials", {

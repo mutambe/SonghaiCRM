@@ -33,7 +33,7 @@ function client(status: string) {
 beforeEach(() => {
   vi.clearAllMocks();
   deps.support.mockResolvedValue(null);
-  deps.role.mockResolvedValue({ ok: true, user: { id: "eu", idioma: "pt-BR" }, org: { orgId: "org", role: "manager" } });
+  deps.role.mockResolvedValue({ ok: true, user: { id: "eu", idioma: "pt-MZ" }, org: { orgId: "org", role: "manager" } });
 });
 
 describe("POST /api/v1/ai/followups/enrollments/:id/cancel", () => {

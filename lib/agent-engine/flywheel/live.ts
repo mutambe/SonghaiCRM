@@ -105,7 +105,7 @@ function distillerPrompt(missingFacts: string[]): string {
     'Você melhora PLAYBOOKS de agentes SDR por DELTAS mínimos. Um juiz constatou falha de higiene de',
     `memória em conversa real: fatos duráveis fora das notas do lead (${missingFacts.join('; ')}).`,
     'Causa raiz típica: o agente consolida notas com "supersedes" apagando fatos de OUTRO assunto.',
-    'Proponha UM único bullet de playbook, em pt-BR, imperativo, ≤3 linhas, que previna essa classe',
+    'Proponha UM único bullet de playbook, em português de Moçambique (pt-MZ), imperativo, ≤3 linhas, que previna essa classe',
     'de falha sem proibir consolidação legítima. NÃO cite dados do lead.',
     'Decida também o ESCOPO do aprendizado: "org" quando vale para TODO atendimento da organização',
     '(política, tom de voz, fato do negócio — ex.: "a loja não vende aos domingos"); "agent" quando é',

@@ -19,7 +19,7 @@ const req = () => new NextRequest(`http://localhost/api/v1/contacts/${ID}/roteir
 
 beforeEach(() => {
   vi.clearAllMocks();
-  deps.role.mockResolvedValue({ ok: true, user: { id: "eu", idioma: "pt-BR" }, org: { orgId: "org", role: "viewer" } });
+  deps.role.mockResolvedValue({ ok: true, user: { id: "eu", idioma: "pt-MZ" }, org: { orgId: "org", role: "viewer" } });
 });
 
 describe("GET /api/v1/contacts/:id/roteiros", () => {

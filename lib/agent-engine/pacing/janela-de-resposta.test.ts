@@ -20,9 +20,9 @@ import {
 } from './engine';
 
 /** 2026-09-30 é quarta. 03:00 e 21:00 são as horas que separam as janelas. */
-const AS_3H = new Date('2026-09-30T03:00:00-03:00'); // meia-noite-1h em São Paulo
-const AS_21H = new Date('2026-09-30T21:00:00-03:00');
-const AS_10H = new Date('2026-09-30T10:00:00-03:00');
+const AS_3H = new Date('2026-09-30T03:00:00+02:00'); // 3h da madrugada em Maputo
+const AS_21H = new Date('2026-09-30T21:00:00+02:00');
+const AS_10H = new Date('2026-09-30T10:00:00+02:00');
 
 /**
  * A hora local do TENANT, não a da máquina.
@@ -145,7 +145,7 @@ describe('janela de resposta separada da janela de disparo (0495)', () => {
 
   it('domingo desligado cala a resposta também (knob único, sem par)', () => {
     const k = knobs({ respostaStartHour: 0, respostaEndHour: 24, allowSunday: false });
-    const domingo = new Date('2026-10-04T12:00:00-03:00'); // domingo
+    const domingo = new Date('2026-10-04T12:00:00+02:00'); // domingo
     expect(janelaDeEnvioAberta(domingo, k, true)).toBe(false);
   });
 

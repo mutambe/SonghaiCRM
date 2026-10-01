@@ -44,7 +44,7 @@ vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: () => adminClient })
 vi.mock("@/lib/auth/server", () => ({
   loadAuthUser: async () => ({
     id: "user-1",
-    idioma: "pt-BR",
+    idioma: "pt-MZ",
     is_platform_admin: false,
     support: null,
     organizations: [],

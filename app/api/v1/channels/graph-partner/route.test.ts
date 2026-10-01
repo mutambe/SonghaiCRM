@@ -56,7 +56,7 @@ const SESSAO = {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  h.role.mockResolvedValue({ ok: true, org: { orgId: "org-confiavel" }, user: { id: "admin", idioma: "pt-BR" } });
+  h.role.mockResolvedValue({ ok: true, org: { orgId: "org-confiavel" }, user: { id: "admin", idioma: "pt-MZ" } });
   h.support.mockResolvedValue(null);
   h.encrypt.mockImplementation(async (_: unknown, v: string) => `enc(${v})`);
   h.decrypt.mockResolvedValue("whsec_do_painel_123456");

@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 
 import {
   parseReaisToCents,
-  formatCentsBRL,
+  formatCentsPadrao,
   formatCents,
   MOEDAS_SERVIDAS,
   MOEDA_PADRAO,
@@ -49,10 +49,12 @@ describe("parseReaisToCents", () => {
   });
 });
 
-describe("formatCentsBRL", () => {
-  it("mostra em reais o que está guardado em centavos", () => {
-    expect(formatCentsBRL(24990).replace(/ /g, " ")).toBe("R$ 249,90");
-    expect(formatCentsBRL(0).replace(/ /g, " ")).toBe("R$ 0,00");
+// SonghaiCRM: o formatador "padrão" escreve em metical (substitui o formatCentsBRL).
+describe("formatCentsPadrao", () => {
+  it("mostra em meticais o que está guardado em centavos", () => {
+    expect(formatCentsPadrao(24990)).toBe(formatCents(24990, "MZN"));
+    expect(formatCentsPadrao(24990)).toMatch(/249,90/);
+    expect(formatCentsPadrao(24990)).not.toContain("R$");
   });
 });
 
@@ -153,11 +155,11 @@ describe("MOEDAS_SERVIDAS — a lista que a tela oferece", () => {
    * O que este caso prende é a OFERTA, não o padrão: o padrão continua
    * sendo o real, e isso é o caso seguinte.
    */
-  it("serve o kwanza, e continua servindo as três de antes", () => {
-    expect(MOEDAS_SERVIDAS).toContain("AOA");
-    expect(MOEDAS_SERVIDAS).toContain("BRL");
-    expect(MOEDAS_SERVIDAS).toContain("MXN");
+  it("serve o metical, o dólar e o rand — e nenhuma moeda brasileira (SonghaiCRM)", () => {
+    expect(MOEDAS_SERVIDAS).toContain("MZN");
     expect(MOEDAS_SERVIDAS).toContain("USD");
+    expect(MOEDAS_SERVIDAS).toContain("ZAR");
+    expect(MOEDAS_SERVIDAS).not.toContain("BRL");
   });
 
   it("serve o euro, com o símbolo que o seletor mostra", () => {
@@ -165,8 +167,8 @@ describe("MOEDAS_SERVIDAS — a lista que a tela oferece", () => {
     expect(simboloDaMoeda("EUR")).toBe("€");
   });
 
-  it("e o padrão de quem não escolheu segue sendo o real", () => {
-    expect(MOEDA_PADRAO).toBe("BRL");
+  it("e o padrão de quem não escolheu é o metical", () => {
+    expect(MOEDA_PADRAO).toBe("MZN");
   });
 });
 

@@ -4,7 +4,7 @@
  * Covers:
  *  - E.164 phone validator (accept/reject)
  *  - Email parsing
- *  - CPF check-digit (valid, invalid, repeated digits)
+ *  - NUIT (Moçambique): forma de 9 dígitos, sem dígito repetido
  *  - lgpdAnonymizeSchema requires justification ≥ 10 chars
  *  - contactListQuerySchema coerces `limit` and clamps boundaries
  */
@@ -13,36 +13,27 @@ import {
   contactCreateSchema,
   contactListQuerySchema,
   contactPatchSchema,
-  isValidCpf,
+  isValidNuit,
   lgpdAnonymizeSchema,
 } from "./contacts";
 
-describe("isValidCpf", () => {
-  it("accepts a known-valid CPF", () => {
-    // Generated valid CPFs (algorithm verified).
-    expect(isValidCpf("52998224725")).toBe(true);
-    expect(isValidCpf("11144477735")).toBe(true);
+describe("isValidNuit", () => {
+  it("aceita NUIT de 9 dígitos, com ou sem separador", () => {
+    expect(isValidNuit("400123456")).toBe(true);
+    expect(isValidNuit("400 123 456")).toBe(true);
+    expect(isValidNuit("400.123.456")).toBe(true);
   });
 
-  it("rejects repeated-digit CPFs", () => {
-    expect(isValidCpf("00000000000")).toBe(false);
-    expect(isValidCpf("11111111111")).toBe(false);
-    expect(isValidCpf("99999999999")).toBe(false);
+  it("recusa a sequência de um dígito repetido (preenchimento)", () => {
+    expect(isValidNuit("000000000")).toBe(false);
+    expect(isValidNuit("111111111")).toBe(false);
   });
 
-  it("rejects invalid check digits", () => {
-    expect(isValidCpf("52998224726")).toBe(false);
-    expect(isValidCpf("12345678900")).toBe(false);
-  });
-
-  it("rejects wrong length / non-digits", () => {
-    expect(isValidCpf("123")).toBe(false);
-    expect(isValidCpf("abcdefghijk")).toBe(false);
-    expect(isValidCpf("")).toBe(false);
-  });
-
-  it("normalizes formatting (dots/dashes)", () => {
-    expect(isValidCpf("529.982.247-25")).toBe(true);
+  it("recusa tamanho errado e não-dígito", () => {
+    expect(isValidNuit("12345678")).toBe(false);
+    expect(isValidNuit("1234567890")).toBe(false);
+    expect(isValidNuit("abcdefghi")).toBe(false);
+    expect(isValidNuit("")).toBe(false);
   });
 });
 
@@ -58,7 +49,7 @@ describe("contactCreateSchema", () => {
   });
 
   it("accepts E.164 phones", () => {
-    const r = contactCreateSchema.safeParse({ phone_number: "+5511999998888" });
+    const r = contactCreateSchema.safeParse({ phone_number: "+258841234567" });
     expect(r.success).toBe(true);
   });
 
@@ -67,13 +58,13 @@ describe("contactCreateSchema", () => {
     expect(r.success).toBe(false);
   });
 
-  it("rejects invalid CPF", () => {
-    const r = contactCreateSchema.safeParse({ cpf: "12345678900" });
+  it("rejects invalid NUIT (o campo `cpf` é o documento do titular)", () => {
+    const r = contactCreateSchema.safeParse({ cpf: "12345678" });
     expect(r.success).toBe(false);
   });
 
-  it("accepts valid CPF", () => {
-    const r = contactCreateSchema.safeParse({ cpf: "52998224725" });
+  it("accepts valid NUIT", () => {
+    const r = contactCreateSchema.safeParse({ cpf: "400123456" });
     expect(r.success).toBe(true);
   });
 

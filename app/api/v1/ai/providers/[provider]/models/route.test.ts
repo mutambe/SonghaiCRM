@@ -93,7 +93,7 @@ function autorizado() {
     full_name: null,
     avatar_url: null,
     is_platform_admin: false,
-    idioma: "pt-BR",
+    idioma: "pt-MZ",
   } as unknown as AuthUser);
   vi.mocked(resolveActiveOrg).mockResolvedValue({
     orgId: ORG_ID,

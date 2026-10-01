@@ -16,6 +16,7 @@
  * ter visto qualquer tela do produto.
  */
 import { NEUTROS_DE_SAIDA, type MarcaDeSaida } from "@/lib/branding/saida";
+import { FUSO_PADRAO } from "@/lib/tempo/fusos";
 
 export interface InviteEmailOptions {
   inviterName: string;
@@ -32,8 +33,8 @@ export function buildInviteEmail(opts: InviteEmailOptions): {
   html: string;
   text: string;
 } {
-  const expiresStr = opts.expiresAt.toLocaleString("pt-BR", {
-    timeZone: "America/Sao_Paulo",
+  const expiresStr = opts.expiresAt.toLocaleString("pt-MZ", {
+    timeZone: FUSO_PADRAO,
   });
   const marca = opts.marca.nome;
   const subject = `${opts.inviterName} convidou você para a ${opts.orgName} no ${marca}`;
@@ -60,7 +61,7 @@ export function buildInviteEmail(opts: InviteEmailOptions): {
     : "";
 
   const html = `<!doctype html>
-<html lang="pt-BR">
+<html lang="pt-MZ">
 <body style="margin:0;padding:0;background:${NEUTROS_DE_SAIDA.fundo};font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:${NEUTROS_DE_SAIDA.texto}">
   <div style="max-width:560px;margin:0 auto;padding:32px 24px">
     ${logo}

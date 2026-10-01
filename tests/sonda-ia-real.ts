@@ -66,7 +66,7 @@ async function escolher(p: Page, idDoGatilho: string, texto: RegExp): Promise<st
 async function main(): Promise<void> {
   fs.mkdirSync(DIR, { recursive: true });
   const b = await chromium.launch();
-  const p = await (await b.newContext({ viewport: { width: 1440, height: 950 }, locale: "pt-BR" })).newPage();
+  const p = await (await b.newContext({ viewport: { width: 1440, height: 950 }, locale: "pt-MZ" })).newPage();
   await loginAdmin(p);
 
   // ---- 1. Cadastrar a credencial PELA TELA ----

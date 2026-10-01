@@ -113,16 +113,16 @@ describe("computeDueAt — business day SLA calculator", () => {
     expect(fmt(computeDueAt(d("2026-12-23"), 15))).toBe("2027-01-15");
   });
 
-  it("2026-02-13 (Fri) + 15 úteis pula Carnaval 16-17/02", () => {
-    // 2026-02-16 (Mon) = Carnaval Monday — holiday
-    // 2026-02-17 (Tue) = Carnaval Tuesday — holiday
-    // day1=Sat14? No, Sat → skip. Sun15 → skip.
-    // First business day after Fri13: Mon16 is holiday, Tue17 is holiday → Wed18(day1)
-    // day1=Wed18, day2=Thu19, day3=Fri20
-    // day4=Mon23, day5=Tue24, day6=Wed25, day7=Thu26, day8=Fri27
-    // day9=Mon02Mar, day10=Tue03, day11=Wed04, day12=Thu05, day13=Fri06
-    // day14=Mon09, day15=Tue10
-    expect(fmt(computeDueAt(d("2026-02-13"), 15))).toBe("2026-03-10");
+  // SonghaiCRM: o calendário é o MOÇAMBICANO (lib/lgpd/holidays-mz.ts). O
+  // Carnaval, que o upstream pulava, NÃO é feriado em Moçambique.
+  it("2026-02-13 (Fri) + 15 úteis NÃO pula o Carnaval em Moçambique", () => {
+    // day1=Mon16, day2=Tue17 (dias úteis aqui), day3=Wed18 … day10=Fri27
+    // day11=Mon02Mar … day15=Fri06
+    expect(fmt(computeDueAt(d("2026-02-13"), 15))).toBe("2026-03-06");
+  });
+
+  it("2026-02-02 (Mon) + 1 útil pula o Dia dos Heróis Moçambicanos (03/02)", () => {
+    expect(fmt(computeDueAt(d("2026-02-02"), 1))).toBe("2026-02-04");
   });
 
   // -------------------------------------------------------------------------

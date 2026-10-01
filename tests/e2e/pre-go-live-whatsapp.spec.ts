@@ -6,7 +6,7 @@ import { metadataInicialDoCanal } from "../../lib/ai/elegibilidade/pre-go-live";
 import { nomeDaSessaoCabeNoWaha } from "../../lib/channels/nome-da-sessao";
 
 // Banco e auth reais, sem interceptar a API da feature. Não envia WhatsApp real.
-test.use({ locale: "pt-BR" });
+test.use({ locale: "pt-MZ" });
 test("admin configura testes, remove número, confirma abertura e volta a restringir", async ({ page }, testInfo) => {
   test.setTimeout(120_000);
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;

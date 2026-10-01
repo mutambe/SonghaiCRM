@@ -58,7 +58,7 @@ function montarMundo(papel: keyof typeof ROLE_RANK = "manager") {
     const minRank = ROLE_RANK[minRole] ?? 0;
     return rank < minRank
       ? { ok: false, response: new Response(JSON.stringify({ error: { code: "forbidden_role" } }), { status: 403 }) }
-      : { ok: true, user: { id: "u1", idioma: "pt-BR" }, org: { orgId: ORG_ID } };
+      : { ok: true, user: { id: "u1", idioma: "pt-MZ" }, org: { orgId: ORG_ID } };
   });
   mocks.requireSupportWrite.mockResolvedValue(null);
 }

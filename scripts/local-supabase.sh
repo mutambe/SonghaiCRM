@@ -58,10 +58,12 @@ apply_baseline() {
      create extension if not exists vector;
      create extension if not exists citext;
      create extension if not exists pg_trgm;'
+  # SonghaiCRM: o apêndice da distribuição (supabase/songhai.sql) logo depois.
   docker run --rm --network host \
     -v "$ROOT_DIR/supabase/baseline.sql:/tmp/deskcomm-baseline.sql:ro" \
+    -v "$ROOT_DIR/supabase/songhai.sql:/tmp/songhai.sql:ro" \
     postgres:15-alpine \
-    psql "$db_url" -v ON_ERROR_STOP=1 -f /tmp/deskcomm-baseline.sql
+    psql "$db_url" -v ON_ERROR_STOP=1 -f /tmp/deskcomm-baseline.sql -f /tmp/songhai.sql
 }
 
 case "${1:-}" in

@@ -72,7 +72,7 @@ describe("painel do Operador — disciplina de informação", () => {
     // o registro básico). Sem esta frase, o usuário conclui que desligar deixa o
     // sistema cego — e liga por medo, não por escolha.
     expect(aviso.textContent).toMatch(/continua atendendo/i);
-    expect(aviso.textContent).toMatch(/registrado sozinho/i);
+    expect(aviso.textContent).toMatch(/registado sozinho/i);
     // E o que PARA de acontecer.
     expect(aviso.textContent).toMatch(/decidir sobre a operação/i);
   });

@@ -85,7 +85,7 @@ function banco(settings: Record<string, unknown> | null, extra: Partial<Banco> =
 function sessao() {
   vi.mocked(requireRole).mockResolvedValue({
     ok: true,
-    user: { id: "u1", idioma: "pt-BR" },
+    user: { id: "u1", idioma: "pt-MZ" },
     org: { orgId: ORG, role: "manager" },
   } as never);
 }

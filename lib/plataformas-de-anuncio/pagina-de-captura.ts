@@ -45,7 +45,7 @@ export function paginaDeSaida(destino: string | null): NextResponse {
     return NextResponse.redirect(destino, { status: 302 });
   }
   return new NextResponse(
-    `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Link indisponível</title></head><body style="font-family:system-ui,sans-serif;padding:2rem;text-align:center;color:#333"><p>Este link não está disponível no momento.</p></body></html>`,
+    `<!doctype html><html lang="pt-MZ"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Link indisponível</title></head><body style="font-family:system-ui,sans-serif;padding:2rem;text-align:center;color:#333"><p>Este link não está disponível no momento.</p></body></html>`,
     { status: 404, headers: { "content-type": "text/html; charset=utf-8" } },
   );
 }

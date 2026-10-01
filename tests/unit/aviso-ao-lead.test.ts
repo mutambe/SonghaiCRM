@@ -256,7 +256,7 @@ describe("o aviso sai no idioma da organização", () => {
     expect(textoDoAviso("pediu_humano", null, LEAD, "es-MX")).toBe(es);
     const pt = textoDoAviso("pediu_humano", null, LEAD);
     expect(textoDoAviso("pediu_humano", null, LEAD, null)).toBe(pt);
-    expect(textoDoAviso("pediu_humano", null, LEAD, "pt-BR")).toBe(pt);
+    expect(textoDoAviso("pediu_humano", null, LEAD, "pt-MZ")).toBe(pt);
     expect(pt).not.toBe(es);
   });
 });

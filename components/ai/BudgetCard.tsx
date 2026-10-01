@@ -63,7 +63,7 @@ type Modo = BudgetStatus["enforcement_mode"];
  * provedor cobra. Formatar em BRL fazia o dono do negócio ler um teto ~5x maior
  * do que o que estava armando.
  */
-const usd = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "USD" });
+const usd = new Intl.NumberFormat("pt-MZ", { style: "currency", currency: "USD" });
 
 function fmtCents(cents: number): string {
   return usd.format((cents ?? 0) / 100);
@@ -104,7 +104,7 @@ function frameDoEstado(
   t: (texto: string) => string = (texto) => texto,
   // Mesmo tratamento do `t`: esta função é auxiliar e não pode chamar hook.
   // Default no padrão do produto, para nenhum chamador quebrar.
-  tagDoIdioma = "pt-BR",
+  tagDoIdioma = "pt-MZ",
 ): string {
   const efetivoEm = status.enforcement_effective_at;
   if (status.enforcement_mode === "off") {

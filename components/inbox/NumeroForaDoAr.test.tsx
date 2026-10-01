@@ -113,6 +113,6 @@ describe("NumeroForaDoAr — responder por outro número", () => {
     await userEvent.click(screen.getByRole("button", { name: "Responder por outro número" }));
     await userEvent.click(screen.getByRole("option", { name: /Número b/ }));
     expect(screen.getByTestId("btn-continuar-pelo-numero")).toBeDisabled();
-    expect(screen.getByText(/não tem telefone salvo/)).toBeInTheDocument();
+    expect(screen.getByText(/não tem telefone guardado/)).toBeInTheDocument();
   });
 });

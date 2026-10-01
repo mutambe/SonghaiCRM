@@ -4,6 +4,7 @@
  */
 import { createClient } from "@supabase/supabase-js";
 import { carregarEnvLocal } from "../scripts/lib/env-de-teste";
+import { FUSO_PADRAO } from "@/lib/tempo/fusos";
 
 const env = carregarEnvLocal();
 
@@ -28,7 +29,7 @@ async function main() {
         slug: ORG_SLUG,
         display_name: "E2E Test Org",
         legal_name: "E2E Test Org",
-        timezone: "America/Sao_Paulo",
+        timezone: FUSO_PADRAO,
         locale: "pt-BR",
         onboarded_at: new Date().toISOString(),
       } as never)

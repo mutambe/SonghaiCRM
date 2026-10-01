@@ -1,4 +1,4 @@
-import { es, ptBR } from "date-fns/locale";
+import { pt } from "date-fns/locale";
 import type { Locale } from "date-fns";
 
 import { IDIOMA_PADRAO, type Idioma } from "./idiomas";
@@ -32,9 +32,10 @@ import { idiomaVisivelPorCodigo } from "./registro";
  * camada. `date-fns` sem `locale` cai no inglês, e uma tela em espanhol com
  * "Thursday" é o pior dos três mundos.
  */
+// SonghaiCRM: o único idioma visível é pt-MZ, e a data é a do português
+// europeu (`pt` do date-fns: "quarta-feira, 30 de setembro"), não o `ptBR`.
 const LOCALE_DE_DATA: Record<Idioma, Locale> = {
-  "pt-BR": ptBR,
-  es,
+  "pt-MZ": pt,
 };
 
 /** O `Locale` do date-fns para quem está lendo. */

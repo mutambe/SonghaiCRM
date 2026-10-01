@@ -319,7 +319,7 @@ describe("POST /api/v1/contacts — o 409 chega inteiro ao corpo da resposta", (
         full_name: null,
         avatar_url: null,
         is_platform_admin: false,
-        idioma: "pt-BR" as const,
+        idioma: "pt-MZ" as const,
         organizations: [{ organization_id: ORG, organization_name: "Org", role: "agent" }],
       },
       org: { orgId: ORG, name: "Org", role: "agent" },
@@ -350,6 +350,6 @@ describe("POST /api/v1/contacts — o 409 chega inteiro ao corpo da resposta", (
     expect(corpo.error.details).toEqual({ contact_id: EXISTENTE });
     // É esta frase que o toast mostra: `contact_exists` não tem entrada própria
     // em `components/feedback/ApiErrorToast.tsx`, então passa o texto da rota.
-    expect(corpo.error.message).toBe("Já existe um contato com este telefone.");
+    expect(corpo.error.message).toBe("Já existe um contacto com este telefone.");
   });
 });

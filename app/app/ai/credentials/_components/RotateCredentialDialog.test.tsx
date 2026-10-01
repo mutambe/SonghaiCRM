@@ -59,7 +59,7 @@ describe("RotateCredentialDialog — depois de trocar a chave", () => {
       target: { value: "apikey_0123456789abcdef" },
     });
     await act(async () => {
-      fireEvent.click(screen.getByRole("button", { name: "Salvar" }));
+      fireEvent.click(screen.getByRole("button", { name: "Guardar" }));
     });
     expect(api.patch).toHaveBeenCalledTimes(1);
 

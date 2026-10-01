@@ -136,7 +136,7 @@ describe("motor de conversa (`avisarLeadDaEscalacao`)", () => {
   });
 
   it("organização em português: a frase de sempre", async () => {
-    await avisaPeloMotor(poolComIdioma("pt-BR"));
+    await avisaPeloMotor(poolComIdioma("pt-MZ"));
     expect(corpoDoMotor.valor).toBe(textoDoAviso("pediu_humano", null, LEAD));
   });
 

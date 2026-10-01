@@ -137,7 +137,7 @@ beforeEach(() => {
   vi.mocked(nomesDosAtendentes).mockResolvedValue(new Map());
   vi.mocked(requireRole).mockResolvedValue({
     ok: true,
-    user: { id: "u-eu", idioma: "pt-BR" },
+    user: { id: "u-eu", idioma: "pt-MZ" },
     org: { orgId: ORG, name: "Org", role: "agent" },
   } as never);
 });

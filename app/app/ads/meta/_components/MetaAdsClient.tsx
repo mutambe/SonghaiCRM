@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { MOEDA_PADRAO } from "@/lib/money";
 import {
   Select,
   SelectContent,
@@ -122,7 +123,7 @@ export function MetaAdsClient({ contaPadrao }: Props) {
     return ativa?.id ?? listaDeContas[0]?.id ?? null;
   }, [conta, contaPadrao, listaDeContas]);
 
-  const moeda = listaDeContas.find((c) => c.id === contaEfetiva)?.moeda ?? "BRL";
+  const moeda = listaDeContas.find((c) => c.id === contaEfetiva)?.moeda ?? MOEDA_PADRAO;
 
   const campanhas = useMetaCampaigns({
     contaId: contaEfetiva,

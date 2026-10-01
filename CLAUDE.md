@@ -12,6 +12,40 @@
 
 ---
 
+## ⚠️ SONGHAICRM — ESTA É A DISTRIBUIÇÃO MOÇAMBICANA (leia antes do resto)
+
+Este repositório é o **SonghaiCRM** (Songhai, Lda): o DeskcommCRM (`upstream`,
+`melgarafael/DeskcommCRM`) com a identidade de Moçambique por cima. O resto
+deste arquivo é a doutrina do upstream e continua valendo; onde ele disser
+Brasil, LGPD, real, pt-BR ou HostGator, vale o que está aqui.
+
+- **Tudo é referente a Moçambique; nada referente ao Brasil é de interesse**
+  (decisão do dono do produto). País padrão `MZ`, moeda `MZN`, fuso
+  `Africa/Maputo`, idioma `pt-MZ`, documento NUIT, telefone +258, base legal
+  Lei n.º 3/2017 (sem prazo legal fixo; os SLAs são compromisso operacional).
+- **Sincronizar com o upstream é `git merge upstream/main`.** Por isso a
+  identidade entra pelos pontos de extensão do upstream, não por reescrita:
+  - país: perfil `MZ` em `lib/legal/perfil-do-pais.ts` (o brasileiro não está
+    no registro); feriados em `lib/lgpd/holidays-mz.ts`;
+  - moeda: `MOEDA_PADRAO`/`MOEDAS_SERVIDAS` em `lib/money.ts` (MZN, USD, ZAR, EUR);
+  - fuso: `FUSO_PADRAO` em `lib/tempo/fusos.ts` — nunca o literal;
+  - idioma: `pt-MZ` é o único visível em `lib/i18n/registro.ts`; o texto
+    das telas passa por `t()` e pela camada de vocabulário
+    `lib/i18n/pt-mz.ts` (troca só palavra de MESMO gênero, com teste).
+    O espanhol do dicionário fica como dado não lido — não apague (merge).
+  - módulos brasileiros (Honorários, Nuvemshop, CRM B2B com BrasilAPI) ficam
+    **desligados** pelos mecanismos do upstream, não apagados.
+- **Banco: `supabase/songhai.sql`** é o apêndice da distribuição, aplicado
+  logo depois do `baseline.sql` na MESMA chamada do psql (kit, `test:db`,
+  `e2e`). Migration nossa = arquivo em `supabase/migrations/` (numeração
+  seguindo a do upstream) + linha no MANIFEST + bloco no `songhai.sql` —
+  **nunca** no `baseline.sql`, que fica intocado para o merge.
+- **Teste novo da distribuição vai em arquivo próprio** (ex.:
+  `tests/unit/promessa-em-metical.test.ts`), não dentro de teste do upstream.
+- Registro do que veio de onde: `docs/upstream-sync.md`.
+
+---
+
 ## Visão (1 parágrafo)
 
 DeskcommCRM é um sistema operacional de vendas open source com agentes de IA nativos — multi-nicho (e-commerce, clínicas, imobiliárias, infoprodutos, serviços), com WhatsApp como canal primário (via WAHA). Agentes com RAG por tenant atendem, qualificam e movem o funil junto com humanos; CRM inteiro exposto via MCP. Monetização = self-host em VPS (parceria HostGator), não assinatura. Arquitetura multi-tenant com RLS desde o dia 1; LGPD nativa. Posicionamento completo: `VISION.md`.

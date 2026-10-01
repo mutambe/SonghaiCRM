@@ -48,7 +48,7 @@ vi.mock("@/hooks/webhooks/useAutomationRules", () => ({
 vi.mock("@/hooks/i18n/useT", () => ({ useT: () => (texto: string) => texto }));
 vi.mock("@/hooks/i18n/useLocaleDeData", () => ({
   useLocaleDeData: () => undefined,
-  useTagDeIdioma: () => "pt-BR",
+  useTagDeIdioma: () => "pt-MZ",
 }));
 vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn(), warning: vi.fn() } }));
 

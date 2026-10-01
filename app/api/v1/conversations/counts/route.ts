@@ -84,7 +84,7 @@ export async function GET(req: NextRequest): Promise<Response> {
   if (!activeOrg) {
     return fail(
       "no_active_org",
-      traduzir("No active organization.", authUser?.idioma ?? "pt-BR"),
+      traduzir("No active organization.", authUser?.idioma ?? "pt-MZ"),
       403,
       { requestId },
     );

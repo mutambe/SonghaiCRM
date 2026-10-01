@@ -48,6 +48,7 @@
 import { logger } from "@/lib/logger";
 
 import { baseDaGraphDeAnuncio } from "./graph-base";
+import { MOEDA_PADRAO } from "@/lib/money";
 import type {
   ContaDeAnuncio,
   FalhaDeLeitura,
@@ -344,7 +345,7 @@ export async function listarContas(
     .map((c) => ({
       id: `act_${c.account_id}`,
       nome: c.name ?? c.account_id,
-      moeda: c.currency ?? "BRL",
+      moeda: c.currency ?? MOEDA_PADRAO,
       status: typeof c.account_status === "number" ? c.account_status : 0,
     }));
 

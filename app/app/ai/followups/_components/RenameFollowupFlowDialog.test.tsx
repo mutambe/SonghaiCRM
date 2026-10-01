@@ -49,7 +49,7 @@ async function envia(nome: string): Promise<HTMLElement> {
   const campo = screen.getByLabelText("Nome");
   await user.clear(campo);
   await user.type(campo, nome);
-  await user.click(screen.getByRole("button", { name: "Salvar" }));
+  await user.click(screen.getByRole("button", { name: "Guardar" }));
   return campo;
 }
 

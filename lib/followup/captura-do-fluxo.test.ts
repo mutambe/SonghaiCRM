@@ -166,21 +166,28 @@ describe("valorBateComTipo — o flow_collect do modelo respeita o tipo", () => 
   });
 });
 
-describe("tipo cpf (achado 7 da prova do #1130)", () => {
-  const cpf = { key: "cpf", label: "CPF", type: "cpf" as const };
+// SonghaiCRM: o tipo `cpf` é o DOCUMENTO DO TITULAR, que aqui é o NUIT (9 dígitos,
+// sem dígito verificador público — confere-se a forma).
+describe("tipo cpf = NUIT (achado 7 da prova do #1130)", () => {
+  const cpf = { key: "cpf", label: "NUIT", type: "cpf" as const };
 
-  it("CPF válido, com ou sem pontuação, vira só os dígitos", () => {
-    expect(classificarInbound(cpf, "529.982.247-25")).toEqual({
+  it("NUIT válido, com ou sem separador, vira só os dígitos", () => {
+    expect(classificarInbound(cpf, "400 123 456")).toEqual({
       resultado: "respondeu",
-      captura: { key: "cpf", valor: "52998224725", bruto: "529.982.247-25" },
+      captura: { key: "cpf", valor: "400123456", bruto: "400 123 456" },
     });
-    expect(classificarInbound(cpf, "meu cpf 52998224725").resultado).toBe("respondeu");
+    expect(classificarInbound(cpf, "meu nuit 400123456").resultado).toBe("respondeu");
   });
 
-  it("dígito verificador errado NÃO é resposta (a pergunta segue)", () => {
-    expect(classificarInbound(cpf, "123.456.789-00").resultado).not.toBe("respondeu");
-    expect(valorBateComTipo(cpf, "12345678900")).toBe(false);
-    expect(valorBateComTipo(cpf, "52998224725")).toBe(true);
+  it("forma errada NÃO é resposta (a pergunta segue)", () => {
+    expect(classificarInbound(cpf, "4001 2345").resultado).not.toBe("respondeu");
+    expect(classificarInbound(cpf, "111 111 111").resultado).not.toBe("respondeu");
+    expect(valorBateComTipo(cpf, "40012345")).toBe(false);
+    expect(valorBateComTipo(cpf, "400123456")).toBe(true);
+  });
+
+  it("não tira um NUIT de dentro de um telefone com +258", () => {
+    expect(classificarInbound(cpf, "liga para +258841234567").resultado).not.toBe("respondeu");
   });
 });
 

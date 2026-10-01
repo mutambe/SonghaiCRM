@@ -37,7 +37,7 @@ import { registrarDesfecho } from "@/lib/agent-engine/agent/operator-turn";
 vi.mock("@/lib/auth/require-role", () => ({
   requireRole: async () => ({
     ok: true,
-    user: { id: "u1", idioma: "pt-BR" },
+    user: { id: "u1", idioma: "pt-MZ" },
     org: { orgId: ORG, name: "Org", role: "admin" },
   }),
 }));

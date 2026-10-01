@@ -84,7 +84,7 @@ describe("lerPlanilhaDeLeads — todo apelido de coluna cai no seu campo", () =>
   const CAMPOS: Record<string, { celula: string; le: (l: Lead) => unknown; esperado: unknown }> = {
     titulo: { celula: "Reforma", le: (l) => [l.title, l.nome_do_contato], esperado: ["Reforma", null] },
     contato: { celula: "Ana", le: (l) => l.nome_do_contato, esperado: "Ana" },
-    telefone: { celula: "11999998888", le: (l) => l.telefone, esperado: "+5511999998888" },
+    telefone: { celula: "841234567", le: (l) => l.telefone, esperado: "+258841234567" },
     email: { celula: "ana@exemplo.com", le: (l) => l.email, esperado: "ana@exemplo.com" },
     descricao: { celula: "texto livre", le: (l) => l.description, esperado: "texto livre" },
     valor: { celula: "1.200,00", le: (l) => l.value_cents, esperado: 120000 },
@@ -172,10 +172,10 @@ describe("lerPlanilhaDeLeads — planilha em espanhol", () => {
   });
 
   it("cabeçalho misto pt + es", () => {
-    const resultado = lerPlanilhaDeLeads("Nome,Teléfono,Correo\nLoja,11999998888,a@b.co\n");
+    const resultado = lerPlanilhaDeLeads("Nome,Teléfono,Correo\nLoja,841234567,a@b.co\n");
     if ("erro" in resultado) throw new Error(`planilha recusada: ${resultado.erro}`);
     expect(resultado.colunasIgnoradas).toEqual([]);
-    expect(resultado.leads[0]).toMatchObject({ title: "Loja", telefone: "+5511999998888", email: "a@b.co" });
+    expect(resultado.leads[0]).toMatchObject({ title: "Loja", telefone: "+258841234567", email: "a@b.co" });
   });
 
   it("dois cabeçalhos do mesmo campo: o primeiro vale, o segundo é dito como ignorado", () => {
@@ -186,7 +186,7 @@ describe("lerPlanilhaDeLeads — planilha em espanhol", () => {
   });
 
   it("só teléfono e correo, sem nome do negócio nem do contato, segue recusada", () => {
-    const resultado = lerPlanilhaDeLeads("Teléfono,Correo\n11999998888,a@b.co\n");
+    const resultado = lerPlanilhaDeLeads("Teléfono,Correo\n841234567,a@b.co\n");
     expect(resultado).toEqual({
       erro: "A planilha precisa de uma coluna com o nome do negócio ou do contato. Encontrei: Teléfono, Correo.",
     });

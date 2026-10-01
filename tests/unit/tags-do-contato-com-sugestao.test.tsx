@@ -106,7 +106,7 @@ describe("ContactTagsEditor", () => {
       </QueryClientProvider>,
     );
 
-    await userEvent.type(screen.getByLabelText("Adicionar tag ao contato"), "vip");
+    await userEvent.type(screen.getByLabelText("Adicionar tag ao contacto"), "vip");
     await userEvent.click(screen.getByRole("button", { name: "Adicionar tag" }));
 
     expect(mutate).not.toHaveBeenCalled();

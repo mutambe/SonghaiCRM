@@ -7,7 +7,7 @@ import { anonymize, detectResidualPii, padroesDePii } from "@/lib/ai/anonymize";
 import type { PerfilDoPais } from "@/lib/legal/perfil-do-pais";
 import {
   citacaoDaLei,
-  isValidCpf,
+  isValidNuit,
   PAIS_PADRAO,
   paisesOferecidos,
   perfilDaOrganizacao,
@@ -92,16 +92,18 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-describe("o país da organização, com o Brasil como padrão", () => {
-  it("coluna nula, vazia ou ausente é o Brasil de quem já instalou", () => {
-    expect(PAIS_PADRAO).toBe("BR");
-    expect(perfilDoPais(null).codigo).toBe("BR");
-    expect(perfilDoPais(undefined).codigo).toBe("BR");
-    expect(perfilDoPais("").codigo).toBe("BR");
+// SonghaiCRM: o país padrão é Moçambique e o perfil brasileiro do upstream não
+// está no registro. As asserções do mecanismo (Xistão, RV) seguem as do upstream.
+describe("o país da organização, com Moçambique como padrão", () => {
+  it("coluna nula, vazia ou ausente é Moçambique", () => {
+    expect(PAIS_PADRAO).toBe("MZ");
+    expect(perfilDoPais(null).codigo).toBe("MZ");
+    expect(perfilDoPais(undefined).codigo).toBe("MZ");
+    expect(perfilDoPais("").codigo).toBe("MZ");
   });
 
   it("código em minúsculas ou com espaço em volta é o mesmo país", () => {
-    expect(perfilDoPais(" br ").codigo).toBe("BR");
+    expect(perfilDoPais(" mz ").codigo).toBe("MZ");
     expect(perfilDoPais("xi").nome).toBe("Xistão");
   });
 
@@ -109,10 +111,12 @@ describe("o país da organização, com o Brasil como padrão", () => {
     expect(perfilDoPais("XI").documento.rotulo).toBe("Bilhete");
   });
 
-  it("país desconhecido degrada para o Brasil — nunca para um perfil vazio", () => {
-    const perfil = perfilDoPais("ZZ");
-    expect(perfil.codigo).toBe("BR");
-    expect(perfil.documento.valida("529.982.247-25")).toBe(true);
+  it("país desconhecido — inclusive o Brasil — degrada para Moçambique, nunca para um perfil vazio", () => {
+    for (const codigo of ["ZZ", "BR"]) {
+      const perfil = perfilDoPais(codigo);
+      expect(perfil.codigo).toBe("MZ");
+      expect(perfil.documento.valida("400 123 456")).toBe(true);
+    }
   });
 });
 
@@ -125,25 +129,23 @@ describe("a régua para um país entrar (issue #1033)", () => {
     expect(paisesOferecidos().map((p) => p.codigo)).toContain("RV");
   });
 
-  it("perfil sem lei revisada não cita lei nenhuma — nem a brasileira", () => {
+  it("perfil sem lei revisada não cita lei nenhuma — nem a moçambicana", () => {
     expect(citacaoDaLei(XISTAO)).toBeNull();
     expect(citacaoDaLei({ ...XISTAO, lei: null })).toBeNull();
   });
 
-  it("o Brasil cita a LGPD com o artigo do direito de acesso", () => {
-    const citacao = citacaoDaLei(perfilDoPais("BR"));
-    expect(citacao).toContain("LGPD");
-    expect(citacao).toContain("13.709");
-    expect(citacao).toContain("18");
+  it("Moçambique cita a Lei n.º 3/2017, sem artigo inventado", () => {
+    expect(citacaoDaLei(perfilDoPais("MZ"))).toBe("Lei n.º 3/2017 (Moçambique)");
   });
 });
 
 describe("o documento do titular é o do país", () => {
-  it("o Brasil continua conferindo o dígito verificador (sem regressão)", () => {
-    expect(isValidCpf("529.982.247-25")).toBe(true);
-    expect(isValidCpf("52998224725")).toBe(true);
-    expect(isValidCpf("52998224724")).toBe(false);
-    expect(isValidCpf("111.111.111-11")).toBe(false);
+  it("o NUIT confere a FORMA — 9 dígitos, sem repetir um só dígito", () => {
+    expect(isValidNuit("400123456")).toBe(true);
+    expect(isValidNuit("400 123 456")).toBe(true);
+    expect(isValidNuit("40012345")).toBe(false);
+    expect(isValidNuit("111111111")).toBe(false);
+    expect(perfilDoPais("MZ").documento.confereDigito).toBe(false);
   });
 
   it("país sem checksum público valida FORMA e diz isso na mensagem", () => {
@@ -155,7 +157,7 @@ describe("o documento do titular é o do país", () => {
 
   it("a normalização é a do país (o valor gravado não é decidido pela planilha)", () => {
     expect(XISTAO.documento.normaliza("123.456.789-xi-000")).toBe("123456789XI000");
-    expect(perfilDoPais("BR").documento.normaliza("529.982.247-25")).toBe("52998224725");
+    expect(perfilDoPais("MZ").documento.normaliza("400.123.456")).toBe("400123456");
   });
 });
 
@@ -165,30 +167,30 @@ describe("perfilDaOrganizacao — a leitura e a degradação com rastro", () => 
     expect(perfil.codigo).toBe("XI");
   });
 
-  it("organização sem país é o Brasil, sem alarde", async () => {
+  it("organização sem país é Moçambique, sem alarde", async () => {
     const erro = vi.spyOn(console, "error").mockImplementation(() => {});
     const perfil = await perfilDaOrganizacao(bancoQueResponde({ data: { country: null }, error: null }), ORG);
-    expect(perfil.codigo).toBe("BR");
+    expect(perfil.codigo).toBe("MZ");
     expect(erro).not.toHaveBeenCalled();
   });
 
-  it("leitura que falha cai no Brasil e deixa rastro — nunca derruba o cadastro", async () => {
+  it("leitura que falha cai em Moçambique e deixa rastro — nunca derruba o cadastro", async () => {
     const erro = vi.spyOn(console, "error").mockImplementation(() => {});
     const perfil = await perfilDaOrganizacao(
       bancoQueResponde({ data: null, error: { message: "RLS negou a leitura" } }),
       ORG,
     );
-    expect(perfil.codigo).toBe("BR");
+    expect(perfil.codigo).toBe("MZ");
     expect(erro).toHaveBeenCalledWith(
       "[perfil-do-pais] caiu no padrão",
       expect.objectContaining({ orgId: ORG, motivo: "RLS negou a leitura" }),
     );
   });
 
-  it("país conhecido mas sem perfil revisado cai no Brasil e avisa o Sentry", async () => {
+  it("país conhecido mas sem perfil revisado cai em Moçambique e avisa o Sentry", async () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
     const perfil = await perfilDaOrganizacao(bancoQueResponde({ data: { country: "ZZ" }, error: null }), ORG);
-    expect(perfil.codigo).toBe("BR");
+    expect(perfil.codigo).toBe("MZ");
     await vi.waitFor(() => {
       expect(Sentry.captureMessage).toHaveBeenCalledWith(
         expect.stringContaining("[perfil-do-pais]"),
@@ -199,9 +201,15 @@ describe("perfilDaOrganizacao — a leitura e a degradação com rastro", () => 
 });
 
 describe("o anonimizador segue o país (a costura do RAG)", () => {
-  it("sem perfil declarado, valem os padrões do Brasil", () => {
-    expect(padroesDePii().map((p) => p.tipo)).toEqual(["cpf", "cep", "email", "phone"]);
-    expect(anonymize("CPF 529.982.247-25").anonymized).toContain("[CPF]");
+  it("sem perfil declarado, valem os padrões de Moçambique", () => {
+    expect(padroesDePii().map((p) => p.tipo)).toEqual(["telefone_mz", "nuit", "bi", "email", "phone"]);
+    expect(anonymize("NUIT 400123456").anonymized).toContain("[NUIT]");
+    // O padrão universal de telefone tem a forma brasileira e não pegava estes:
+    for (const tel of ["84 123 4567", "+258 84 123 4567", "+258841234567"]) {
+      const { anonymized } = anonymize(`liga para ${tel}`);
+      expect(anonymized, tel).toContain("[TELEFONE]");
+      expect(anonymized, tel).not.toMatch(/\d/);
+    }
   });
 
   it("o documento do país entra ANTES dos universais", () => {
@@ -224,6 +232,6 @@ describe("o anonimizador segue o país (a costura do RAG)", () => {
     const padroes = padroesDePii([XISTAO]);
     expect(detectResidualPii("ainda tem 123456789XI000 aqui", padroes)).toBe("bilhete");
     expect(detectResidualPii("nem documento, nem e-mail", padroes)).toBeNull();
-    expect(detectResidualPii("CPF 52998224725", padroesDePii())).toBe("cpf");
+    expect(detectResidualPii("NUIT 400123456", padroesDePii())).toBe("nuit");
   });
 });

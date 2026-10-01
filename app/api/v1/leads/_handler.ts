@@ -67,7 +67,7 @@ async function ownerPatchOrThrow(
       "validation_failed",
       undefined,
       ctx.requestId,
-      traduzir("Um lead tem um dono: informe owner_user_id OU owner_agent_id.", ctx.idioma ?? "pt-BR"),
+      traduzir("Um lead tem um dono: informe owner_user_id OU owner_agent_id.", ctx.idioma ?? "pt-MZ"),
     );
   }
   if (!result.patch) return null;
@@ -90,7 +90,7 @@ async function ownerPatchOrThrow(
         "validation_failed",
         undefined,
         ctx.requestId,
-        traduzir("Agente não encontrado nesta organização.", ctx.idioma ?? "pt-BR"),
+        traduzir("Agente não encontrado nesta organização.", ctx.idioma ?? "pt-MZ"),
       );
     }
   }
@@ -127,7 +127,7 @@ async function ownerPatchOrThrow(
         "validation_failed",
         undefined,
         ctx.requestId,
-        traduzir("Responsável não é um atendente ativo desta organização.", ctx.idioma ?? "pt-BR"),
+        traduzir("Responsável não é um atendente ativo desta organização.", ctx.idioma ?? "pt-MZ"),
       );
     }
   }
@@ -165,7 +165,7 @@ async function contatoDaOrgOrThrow(supabase: SB, ctx: HandlerCtx, contactId: str
       "not_found",
       undefined,
       ctx.requestId,
-      traduzir("Contato não encontrado.", ctx.idioma ?? "pt-BR"),
+      traduzir("Contato não encontrado.", ctx.idioma ?? "pt-MZ"),
     );
   }
 }
@@ -186,7 +186,7 @@ function recusaDaGuardaDoBanco(
       "not_found",
       undefined,
       ctx.requestId,
-      traduzir("Contato não encontrado.", ctx.idioma ?? "pt-BR"),
+      traduzir("Contato não encontrado.", ctx.idioma ?? "pt-MZ"),
     );
   }
   if (erro?.code === "PT422") {
@@ -195,7 +195,7 @@ function recusaDaGuardaDoBanco(
       "validation_failed",
       undefined,
       ctx.requestId,
-      traduzir("Responsável não é um atendente ativo desta organização.", ctx.idioma ?? "pt-BR"),
+      traduzir("Responsável não é um atendente ativo desta organização.", ctx.idioma ?? "pt-MZ"),
     );
   }
   return null;
@@ -331,7 +331,7 @@ export async function listLeadsHandler(
         "invalid_cursor",
         undefined,
         ctx.requestId,
-        traduzir("Cursor inválido.", ctx.idioma ?? "pt-BR"),
+        traduzir("Cursor inválido.", ctx.idioma ?? "pt-MZ"),
       );
     }
     query = query.or(
@@ -387,7 +387,7 @@ export async function getLeadHandler(
       "not_found",
       undefined,
       ctx.requestId,
-      traduzir("Lead não encontrado.", ctx.idioma ?? "pt-BR"),
+      traduzir("Lead não encontrado.", ctx.idioma ?? "pt-MZ"),
     );
   }
   return data as Record<string, unknown>;
@@ -445,7 +445,7 @@ export async function createLeadHandler(
       "not_found",
       undefined,
       ctx.requestId,
-      traduzir("Stage não encontrado.", ctx.idioma ?? "pt-BR"),
+      traduzir("Stage não encontrado.", ctx.idioma ?? "pt-MZ"),
     );
   }
   if (stage.pipeline_id !== input.pipeline_id) {
@@ -454,7 +454,7 @@ export async function createLeadHandler(
       "stage_pipeline_mismatch",
       undefined,
       ctx.requestId,
-      traduzir("Stage não pertence ao pipeline informado.", ctx.idioma ?? "pt-BR"),
+      traduzir("Stage não pertence ao pipeline informado.", ctx.idioma ?? "pt-MZ"),
     );
   }
 
@@ -539,7 +539,7 @@ export async function createLeadHandler(
       "internal_error",
       undefined,
       ctx.requestId,
-      insErr?.message ?? traduzir("Falha ao criar lead.", ctx.idioma ?? "pt-BR"),
+      insErr?.message ?? traduzir("Falha ao criar lead.", ctx.idioma ?? "pt-MZ"),
     );
   }
 
@@ -644,7 +644,7 @@ export async function updateLeadHandler(
       "not_found",
       undefined,
       ctx.requestId,
-      traduzir("Lead não encontrado.", ctx.idioma ?? "pt-BR"),
+      traduzir("Lead não encontrado.", ctx.idioma ?? "pt-MZ"),
     );
   }
 
@@ -710,7 +710,7 @@ export async function updateLeadHandler(
       "not_found",
       undefined,
       ctx.requestId,
-      traduzir("Lead não encontrado.", ctx.idioma ?? "pt-BR"),
+      traduzir("Lead não encontrado.", ctx.idioma ?? "pt-MZ"),
     );
   }
 
@@ -880,7 +880,7 @@ export async function moveLeadHandler(
       "not_found",
       undefined,
       ctx.requestId,
-      traduzir("Lead não encontrado.", ctx.idioma ?? "pt-BR"),
+      traduzir("Lead não encontrado.", ctx.idioma ?? "pt-MZ"),
     );
   }
 
@@ -898,7 +898,7 @@ export async function moveLeadHandler(
       "not_found",
       undefined,
       ctx.requestId,
-      traduzir("Stage não encontrado.", ctx.idioma ?? "pt-BR"),
+      traduzir("Stage não encontrado.", ctx.idioma ?? "pt-MZ"),
     );
   }
   if (stage.pipeline_id !== lead.pipeline_id) {
@@ -907,7 +907,7 @@ export async function moveLeadHandler(
       "pipeline_immutable_use_clone",
       { use: "/api/v1/leads/{id}/clone" },
       ctx.requestId,
-      traduzir(RECUSA_DE_TROCA_DE_FUNIL, ctx.idioma ?? "pt-BR"),
+      traduzir(RECUSA_DE_TROCA_DE_FUNIL, ctx.idioma ?? "pt-MZ"),
     );
   }
 
@@ -1052,7 +1052,7 @@ export async function moveLeadHandler(
       "lead_stage_changed_concurrent",
       undefined,
       ctx.requestId,
-      traduzir("Lead foi modificado concorrentemente.", ctx.idioma ?? "pt-BR"),
+      traduzir("Lead foi modificado concorrentemente.", ctx.idioma ?? "pt-MZ"),
     );
   }
 
@@ -1269,7 +1269,7 @@ export async function retomarLeadHandler(
   leadId: string,
   input: RetomarLeadInput = {},
 ): Promise<Record<string, unknown>> {
-  const idioma = ctx.idioma ?? "pt-BR";
+  const idioma = ctx.idioma ?? "pt-MZ";
 
   const { data: origem, error: selErr } = await supabase
     .from("crm_leads")

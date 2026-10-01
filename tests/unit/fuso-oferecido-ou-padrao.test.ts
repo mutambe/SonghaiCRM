@@ -12,8 +12,8 @@ import { FUSO_PADRAO, FUSOS_OFERECIDOS, fusoOferecidoOuPadrao } from "@/lib/temp
 
 describe("fusoOferecidoOuPadrao", () => {
   it("usa o fuso da organização quando ele está entre os oferecidos", () => {
-    expect(FUSOS_OFERECIDOS.map((f) => f.codigo)).toContain("America/Mexico_City");
-    expect(fusoOferecidoOuPadrao("America/Mexico_City")).toBe("America/Mexico_City");
+    expect(FUSOS_OFERECIDOS.map((f) => f.codigo)).toContain("Africa/Johannesburg");
+    expect(fusoOferecidoOuPadrao("Africa/Johannesburg")).toBe("Africa/Johannesburg");
     expect(fusoOferecidoOuPadrao("  Europe/Lisbon ")).toBe("Europe/Lisbon");
   });
 

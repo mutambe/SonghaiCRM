@@ -14,24 +14,25 @@ vi.mock("@/lib/supabase/browser", () => ({
 const baseUser: AuthUser = {
   id: "actor", email: "actor@example.test", full_name: null, avatar_url: null,
   organizations: [{ organization_id: "org", organization_name: "Organização", role: "admin" }],
-  idioma: "pt-BR", is_platform_admin: false,
+  idioma: "pt-MZ", is_platform_admin: false,
 };
 const support: NonNullable<AuthUser["support"]> = {
   id: "support", organization_id: "org", actor_user_id: "actor", auth_session_id: "session",
   previous_organization_id: null, expires_at: "2030-01-01T00:00:00Z", name: "Organização",
-  locale: "pt-BR", access_mode: "support_readonly", status: "active",
+  locale: "pt-MZ", access_mode: "support_readonly", status: "active",
 };
-function view(role: Role, locale: "pt-BR" | "es", who = baseUser, caidas: ConexaoCaida[] = [{ id: "channel", apelido: "Vendas", status: "SCAN_QR_CODE" }]) {
+function view(role: Role, locale: "pt-MZ", who = baseUser, caidas: ConexaoCaida[] = [{ id: "channel", apelido: "Vendas", status: "SCAN_QR_CODE" }]) {
   return <AuthProvider user={who} activeOrg={{ orgId: "org", name: "Organização", role }}>
     <IdiomaProvider locale={locale}><ConexaoCaidaBanner caidas={caidas} /></IdiomaProvider>
   </AuthProvider>;
 }
+// SonghaiCRM: um idioma só, pt-MZ. "Escanear" vira "Digitalizar" pela camada
+// de vocabulário de Moçambique (lib/i18n/pt-mz.ts).
 const copy = {
-  "pt-BR": { qr: "Escanear o QR", connections: "Ver conexões", help: "Peça a quem administra para revisar a conexão do WhatsApp.", outage: "nenhuma mensagem entra nem sai." },
-  es: { qr: "Escanear el QR", connections: "Ver conexiones", help: "Pide a quien administra que revise la conexión de WhatsApp.", outage: "ningún mensaje entra ni sale." },
+  "pt-MZ": { qr: "Digitalizar o QR", connections: "Ver conexões", help: "Peça a quem administra para revisar a conexão do WhatsApp.", outage: "nenhuma mensagem entra nem sai." },
 };
 
-describe.each(["pt-BR", "es"] as const)("alerta de conexão em %s", locale => {
+describe.each(["pt-MZ"] as const)("alerta de conexão em %s", locale => {
   it.each([
     ["admin do tenant", "admin", baseUser],
     ["plataforma fora do suporte", "agent", { ...baseUser, is_platform_admin: true }],

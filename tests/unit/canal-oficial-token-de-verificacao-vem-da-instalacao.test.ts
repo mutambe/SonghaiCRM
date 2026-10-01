@@ -33,9 +33,9 @@ const SEGREDO_DO_ENV = "segredo-do-env-de-teste";
 const TOKEN_DO_ENV = "token-do-env-de-teste";
 
 let linhaDaMeta: { app_secret_encrypted: string | null; verify_token_encrypted: string | null } | null = null;
-let usuario: { id: string; idioma: "pt-BR"; is_platform_admin: boolean; support?: boolean } = {
+let usuario: { id: string; idioma: "pt-MZ"; is_platform_admin: boolean; support?: boolean } = {
   id: "u1",
-  idioma: "pt-BR",
+  idioma: "pt-MZ",
   is_platform_admin: false,
 };
 
@@ -80,7 +80,7 @@ const ORIGINAL = { ...process.env };
 
 beforeEach(async () => {
   linhaDaMeta = null;
-  usuario = { id: "u1", idioma: "pt-BR", is_platform_admin: false };
+  usuario = { id: "u1", idioma: "pt-MZ", is_platform_admin: false };
   delete process.env.META_APP_SECRET;
   delete process.env.META_WEBHOOK_VERIFY_TOKEN;
   // O resolvedor memoriza o par por 30s no `globalThis`; cada caso é uma instalação.

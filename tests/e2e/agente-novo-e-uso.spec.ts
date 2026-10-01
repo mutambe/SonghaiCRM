@@ -33,7 +33,7 @@ const EVIDENCIA = path.join(process.cwd(), "evidence", "ia-360-w1");
 
 let creds: CredsE2E = lerCreds();
 
-test.use({ locale: "pt-BR" });
+test.use({ locale: "pt-MZ" });
 
 // 240s e não 120s: o orçamento inclui UMA re-semeadura de credenciais, que o
 // login dispara sozinho quando outra sessão rotaciona o fator TOTP deste banco

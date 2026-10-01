@@ -34,7 +34,7 @@
  *
  * ─── E o erro do banco deixa de ser mistério ───────────────────────────────
  *
- * A rota descartava `upErr` e devolvia só "Falha ao salvar os knobs." — sem o
+ * A rota descartava `upErr` e devolvia só "Falha ao guardar os knobs." — sem o
  * nome do campo que recusou, nem na tela nem no log. Foi essa ausência que
  * transformou um `not null` num diagnóstico de horas. O motivo cru do banco vai
  * em `details`, nunca na `message` traduzida que o operador lê.
@@ -168,7 +168,7 @@ function authOk(): void {
     full_name: null,
     avatar_url: null,
     is_platform_admin: false,
-    idioma: "pt-BR" as const,
+    idioma: "pt-MZ" as const,
     organizations: [{ organization_id: ORG, organization_name: "Org", role: "admin" }],
   };
   vi.mocked(requireRole).mockResolvedValue({
@@ -287,12 +287,12 @@ describe("PUT /api/v1/ai/pacing — erro do banco diz QUAL campo recusou", () =>
     const corpo = await res.json();
 
     expect(res.status).toBe(500);
-    // Sem isto, um `not null` vira "Falha ao salvar os knobs." e ninguém sabe
+    // Sem isto, um `not null` vira "Falha ao guardar os knobs." e ninguém sabe
     // qual campo recusou — foi essa ausência que custou o diagnóstico.
     expect(corpo.error.details).toBeDefined();
     expect(JSON.stringify(corpo.error.details)).toContain("number_activated_at");
     // E o operador continua lendo português, não uma frase do Postgres.
-    expect(corpo.error.message).toBe("Falha ao salvar os knobs.");
+    expect(corpo.error.message).toBe("Falha ao guardar os knobs.");
   });
 });
 

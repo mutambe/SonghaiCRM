@@ -1,5 +1,5 @@
 import { perfilDoPais, type DocumentoDoTitular } from "@/lib/legal/perfil-do-pais";
-import { normalizePhoneBR } from "@/lib/webhooks/inbound";
+import { normalizarTelefoneLocal } from "@/lib/channels/telefone-local";
 import { normalizarTags } from "@/lib/contacts/tag-normalizada";
 /**
  * Parser de CSV para importação de contatos — RFC 4180, zero dependências.
@@ -329,7 +329,9 @@ export interface LinhaNormalizada {
 }
 
 /**
- * Telephone → E.164 **assumindo Brasil quando não há DDI**.
+ * Telephone → E.164 **assumindo Moçambique quando não há indicativo** (SonghaiCRM:
+ * `normalizarTelefoneLocal`, `lib/channels/telefone-local.ts`). O texto abaixo é
+ * o do upstream, que assumia o Brasil.
  *
  * A regra NÃO mora aqui: é `normalizePhoneBR` (`lib/webhooks/inbound.ts`), a
  * mesma que a ingestão de webhook usa desde sempre. Reusar em vez de reescrever
@@ -346,7 +348,7 @@ export interface LinhaNormalizada {
  * `+55` é a leitura certa de uma planilha sem DDI — e é o que a ingestão já fazia.
  */
 export function normalizaTelefone(raw: string): string | null {
-  return normalizePhoneBR(raw);
+  return normalizarTelefoneLocal(raw);
 }
 
 /**

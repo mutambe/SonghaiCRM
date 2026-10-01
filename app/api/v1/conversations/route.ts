@@ -29,7 +29,7 @@ export async function GET(req: NextRequest): Promise<Response> {
   }
 
   const authUser = await loadAuthUser();
-  const t = (texto: string) => traduzir(texto, authUser?.idioma ?? "pt-BR");
+  const t = (texto: string) => traduzir(texto, authUser?.idioma ?? "pt-MZ");
   const activeOrg = authUser ? await resolveActiveOrg(authUser) : null;
   if (!activeOrg) {
     return fail("no_active_org", t("No active organization."), 403, { requestId });

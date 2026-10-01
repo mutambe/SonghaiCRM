@@ -41,7 +41,7 @@ vi.mock("next/navigation", () => ({
   redirect: vi.fn(),
 }));
 vi.mock("@/lib/auth/server", () => ({
-  loadAuthUser: vi.fn(async () => ({ id: "usuario-1", is_platform_admin: true, idioma: "pt-BR" })),
+  loadAuthUser: vi.fn(async () => ({ id: "usuario-1", is_platform_admin: true, idioma: "pt-MZ" })),
 }));
 vi.mock("@/lib/auth/politica-de-cadastro", () => ({
   modoDeCadastro: vi.fn(async () => cena.modo),
@@ -67,7 +67,7 @@ import Page from "@/app/admin/(protected)/cadastro/page";
 
 const TITULO = "A troca de modo ainda não chegou ao servidor.";
 const FRASE_DA_ISSUE =
-  /A troca só vale para o cadastro direto depois da próxima atualização do servidor/;
+  /A troca só vale para o registo direto depois da próxima atualização do servidor/;
 const COMANDO = "bash hostgator-setup-kit/update.sh";
 const CHAVE_DO_ROTULO = "Quem pode criar uma conta nesta instalação.";
 
