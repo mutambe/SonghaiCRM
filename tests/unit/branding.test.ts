@@ -833,6 +833,31 @@ const HOSTS_DECLARADOS: Record<string, EntradaDeHost> = {
       "sufixo do JID do WhatsApp. Aparece em `lib/waha/resolve-contact-whatsapp-id.ts` desde antes desta régua existir, num `endsWith` que distingue `@lid`, `@c.us` e `@s.whatsapp.net` — é o protocolo do WhatsApp falando, não endereço que o produto chama nem palavra de interface. Trocar pela marca do revendedor faz o CRM deixar de reconhecer o identificador que o próprio WhatsApp manda.",
   },
   // ── destino de chamada: o código fala com eles, sempre foi assim ──────────
+  "api.groq.com": {
+    categoria: "FORNECEDOR",
+    motivo:
+      "SonghaiCRM — endereço pré-preenchido do Provedor personalizado (`lib/ai/pontos/enderecos-conhecidos.ts`). Quando o operador o escolhe, o agente FALA com ele pelo caminho do provedor personalizado do upstream, com a régua anti-SSRF e o teste em /models.",
+  },
+  "api.moonshot.ai": {
+    categoria: "FORNECEDOR",
+    motivo:
+      "SonghaiCRM — endereço pré-preenchido do Provedor personalizado (`lib/ai/pontos/enderecos-conhecidos.ts`). Quando o operador o escolhe, o agente FALA com ele pelo caminho do provedor personalizado do upstream, com a régua anti-SSRF e o teste em /models.",
+  },
+  "dashscope-intl.aliyuncs.com": {
+    categoria: "FORNECEDOR",
+    motivo:
+      "SonghaiCRM — endereço pré-preenchido do Provedor personalizado (`lib/ai/pontos/enderecos-conhecidos.ts`). Quando o operador o escolhe, o agente FALA com ele pelo caminho do provedor personalizado do upstream, com a régua anti-SSRF e o teste em /models.",
+  },
+  "integrate.api.nvidia.com": {
+    categoria: "FORNECEDOR",
+    motivo:
+      "SonghaiCRM — endereço pré-preenchido do Provedor personalizado (`lib/ai/pontos/enderecos-conhecidos.ts`). Quando o operador o escolhe, o agente FALA com ele pelo caminho do provedor personalizado do upstream, com a régua anti-SSRF e o teste em /models.",
+  },
+  "open.bigmodel.cn": {
+    categoria: "FORNECEDOR",
+    motivo:
+      "SonghaiCRM — endereço pré-preenchido do Provedor personalizado (`lib/ai/pontos/enderecos-conhecidos.ts`). Quando o operador o escolhe, o agente FALA com ele pelo caminho do provedor personalizado do upstream, com a régua anti-SSRF e o teste em /models.",
+  },
   "paysuite.tech": {
     categoria: "FORNECEDOR",
     motivo:

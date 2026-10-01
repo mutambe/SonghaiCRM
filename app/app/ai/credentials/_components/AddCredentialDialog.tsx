@@ -30,6 +30,7 @@ import { showApiError } from "@/components/feedback/ApiErrorToast";
 import { credentialsListQueryKey, type CredentialRow } from "@/hooks/ai/useCredentials";
 import { IDS_COM_CHAVE, PROVEDORES_COM_CHAVE, type ProvedorComChave } from "@/lib/ai/pontos/provedores";
 import { descreverErroDeValidacao } from "@/lib/ai/credenciais/erro-de-validacao";
+import { ENDERECOS_CONHECIDOS, enderecoConhecidoPorUrl } from "@/lib/ai/pontos/enderecos-conhecidos";
 import { useT } from "@/hooks/i18n/useT";
 
 const formSchema = z.object({
@@ -226,6 +227,30 @@ export function AddCredentialDialog({ open, onOpenChange, providerInicial = "ant
 
           {provider === "custom" && (
             <div className="space-y-2">
+              {/* SonghaiCRM — preenche o endereço dos provedores conhecidos
+                  (lib/ai/pontos/enderecos-conhecidos.ts); o resto é igual. */}
+              <Label htmlFor="cred-endereco-conhecido">{t("Provedor conhecido (opcional)")}</Label>
+              <Select
+                value={enderecoConhecidoPorUrl(baseUrl)?.id ?? ""}
+                onValueChange={(id) => {
+                  const escolhido = ENDERECOS_CONHECIDOS.find((e) => e.id === id);
+                  if (!escolhido) return;
+                  setBaseUrl(escolhido.baseUrl);
+                  if (!label.trim()) setLabel(escolhido.rotulo);
+                  setConexao(null);
+                }}
+              >
+                <SelectTrigger id="cred-endereco-conhecido" data-testid="cred-endereco-conhecido">
+                  <SelectValue placeholder={t("Escolha para preencher o endereço")} />
+                </SelectTrigger>
+                <SelectContent>
+                  {ENDERECOS_CONHECIDOS.map((e) => (
+                    <SelectItem key={e.id} value={e.id}>
+                      {e.rotulo}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <Label htmlFor="cred-base-url">{t("Endereço (base URL)")}</Label>
               <Input
                 id="cred-base-url"
