@@ -60,6 +60,7 @@ pnpm typecheck && pnpm test:unit && pnpm test:db
 | 2026-10-01 | Motor do agente: janela de cortesia 6h-23h (disparo e resposta; o upstream usa 7h-22h), domingo aberto (já era o padrão do upstream); frase da tela de guardrails pelo registro de frases; teste próprio contra um merge que devolva 7h-22h. NÃO reaplicados por o upstream já os resolver: retry quando o pacing veta (o upstream reagenda o MESMO turno para a próxima abertura e abre alerta crítico se a mensagem parece urgente) e o hold `go_live` que travava respostas (no upstream ele só retém follow-up proativo; responder sai) | — |
 | 2026-10-01 | Inbox: tiques de leitura na bolha do CLIENTE (porte do `bcb34686c`). O `mark-read` do upstream, que só zerava o contador, passa a gravar `read_at` nas recebidas ainda não lidas (`lib/inbox/leitura-das-recebidas.ts`, client da sessão sob RLS); responder também marca. Dois tiques neutros = "Recebida", verdes = "Lida pela equipa" (o azul continua sendo o ack do WAHA). Sem rota paralela nem auditoria por abertura (o upstream não audita o mark-read) | — |
 | 2026-10-01 | Decisões do dono, mantendo o upstream: canal novo nasce em "IA em modo de teste" (`pre_go_live`; libera-se em Conexões) e o warm-up do dia 0 fica em 20 mensagens/dia (o fork tinha 50) | — |
+| 2026-10-01 | Deploy em Docker Swarm (Portainer + Traefik): `docker-compose.swarm.yml` REFEITO a partir do compose de produção atual (o do fork listava variáveis à mão e já estava velho) — cada serviço lê o `.env` inteiro por `env_file` (`stack.env` do Portainer ou `.env` pelo script), imagens nossas obrigatórias e pinadas, sem caddy/voz/telefonia (o stack deploy ignora profiles), WAHA preso ao nó manager, app com atualização start-first e rollback. `hostgator-setup-kit/deploy-swarm.sh` (substitui o `deploy-swarm-latest.sh` do fork): backup → código na tag → banco (`reaplicar_baseline`, baseline + songhai.sql) → imagens da mesma versão → stack deploy → 307; `--so-banco` para quem troca imagens pelo Portainer. Teste próprio prende o arquivo ao compose de produção | — |
 
 ## A reaplicar do fork antigo (`integracao/2026-09-30`)
 
@@ -71,7 +72,7 @@ Em ordem. Cada item cita os commits do fork que servem de referência.
 4. **Provedores de IA extras**: ✅ pelo provedor personalizado do upstream + endereços conhecidos (ver tabela).
 5. **Motor do agente**: sem gate de go-live (`ddd1fb65c`), retry quando o pacing veta (`3fe51af3f`, `8ef5a68e1`), janela de cortesia 6h–23h com domingo aberto (`a03ffd56d`) — conferir o estado do upstream antes.
 6. **Segurança que o upstream ainda não tem**: convite sem segredo falha fechado (`94b09200b` — o upstream ainda tem `dev-fallback`), rate limit em MCP/internal/cron + scan de segredo no pre-commit (`13ecac624`), `organizations.legal_name` nullable (`abe7dfbfe`).
-7. **Kit de instalação**: chave de IA opcional no `install.sh` (`591233c4e`), repositório e imagens da Songhai, deploy em Swarm (`63c1ddf4f`, `c4d1661b0`).
+7. **Kit de instalação**: ✅ chave de IA opcional (já no upstream), repositório e imagens da Songhai, deploy em Swarm (refeito).
 8. **Inbox**: ✅ ticks de leitura (ver tabela).
 
 ## Desligado, não portado (Brasil)

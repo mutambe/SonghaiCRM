@@ -1,0 +1,228 @@
+# SonghaiCRM — stack de produção em Docker SWARM (Portainer + Traefik).
+#
+# Para VPS que já roda Traefik com o provider Swarm numa rede overlay própria
+# (ex.: `traefik_public`) e gere os stacks pelo Portainer. É AUTOCONTIDO: não é
+# override do docker-compose.prod.yml, porque o Swarm não aceita metade do que
+# o modo compose usa. Os serviços, imagens, variáveis e o webhook do WAHA são os
+# do docker-compose.prod.yml — mudou lá, muda aqui (há teste que compara).
+#
+# ═══ COMO SUBIR ═══
+#
+# O caminho seguro é o script, que aplica o BANCO antes de trocar as imagens:
+#
+#   bash hostgator-setup-kit/deploy-swarm.sh            # última versão publicada
+#   bash hostgator-setup-kit/deploy-swarm.sh 1.70.0     # uma versão escolhida
+#
+# Trocar só as imagens (pelo Portainer, ou `docker service update`) sem aplicar
+# o banco é o modo de falha que o fork pagou em produção (2026-09-06): o código
+# novo gravava um valor que o schema antigo recusava, e o erro sumia no log.
+#
+# Pelo PORTAINER (Stacks › Add stack › Repository ou Web editor): cole as
+# variáveis do `.env` em "Environment variables". O Portainer as grava num
+# arquivo `stack.env` ao lado deste — é ele que `env_file` lê por padrão. Antes
+# de cada atualização pelo Portainer, rode no servidor
+# `bash hostgator-setup-kit/deploy-swarm.sh --so-banco <versão>`.
+#
+# ═══ DIFERENÇAS DO MODO COMPOSE, E POR QUÊ ═══
+#
+#   - `env_file` é lido pelo CLIENTE no `docker stack deploy` e os valores vão
+#     dentro da especificação do serviço — funciona em qualquer nó. O caminho é
+#     `${SWARM_ENV_FILE:-stack.env}`: `stack.env` é o do Portainer; o script
+#     passa `.env`. Nada de lista de variáveis à mão: a do fork envelheceu.
+#   - SEM `caddy`: o Traefik do servidor faz o HTTPS. As labels ficam em
+#     `deploy.labels` (o provider Swarm só lê as do SERVIÇO).
+#   - SEM `wacalls`, `asterisk` e `voice-agent`: o `docker stack deploy` IGNORA
+#     `profiles`, então eles subiriam em toda instalação — e precisam de porta
+#     UDP no host e de arquivos de configuração montados. Voz e telefonia, se um
+#     dia forem precisas, entram num stack próprio.
+#   - As três imagens nossas são OBRIGATÓRIAS (`${APP_IMAGE:?…}`), sem cair
+#     num canal móvel: instalação aponta para número de versão
+#     (docs/doctrine/packaging.md). O script grava as três na mesma versão; no
+#     Portainer, faltar uma para o deploy com a mensagem, em vez de subir outra.
+#   - `mem_limit` vira `deploy.resources.limits.memory`; `restart` vira
+#     `deploy.restart_policy`; `pull_policy` e `depends_on` não existem aqui (o
+#     `stack deploy` resolve a tag no registo a cada deploy, e cada serviço se
+#     recupera sozinho pelo healthcheck + restart).
+#   - Volumes são LOCAIS ao nó: o WAHA (sessões pareadas) fica preso ao nó
+#     manager para nunca subir noutro nó sem as sessões.
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+x-env: &env-da-instalacao
+  - ${SWARM_ENV_FILE:-stack.env}
+
+x-reinicio: &reinicio
+  condition: any
+  delay: 5s
+
+services:
+  app:
+    image: ${APP_IMAGE:?APP_IMAGE}
+    env_file: *env-da-instalacao
+    environment:
+      # Como no compose: a conexão do dono do banco fica só para o kit no host.
+      SUPABASE_DB_ADMIN_URL: ""
+    healthcheck:
+      # Probe TCP puro, como no compose (o /api/v1/health dá 503 se WAHA/Redis
+      # caem, e o Swarm reciclaria o app por uma dependência secundária).
+      test: ["CMD", "node", "-e", "require('net').connect(3000,'127.0.0.1').on('connect',()=>process.exit(0)).on('error',()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+    logging: *default-logging
+    networks:
+      - internal
+      - proxy
+    deploy:
+      replicas: 1
+      restart_policy: *reinicio
+      # O novo sobe antes de o velho sair: atualizar não derruba o site.
+      # Falhou o healthcheck, volta sozinho para a versão anterior.
+      update_config:
+        order: start-first
+        failure_action: rollback
+        monitor: 60s
+      resources:
+        limits:
+          memory: 768M
+      labels:
+        traefik.enable: "true"
+        # Em qual rede o Traefik pega o IP do contêiner — o app está em DUAS, e
+        # apontar para a `internal` pendura a requisição até dar timeout
+        # (medido, ver docker-compose.traefik.yml). `swarm.network` é o nome no
+        # Traefik v3; `docker.network`, no v2. O que não for da versão é ignorado.
+        traefik.swarm.network: "${TRAEFIK_NETWORK_SWARM:-traefik_public}"
+        traefik.docker.network: "${TRAEFIK_NETWORK_SWARM:-traefik_public}"
+        traefik.http.services.deskcomm.loadbalancer.server.port: "3000"
+
+        traefik.http.routers.deskcomm.rule: "Host(`${DOMAIN}`)"
+        traefik.http.routers.deskcomm.entrypoints: "${TRAEFIK_ENTRYPOINT:-websecure}"
+        traefik.http.routers.deskcomm.tls.certresolver: "${TRAEFIK_CERTRESOLVER:-letsencrypt}"
+        traefik.http.routers.deskcomm.middlewares: "deskcomm-compress"
+        traefik.http.middlewares.deskcomm-compress.compress: "true"
+
+        # O webhook GLOBAL do WAHA nunca é público (403), como no Caddyfile e no
+        # docker-compose.traefik.yml: o WAHA fala com o app pela rede interna.
+        traefik.http.routers.deskcomm-waha-block.rule: "Host(`${DOMAIN}`) && Path(`/api/v1/webhooks/waha`)"
+        traefik.http.routers.deskcomm-waha-block.entrypoints: "${TRAEFIK_ENTRYPOINT:-websecure}"
+        traefik.http.routers.deskcomm-waha-block.tls.certresolver: "${TRAEFIK_CERTRESOLVER:-letsencrypt}"
+        traefik.http.routers.deskcomm-waha-block.priority: "1000"
+        traefik.http.routers.deskcomm-waha-block.service: "deskcomm"
+        traefik.http.routers.deskcomm-waha-block.middlewares: "deskcomm-deny"
+        traefik.http.middlewares.deskcomm-deny.ipallowlist.sourcerange: "192.0.2.1/32"
+
+        traefik.http.routers.deskcomm-http.rule: "Host(`${DOMAIN}`)"
+        traefik.http.routers.deskcomm-http.entrypoints: "${TRAEFIK_ENTRYPOINT_HTTP:-web}"
+        traefik.http.routers.deskcomm-http.middlewares: "deskcomm-https"
+        traefik.http.routers.deskcomm-http.service: "deskcomm"
+        traefik.http.middlewares.deskcomm-https.redirectscheme.scheme: "https"
+        traefik.http.middlewares.deskcomm-https.redirectscheme.permanent: "true"
+
+  # Runtime do agente de IA (agent-engine).
+  worker:
+    image: ${WORKER_IMAGE:?WORKER_IMAGE}
+    env_file: *env-da-instalacao
+    environment:
+      WAHA_API_BASE_URL: http://waha:3000
+      SUPABASE_DB_ADMIN_URL: ""
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:8787/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    logging: *default-logging
+    networks: [internal]
+    deploy:
+      replicas: 1
+      restart_policy: *reinicio
+      # O velho sai antes de o novo entrar: nunca dois runtimes a disputar a fila.
+      update_config:
+        order: stop-first
+        failure_action: rollback
+      resources:
+        limits:
+          memory: 512M
+
+  waha:
+    image: ${WAHA_IMAGE:-devlikeapro/waha:latest-2026.7.2}
+    environment:
+      WAHA_API_KEY: "sha512:${WAHA_API_KEY_SHA512}"
+      WHATSAPP_HOOK_URL: ${WAHA_WEBHOOK_BASE_URL}/api/v1/webhooks/waha
+      # Os mesmos eventos do docker-compose.prod.yml (sem `message`: o
+      # `message.any` já cobre tudo, e o duplicado enchia o banco).
+      WHATSAPP_HOOK_EVENTS: "message.any,message.ack,message.edited,message.revoked,session.status,state.change"
+      WHATSAPP_HOOK_HMAC: ${WAHA_HMAC_SECRET}
+      WHATSAPP_DEFAULT_ENGINE: ${WHATSAPP_DEFAULT_ENGINE:-NOWEB}
+      WAHA_DASHBOARD_ENABLED: "false"
+      WHATSAPP_RESTART_ALL_SESSIONS: "${WHATSAPP_RESTART_ALL_SESSIONS:-True}"
+    volumes:
+      - waha-data:/app/.sessions          # sessões pareadas (QR) — perder = re-parear
+      - waha-media:/app/.media
+    logging: *default-logging
+    networks: [internal]
+    deploy:
+      replicas: 1
+      restart_policy: *reinicio
+      # Duas instâncias com a mesma pasta de sessões corrompem o pareamento.
+      update_config:
+        order: stop-first
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        limits:
+          memory: 1280M
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+    logging: *default-logging
+    networks: [internal]
+    deploy:
+      replicas: 1
+      restart_policy: *reinicio
+
+  srh:
+    image: hiett/serverless-redis-http@sha256:5b0bb9239fce53abf87b2018a7a0deb9ec7bd900c5360738fe5fbeeb426f9150
+    environment:
+      SRH_MODE: env
+      SRH_TOKEN: ${SRH_TOKEN}
+      SRH_CONNECTION_STRING: "redis://redis:6379"
+    logging: *default-logging
+    networks: [internal]
+    deploy:
+      replicas: 1
+      restart_policy: *reinicio
+
+  scheduler:
+    image: ${SCHEDULER_IMAGE:?SCHEDULER_IMAGE}
+    environment:
+      TZ: UTC
+      INTERNAL_SECRET: ${INTERNAL_SECRET}
+    logging: *default-logging
+    networks: [internal]
+    deploy:
+      replicas: 1
+      restart_policy: *reinicio
+
+volumes:
+  waha-data:
+  waha-media:
+
+networks:
+  internal:
+    driver: overlay
+  proxy:
+    external: true
+    name: "${TRAEFIK_NETWORK_SWARM:-traefik_public}"
