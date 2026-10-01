@@ -1907,11 +1907,13 @@ STUB
   if ! grep -qE '^APP_ACCENT_HEX=' "$VPS_PROJ/.env"; then
     printf '  ✗ em --yes o APP_ACCENT_HEX nem apareceu no .env (esperado: declarado e vazio)\n'; exit 1
   fi
-  if [ -n "$(valor_no_env "$VPS_PROJ/.env" APP_ACCENT_HEX)" ]; then
-    printf '  ✗ em --yes o APP_ACCENT_HEX veio com valor: [%s] — ninguém respondeu nada\n' \
+  # SonghaiCRM: o estado de fábrica da distribuição é o verde #008069 (o default
+  # do campo APP_ACCENT_HEX no install.sh), não a cor vazia do upstream.
+  if [ "$(valor_no_env "$VPS_PROJ/.env" APP_ACCENT_HEX)" != "#008069" ]; then
+    printf '  ✗ em --yes o APP_ACCENT_HEX não veio com o verde SonghaiCRM: [%s]\n' \
       "$(valor_no_env "$VPS_PROJ/.env" APP_ACCENT_HEX)"; exit 1
   fi
-  printf '  ✓ em --yes a cor sai DECLARADA e vazia (o "estado de fábrica" do resolve.ts)\n'
+  printf '  ✓ em --yes a cor sai DECLARADA com o verde da distribuição (#008069)\n'
 
   # ── A regra de ouro da doutrina de packaging, no ponto onde ela vale ───────
   # Uma instalação nova gravava `APP_IMAGE=…:latest`, e `latest` aqui significa

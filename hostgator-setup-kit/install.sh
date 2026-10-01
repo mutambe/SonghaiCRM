@@ -239,7 +239,7 @@ v_hex() {
 # Aceita o código e o número da opção, porque quem lê "1) Português" digita "1".
 v_locale() {
   case "$1" in
-    ''|pt-BR|es) return 0;;
+    ''|pt-BR|pt-MZ|es) return 0;;
     1) return 0;;
     2) return 0;;
   esac
@@ -1119,7 +1119,7 @@ fi
 # colar. Sem o token, nada muda: seguem as perguntas de sempre.
 if [ -z "${NEXT_PUBLIC_SUPABASE_URL:-}" ] && [ -n "${SUPABASE_ACCESS_TOKEN:-}" ]; then
   step "$(t "Criando o projeto Supabase automaticamente")"
-  _sb_out="$(bash "$KIT_DIR/supabase-provision.sh" "${APP_NAME:-DeskcommCRM}" "${SUPABASE_REGION:-sa-east-1}")" \
+  _sb_out="$(bash "$KIT_DIR/supabase-provision.sh" "${APP_NAME:-SonghaiCRM}" "${SUPABASE_REGION:-sa-east-1}")" \
     || die "$(t "Não consegui criar o projeto Supabase. Crie no painel e rode de novo sem SUPABASE_ACCESS_TOKEN.")"
   # O script imprime `CHAVE='valor'` em stdout (o visual dele vai para stderr).
   # A leitura é por parse, não por `eval` — o porquê está em
@@ -1298,7 +1298,7 @@ FIELDS=(
   ${CAMPO_OPENAI_EXTRA:+"$CAMPO_OPENAI_EXTRA"}
   "OWNER_EMAIL|E-mail do primeiro admin (dono)||v_email||"
   "OWNER_PASSWORD|Senha do primeiro admin (mínimo 8 caracteres)||v_password|secret|"
-  "APP_NAME|Nome que aparece na interface (Enter para o padrão)|DeskcommCRM|||"
+  "APP_NAME|Nome que aparece na interface (Enter para o padrão)|SonghaiCRM|||"
   # Idioma da instalação. Fica JUNTO do nome do produto de propósito: as duas
   # perguntas são "como o sistema se apresenta", e separá-las faria a segunda
   # parecer configuração técnica.
@@ -1307,7 +1307,7 @@ FIELDS=(
   # variável (campo sem default e sem `opcional` morre em `die`), e o `envq` lá
   # embaixo usa `${APP_ACCENT_HEX:-}`. Enter = a cor do produto, que é o
   # comportamento de sempre para quem não tem marca própria.
-  "APP_ACCENT_HEX|Cor da sua marca em hex, ex.: #7a5cd6 (Enter usa a cor do sistema)||v_hex||opcional"
+  "APP_ACCENT_HEX|Cor da sua marca em hex, ex.: #7a5cd6 (Enter usa o verde SonghaiCRM)|#008069|v_hex||opcional"
   "SUPPORT_EMAIL|E-mail de suporte que SEUS clientes veem (Enter pula)||v_email||opcional"
   "RESEND_API_KEY|Chave da Resend — envia convite e e-mail de LGPD (resend.com/api-keys, Enter pula)|||secret|opcional"
   "RESEND_FROM_EMAIL|Remetente dos e-mails, de um domínio verificado na Resend (Enter pula)||v_email||opcional"
@@ -1655,7 +1655,8 @@ esac
   # bootstrap, o SQL abaixo, um operador conferindo — precisa do código.
   case "${APP_LOCALE:-}" in
     2|es) APP_LOCALE="es";;
-    *)    APP_LOCALE="pt-BR";;
+    # SonghaiCRM: "Português" é o de Moçambique.
+    *)    APP_LOCALE="pt-MZ";;
   esac
   envq APP_NAME "$APP_NAME"
   envq APP_LOCALE "$APP_LOCALE"
@@ -2082,7 +2083,7 @@ curl -fsS -X POST "${SUPABASE_INTERNAL_URL:-${NEXT_PUBLIC_SUPABASE_URL}}/auth/v1
   -H "apikey: ${SUPABASE_SERVICE_ROLE_KEY}" \
   -H "Authorization: Bearer ${SUPABASE_SERVICE_ROLE_KEY}" \
   -H "Content-Type: application/json" \
-  -d "{\"email\":\"${OWNER_EMAIL}\",\"password\":\"${OWNER_PASSWORD}\",\"email_confirm\":true,\"user_metadata\":{\"locale\":\"${APP_LOCALE:-pt-BR}\"}}" \
+  -d "{\"email\":\"${OWNER_EMAIL}\",\"password\":\"${OWNER_PASSWORD}\",\"email_confirm\":true,\"user_metadata\":{\"locale\":\"${APP_LOCALE:-pt-MZ}\"}}" \
   >/dev/null 2>&1 || true
 
 # 2) Resolve o id direto do auth.users e cria org + membership + platform_admin.
@@ -2107,7 +2108,7 @@ begin
     -- própria cai neste valor, então gravar só no dono entregaria o sistema em
     -- português para todo mundo que ele convidasse numa instalação em espanhol.
     insert into public.organizations (slug, display_name, legal_name, locale, created_by)
-    values ('minha-empresa','Minha Empresa','Minha Empresa','${APP_LOCALE:-pt-BR}', v_uid)
+    values ('minha-empresa','Minha Empresa','Minha Empresa','${APP_LOCALE:-pt-MZ}', v_uid)
     returning id into v_org;
   else
     -- Re-execução do instalador com outra resposta: quem rodou de novo para
@@ -2115,8 +2116,8 @@ begin
     -- estiver no padrão — se alguém já escolheu pela tela, a escolha dela vale
     -- mais que uma resposta repetida no terminal.
     update public.organizations
-       set locale = '${APP_LOCALE:-pt-BR}'
-     where id = v_org and coalesce(locale, 'pt-BR') = 'pt-BR';
+       set locale = '${APP_LOCALE:-pt-MZ}'
+     where id = v_org and coalesce(locale, 'pt-MZ') in ('pt-BR', 'pt-MZ');
   end if;
   -- O provedor que a pessoa ESCOLHEU passa a valer no banco. O trigger
   -- fn_seed_org_llm_defaults semeia 'anthropic' fixo — o que estava certo

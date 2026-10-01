@@ -56,12 +56,13 @@ const ORG_NAME = env.OWNER_ORG_NAME || "Minha Empresa";
  * Fecha para o padrão diante de qualquer valor desconhecido: um `.env` com
  * `APP_LOCALE=en` não pode derrubar a instalação nem escrever lixo no banco.
  */
-const IDIOMAS_SERVIDOS = ["pt-BR", "es"] as const;
+// SonghaiCRM: o português servido é o de Moçambique; "pt-BR" de um .env antigo cai nele.
+const IDIOMAS_SERVIDOS = ["pt-MZ", "es"] as const;
 const APP_LOCALE = (IDIOMAS_SERVIDOS as readonly string[]).includes(
   (env.APP_LOCALE ?? "").trim(),
 )
   ? (env.APP_LOCALE as string).trim()
-  : "pt-BR";
+  : "pt-MZ";
 
 if (!SUPABASE_URL || !SERVICE_ROLE) {
   throw new Error("Faltam NEXT_PUBLIC_SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY.");
