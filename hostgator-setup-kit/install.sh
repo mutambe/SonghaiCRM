@@ -15,7 +15,7 @@ set -euo pipefail
 # de qualquer 'cd' (step 2 pode entrar num repo clonado à parte).
 KIT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
 
-REPO_URL="${REPO_URL:-https://github.com/melgarafael/DeskcommCRM.git}"
+REPO_URL="${REPO_URL:-https://github.com/mutambe/SonghaiCRM.git}"
 # Uma constante, dois usos (o fim feliz e o fim travado) — e o comecar.sh tem a
 # gêmea. Link repetido à mão vira link divergente na primeira troca.
 COMUNIDADE_URL="https://lp-comunidade.automatiklabs.com.br"
@@ -1235,7 +1235,11 @@ fi
 # que a versão não era nomeável.
 #
 # Resolvido no REMOTO porque o clone é `--depth 1` e não traz tag nenhuma.
-VERSAO_ALVO="$(ultima_versao_publicada "$REPO_URL")"
+# SonghaiCRM: `DESKCOMM_VERSAO=<tag da imagem>` fixa a versão à mão — é como
+# se testa numa VPS a imagem publicada a partir de uma BRANCH (o publish-image
+# rodado à mão na branch publica com o nome dela, ex.: songhai-base-upstream),
+# antes de existir release. A conferência das três imagens logo abaixo vale igual.
+VERSAO_ALVO="${DESKCOMM_VERSAO:-$(ultima_versao_publicada "$REPO_URL")}"
 
 # A tag do git é condição NECESSÁRIA, não suficiente: ela nasce minutos antes
 # das imagens, e `deskcomm-worker`/`deskcomm-scheduler` só passaram a existir
