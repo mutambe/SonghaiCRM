@@ -999,6 +999,10 @@ export const AUDIT_ACTIONS = [
   "company_people.updated",
   "contacts.person_linked",
   "imports.companies_people",
+  // SonghaiCRM — pagamentos PaySuite (migration 0503).
+  "payment.credentials_saved",
+  "payment.charge_created",
+  "payment.status_changed",
 ] as const;
 
 /** Um código de auditoria. Derivado de `AUDIT_ACTIONS` — não redigite a lista. */

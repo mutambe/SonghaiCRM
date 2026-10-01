@@ -1182,6 +1182,11 @@ export const DICIONARIO: Traducoes = {
   Financeiro: { es: "Finanzas" },
   "Onde o dinheiro fica, como o cliente paga e como cada lançamento é classificado.": { es: "Dónde está el dinero, cómo paga el cliente y cómo se clasifica cada movimiento." },
   "Contas, formas de pagamento e como cada lançamento é classificado.": { es: "Cuentas, formas de pago y cómo se clasifica cada movimiento." },
+  // SonghaiCRM — PaySuite (o guarda do menu exige o espanhol, mesmo desligado na distribuição).
+  "Pagamentos (PaySuite)": { es: "Pagos (PaySuite)" },
+  "Cobre por M-Pesa, e-Mola ou cartão com um link a partir do negócio.": {
+    es: "Cobra por M-Pesa, e-Mola o tarjeta con un enlace desde el negocio.",
+  },
   "conta removida": { es: "cuenta eliminada" },
   "Contas": { es: "Cuentas" },
   "Onde o dinheiro fica. O saldo que aparece nos relatórios é sempre somado dos lançamentos — o valor aqui é só o ponto de partida.": { es: "Dónde está el dinero. El saldo de los informes siempre se calcula sumando los movimientos; el valor que ingresas aquí es solo el punto de partida." },

@@ -453,6 +453,18 @@ export const NAV_CATALOG = [
     minRole: "viewer",
   },
   {
+    // SonghaiCRM — cobrança por M-Pesa, e-Mola e cartão (PaySuite, migration 0503).
+    // Ao lado do Financeiro: é a mesma pergunta ("como o dinheiro entra"). Só
+    // admin, porque a tela recebe o token de API da conta de pagamento.
+    href: "/app/integrations/paysuite",
+    label: "Pagamentos (PaySuite)",
+    description: "Cobre por M-Pesa, e-Mola ou cartão com um link a partir do negócio.",
+    icon: "Receipt",
+    group: "organizacao",
+    section: "Sua empresa",
+    minRole: "admin",
+  },
+  {
     // Estava enterrado em Configurações e ninguém sabia que existia — o achado
     // que originou esta reorganização. A URL não muda; só o lugar na navegação.
     //

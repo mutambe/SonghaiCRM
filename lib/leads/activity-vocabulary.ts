@@ -180,7 +180,14 @@ export type ActivityType =
    * retorno veio" seria indistinguível de "o retorno está a caminho" — e é
    * justamente no silêncio que a demanda morre. O PORQUÊ vai no `reason`.
    */
-  | "proposal_followup_skipped";
+  | "proposal_followup_skipped"
+  /**
+   * SonghaiCRM — as duas pontas de uma cobrança PaySuite (migration 0503).
+   * Gerar o link é reversível (o cliente pode nunca pagar), então tem a PRÓPRIA
+   * linha; `payment_confirmed` é gravado só pelo webhook, nunca otimista.
+   */
+  | "payment_charge_created"
+  | "payment_confirmed";
 
 export const ACTIVITY_LABELS: Record<ActivityType, string> = {
   lead_created: "Entrou pelo WhatsApp",
@@ -288,6 +295,8 @@ export const ACTIVITY_LABELS: Record<ActivityType, string> = {
   proposal_expired: "Proposta venceu sem decisão",
   proposal_value_changed: "Valor do negócio atualizado pela proposta",
   proposal_followup_skipped: "Follow-up automático não agendado",
+  payment_charge_created: "Link de pagamento gerado",
+  payment_confirmed: "Pagamento confirmado",
 };
 
 /** Quando o tipo é legado/desconhecido, a linha ainda é honesta — sem jargão. */

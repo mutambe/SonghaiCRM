@@ -9,6 +9,7 @@ import { ROLE_RANK } from "@/lib/auth/types";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useLeadTimeline } from "@/hooks/leads/useLeadTimeline";
 import type { Lead } from "@/lib/types/leads";
+import { CobrarButton } from "./CobrarButton";
 import { ContatoDoNegocio } from "./ContatoDoNegocio";
 import { ConversaNoDossie } from "./ConversaNoDossie";
 import { LeadFieldsForm } from "./LeadFieldsForm";
@@ -71,6 +72,8 @@ export function LeadDossier({
   const activeOrg = useActiveOrg();
   const podeCriarProposta =
     user.is_platform_admin || (activeOrg && ROLE_RANK[activeOrg.role] >= ROLE_RANK.manager) || false;
+  // SonghaiCRM: cobrar é agent+, o mesmo nível de quem edita o negócio (e o da rota).
+  const podeCobrar = !!activeOrg && ROLE_RANK[activeOrg.role] >= ROLE_RANK.agent;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -94,6 +97,7 @@ export function LeadDossier({
           <span className="font-medium tabular-nums text-text">
             {formatValor(lead.value_cents, lead.currency)}
           </span>
+          {podeCobrar && <CobrarButton leadId={lead.id} valueCents={lead.value_cents} currency={lead.currency} />}
           <span className="text-text-muted">{stageName}</span>
           <OwnerBadge
             ownerKind={owner.kind}

@@ -833,6 +833,11 @@ const HOSTS_DECLARADOS: Record<string, EntradaDeHost> = {
       "sufixo do JID do WhatsApp. Aparece em `lib/waha/resolve-contact-whatsapp-id.ts` desde antes desta régua existir, num `endsWith` que distingue `@lid`, `@c.us` e `@s.whatsapp.net` — é o protocolo do WhatsApp falando, não endereço que o produto chama nem palavra de interface. Trocar pela marca do revendedor faz o CRM deixar de reconhecer o identificador que o próprio WhatsApp manda.",
   },
   // ── destino de chamada: o código fala com eles, sempre foi assim ──────────
+  "paysuite.tech": {
+    categoria: "FORNECEDOR",
+    motivo:
+      "SonghaiCRM — endpoint da API do PaySuite (`lib/payments/paysuite/client.ts`), o agregador moçambicano de M-Pesa, e-Mola e cartão. É o destino da cobrança, com a chave da PRÓPRIA organização: trocar pelo domínio do revendedor faria a cobrança não chegar a lugar nenhum.",
+  },
   "api.openai.com": {
     categoria: "FORNECEDOR",
     motivo:
