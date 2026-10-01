@@ -33,7 +33,11 @@ function db(contagem: number, erro: { message: string } | null = null) {
   return { cliente: { from: () => b } as never, filtros };
 }
 
-beforeEach(() => limitesMock.mockReset());
+// Com chaves: `mockReset()` devolve o próprio mock, e uma função devolvida pelo
+// `beforeEach` o Vitest chama como LIMPEZA depois do teste — o mock rodava de novo.
+beforeEach(() => {
+  limitesMock.mockReset();
+});
 
 describe("tetoDeConexoesWhatsApp", () => {
   it("sem assinatura vigente nunca bloqueia", async () => {
@@ -72,6 +76,18 @@ describe("tetoDeConexoesWhatsApp", () => {
   it("falha de contagem não vira bloqueio (regra comercial, não de segurança)", async () => {
     limitesMock.mockResolvedValue(SIMPLES);
     expect(await tetoDeConexoesWhatsApp(db(5, { message: "boom" }).cliente, ORG)).toBeNull();
+  });
+
+  it("falha ao LER o pacote também deixa passar — nunca vira 500 na tela de ligar o número", async () => {
+    limitesMock.mockImplementation(async () => {
+      throw new Error("banco fora");
+    });
+    expect(await tetoDeConexoesWhatsApp(db(5).cliente, ORG)).toBeNull();
+  });
+
+  it("um cliente que lança (sem `from`) também deixa passar", async () => {
+    limitesMock.mockResolvedValue(SIMPLES);
+    expect(await tetoDeConexoesWhatsApp({} as never, ORG)).toBeNull();
   });
 });
 

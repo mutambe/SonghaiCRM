@@ -15,6 +15,7 @@
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+import { logger } from "@/lib/logger";
 import { limitesDoTenant } from "@/lib/plans/limiteDoTenant";
 
 /** Os `channel_sessions.provider` que são um número de WhatsApp de conversa. */
@@ -25,8 +26,27 @@ export interface TetoAtingido {
   details: { limit: "max_whatsapp_connections"; current: number; max: number };
 }
 
-/** `null` = pode ligar mais um número; senão, o que dizer a quem tentou. */
+/**
+ * `null` = pode ligar mais um número; senão, o que dizer a quem tentou.
+ *
+ * Falha ABERTO por inteiro: qualquer erro — da leitura do pacote ou da
+ * contagem — deixa passar e vai para o log. Só a contagem estava protegida, e
+ * uma falha ao ler o pacote virava 500 na tela de ligar o número (achado pela
+ * suíte: o mock do `graph-partner` não tem `from`, e o turno inteiro caía).
+ */
 export async function tetoDeConexoesWhatsApp(db: SupabaseClient, organizationId: string): Promise<TetoAtingido | null> {
+  try {
+    return await calcularTeto(db, organizationId);
+  } catch (err) {
+    logger.warn("[plano] teto de números não conferido — deixei passar", {
+      organizationId,
+      error: err instanceof Error ? err.message : String(err),
+    });
+    return null;
+  }
+}
+
+async function calcularTeto(db: SupabaseClient, organizationId: string): Promise<TetoAtingido | null> {
   const limites = await limitesDoTenant(organizationId);
   if (!limites || !Number.isFinite(limites.maxWhatsappConnections)) return null;
 
