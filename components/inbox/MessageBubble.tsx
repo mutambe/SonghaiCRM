@@ -63,6 +63,20 @@ function AckIndicator({ status, t }: { status: string; t: (texto: string) => str
   return null;
 }
 
+/**
+ * SonghaiCRM — na bolha do CLIENTE os dois tiques dizem se alguém da equipa já
+ * leu a mensagem no CRM (`read_at`, gravado pelo mark-read). Verde, não azul: o
+ * azul do `AckIndicator` é o cliente a ler o que NÓS enviámos — leituras de
+ * lados diferentes da conversa.
+ */
+function LeituraDaRecebida({ readAt, t }: { readAt: string | null; t: (texto: string) => string }) {
+  return readAt ? (
+    <Checks size={12} weight="bold" className="text-success-fg" aria-label={t("Lida pela equipa")} />
+  ) : (
+    <Checks size={12} weight="bold" className="text-current/70" aria-label={t("Recebida")} />
+  );
+}
+
 export function MessageBubble({
   message,
   searchMatch = false,
@@ -410,6 +424,7 @@ export function MessageBubble({
             <CitationButton citations={citations} messageId={message.id} />
           )}
           {isOutbound && !isFailed && <AckIndicator status={message.status} t={t} />}
+          {!isOutbound && <LeituraDaRecebida readAt={message.read_at ?? null} t={t} />}
           {isFailed && (
             // Provider local: o painel do inbox não tem TooltipProvider ancestral e
             // este Tooltip só monta em mensagem failed — sem o provider, abrir uma

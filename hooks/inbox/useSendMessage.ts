@@ -95,6 +95,9 @@ export function useSendMessage() {
       return { tempId };
     },
     onSuccess: (result, args, context) => {
+      // SonghaiCRM — responder prova que a conversa foi lida: cobre a mensagem do
+      // cliente que chegou depois do mark-read de abrir (ticks verdes).
+      void apiClient.post(`/api/v1/conversations/${args.conversation_id}/mark-read`, {}).catch(() => {});
       const real = result.data;
       const queryKey = ["messages", args.conversation_id];
       qc.setQueryData<InfiniteData<MessagesPage>>(queryKey, (old) => {

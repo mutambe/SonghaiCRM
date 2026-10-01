@@ -14,6 +14,8 @@ import { requireRole } from "@/lib/auth/require-role";
 import { createClient } from "@/lib/supabase/server";
 
 import { markConversationReadHandler } from "../../_handler";
+import { marcarRecebidasComoLidas } from "@/lib/inbox/leitura-das-recebidas";
+import { logger } from "@/lib/logger";
 
 export const dynamic = "force-dynamic";
 
@@ -43,6 +45,14 @@ export async function POST(_req: NextRequest, ctx: RouteCtx): Promise<Response> 
       },
       id,
     );
+    // SonghaiCRM — as mensagens do cliente passam a ficar lidas no CRM (ticks
+    // verdes na bolha). Falhar aqui não desfaz o contador já zerado.
+    await marcarRecebidasComoLidas(supabase, authz.org.orgId, id).catch((err: unknown) => {
+      logger.warn("[mark-read] recebidas não marcadas como lidas", {
+        conversationId: id,
+        error: err instanceof Error ? err.message : String(err),
+      });
+    });
     return ok(conv, { requestId });
   } catch (err) {
     if (err instanceof ApiError) {

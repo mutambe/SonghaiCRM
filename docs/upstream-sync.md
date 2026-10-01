@@ -58,6 +58,7 @@ pnpm typecheck && pnpm test:unit && pnpm test:db
 | 2026-10-01 | Administração da organização pelo painel (porte do `b1b1eb812`, refeito sobre o convite do upstream): editar nome, nome legal, NUIT (na coluna `cnpj` do upstream, 9 dígitos) e slug; apagar só organização sem uso (confirmação pelo slug; o vínculo provisório do criador não conta; senão 409 "suspenda"); card "Responsável" com convidar/reenviar/trocar e-mail (`/api/v1/admin/tenants/[id]/owner`, revoga o convite do e-mail errado). A criação passa a gravar o convite do dono em `team_invites` — no upstream ele não tinha linha, não aparecia na Equipe e não podia ser revogado. Sem o `reset_password` do fork: o ecrã de entrada já recupera a palavra-passe | — |
 | 2026-10-01 | Provedores de IA extras: NÃO portados como provedores próprios. NVIDIA, Groq, Qwen, Zhipu e Moonshot falam a API da OpenAI num endereço público, que o "Provedor personalizado" do upstream já executa (régua anti-SSRF, teste em `/models`, lista de modelos do próprio endpoint). Entrou só a lista que PREENCHE o endereço (`lib/ai/pontos/enderecos-conhecidos.ts`, seletor em IA › Credenciais). Ollama/9Router em `localhost` ficam fora de propósito: com várias organizações por instalação, abrir a rede interna à credencial de uma delas é SSRF; exposto em https público, entra digitado | — |
 | 2026-10-01 | Motor do agente: janela de cortesia 6h-23h (disparo e resposta; o upstream usa 7h-22h), domingo aberto (já era o padrão do upstream); frase da tela de guardrails pelo registro de frases; teste próprio contra um merge que devolva 7h-22h. NÃO reaplicados por o upstream já os resolver: retry quando o pacing veta (o upstream reagenda o MESMO turno para a próxima abertura e abre alerta crítico se a mensagem parece urgente) e o hold `go_live` que travava respostas (no upstream ele só retém follow-up proativo; responder sai) | — |
+| 2026-10-01 | Inbox: tiques de leitura na bolha do CLIENTE (porte do `bcb34686c`). O `mark-read` do upstream, que só zerava o contador, passa a gravar `read_at` nas recebidas ainda não lidas (`lib/inbox/leitura-das-recebidas.ts`, client da sessão sob RLS); responder também marca. Dois tiques neutros = "Recebida", verdes = "Lida pela equipa" (o azul continua sendo o ack do WAHA). Sem rota paralela nem auditoria por abertura (o upstream não audita o mark-read) | — |
 
 ## A reaplicar do fork antigo (`integracao/2026-09-30`)
 
@@ -70,7 +71,7 @@ Em ordem. Cada item cita os commits do fork que servem de referência.
 5. **Motor do agente**: sem gate de go-live (`ddd1fb65c`), retry quando o pacing veta (`3fe51af3f`, `8ef5a68e1`), janela de cortesia 6h–23h com domingo aberto (`a03ffd56d`) — conferir o estado do upstream antes.
 6. **Segurança que o upstream ainda não tem**: convite sem segredo falha fechado (`94b09200b` — o upstream ainda tem `dev-fallback`), rate limit em MCP/internal/cron + scan de segredo no pre-commit (`13ecac624`), `organizations.legal_name` nullable (`abe7dfbfe`).
 7. **Kit de instalação**: chave de IA opcional no `install.sh` (`591233c4e`), repositório e imagens da Songhai, deploy em Swarm (`63c1ddf4f`, `c4d1661b0`).
-8. **Inbox**: ticks de leitura do agente (`bcb34686c`).
+8. **Inbox**: ✅ ticks de leitura (ver tabela).
 
 ## Desligado, não portado (Brasil)
 
