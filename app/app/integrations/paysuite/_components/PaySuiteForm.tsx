@@ -94,7 +94,7 @@ export function PaySuiteForm() {
             <div>
               <span className="font-medium">{t("URL de webhook")}</span>{" "}
               {t("— cole isto no painel do PaySuite, nas configurações de webhook:")}
-              <code data-testid="paysuite-webhook-url" className="mt-1 block break-all rounded bg-muted px-2 py-1 text-xs">
+              <code data-testid="paysuite-webhook-url" className="mt-1 block break-all rounded-md bg-muted px-2 py-1 text-xs">
                 {estado.webhook_url}
               </code>
             </div>
