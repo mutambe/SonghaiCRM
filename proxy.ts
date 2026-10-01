@@ -5,6 +5,7 @@ import { env } from "@/lib/env";
 import { fetchDoServidor } from "@/lib/supabase/fetch-do-servidor";
 import { urlDoSupabaseNoServidor } from "@/lib/supabase/url-do-servidor";
 import { isPublicPath } from "@/lib/auth/public-paths";
+import { superficieInternaLimitada } from "@/lib/auth/limite-das-superficies-internas";
 import {
   verifyImpersonateCookieEdge,
   IMPERSONATE_COOKIE_NAME_EDGE,
@@ -44,6 +45,16 @@ export async function proxy(request: NextRequest) {
   // documentation of the intended deploy topology.
   const host = request.headers.get("host") ?? "";
   const isAdminSurface = host.startsWith("admin.") || pathname.startsWith("/admin");
+
+  // SonghaiCRM: MCP, /api/internal e crons validam um segredo fixo e não tinham
+  // teto de tentativas. Antes do isPublicPath porque são caminhos "públicos" para
+  // o proxy (o handler é quem autentica). Ver lib/auth/limite-das-superficies-internas.ts.
+  if (await superficieInternaLimitada(pathname, request.headers)) {
+    return NextResponse.json(
+      { error: { code: "rate_limited", message: "Muitas requisições. Tente de novo dentro de um minuto." } },
+      { status: 429, headers: { "Retry-After": "60", "x-request-id": requestId } },
+    );
+  }
 
   if (isPublicPath(pathname)) {
     return response;

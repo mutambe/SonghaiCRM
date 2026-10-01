@@ -65,6 +65,10 @@ const PLACEHOLDERS: Record<string, string> = {
   NEXT_PUBLIC_SUPABASE_URL: URL_DO_PLACEHOLDER,
   NEXT_PUBLIC_SUPABASE_ANON_KEY: "test-placeholder-anon-key",
   SUPABASE_SERVICE_ROLE_KEY: "test-placeholder-service-role-key",
+  // SonghaiCRM: o convite assina com INTERNAL_SECRET e, sem ele, falha fechado
+  // (lib/auth/invite-token.ts). No upstream os testes de convite rodavam no CI
+  // sobre o literal "dev-fallback" sem ninguém saber; aqui o segredo é declarado.
+  INTERNAL_SECRET: "test-placeholder-internal-secret",
 };
 for (const [chave, valor] of Object.entries(PLACEHOLDERS)) {
   process.env[chave] ??= valor;

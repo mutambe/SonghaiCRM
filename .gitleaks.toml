@@ -1,0 +1,28 @@
+# Config do gitleaks (SonghaiCRM): o pre-commit (scripts/scan-secrets.mjs delega
+# para ele quando está instalado) e o job `secrets` do CI. Estende o ruleset
+# default do gitleaks — não reescreve regra nenhuma, só isenta o que foi
+# AUDITADO como não-segredo. Separador `[\\/]` para valer também no Windows.
+title = "SonghaiCRM"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Auditado em 2026-10-01 contra a base sobre o upstream v1.69.0 (gitleaks 8.21.2)"
+paths = [
+  # Testes e specs: chaves, JWTs e segredos INVENTADOS (ex.: a chave Anthropic "…NOVA-CHAVE-ABCD").
+  '''(^|[\\/])tests[\\/]''',
+  '''\.test\.tsx?$''',
+  '''\.spec\.ts$''',
+  '''hostgator-setup-kit[\\/]test-validators\.sh$''',
+  '''\.github[\\/]workflows[\\/]e2e\.yml$''',
+  # Evidência de QA versionada: logs de execução com credencial de teste já redigida.
+  '''(^|[\\/])evidence[\\/]''',
+  # Cita um id de conversa da API de um canal (24 hex), não uma chave.
+  '''supabase[\\/]migrations[\\/]MANIFEST\.md$''',
+]
+# Identificadores de produção que a regra de entropia confunde com chave.
+regexes = [
+  '''^followup-gatilho-[a-z-]+\.v1$''',
+  '''^notify\.prefs\.v1$''',
+]

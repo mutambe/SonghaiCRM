@@ -6,16 +6,32 @@
  *   - body = base64url(JSON({invite_id, email, organization_id, role, exp}))
  *   - sig  = base64url(HMAC_SHA256(secret, body))
  *
- * Secret resolution: INVITE_TOKEN_SECRET → INTERNAL_SECRET → "dev-fallback".
- * Production deployments MUST set one of the first two. Verification uses
- * `timingSafeEqual` to avoid timing oracles.
+ * Secret resolution: INVITE_TOKEN_SECRET → INTERNAL_SECRET → NENHUM.
+ * Verification uses `timingSafeEqual` to avoid timing oracles.
+ *
+ * ⚠️ SonghaiCRM — SEM SEGREDO, FALHA FECHADO. A cadeia do upstream termina no
+ * literal "dev-fallback", e o repo é público: sem segredo configurado, qualquer
+ * um forja um convite com `organization_id` e `role` à escolha — admin em
+ * qualquer organização, porque o aceite confia só na assinatura. E `??` não
+ * pega string VAZIA: `INVITE_TOKEN_SECRET=` no `.env` assinava com chave vazia.
+ * Aqui vazio conta como ausente, emitir sem segredo lança e verificar sem
+ * segredo recusa (sem 500 na página de aceite).
  */
 import { z } from "zod";
 import { interfaceSettingsSchema, type InterfaceSettings } from "@/lib/navigation/interface";
 import { createHmac, timingSafeEqual } from "node:crypto";
 
-const SECRET = (): string =>
-  process.env.INVITE_TOKEN_SECRET ?? process.env.INTERNAL_SECRET ?? "dev-fallback";
+function segredo(): string | null {
+  return process.env.INVITE_TOKEN_SECRET || process.env.INTERNAL_SECRET || null;
+}
+
+const SECRET = (): string => {
+  const s = segredo();
+  if (!s) {
+    throw new Error("invite_secret_missing: defina INTERNAL_SECRET (ou INVITE_TOKEN_SECRET) para emitir convites");
+  }
+  return s;
+};
 
 export interface InvitePayload {
   interface_settings?: InterfaceSettings;
@@ -45,7 +61,11 @@ export function verifyInviteToken(token: string): InvitePayload | null {
   const [body, sig] = parts;
   if (!body || !sig) return null;
 
-  const expected = b64url(createHmac("sha256", SECRET()).update(body).digest());
+  // Verificar não lança: a página de aceite trataria o throw como 500. Sem
+  // segredo não há assinatura que se possa conferir — o convite é inválido.
+  const s = segredo();
+  if (!s) return null;
+  const expected = b64url(createHmac("sha256", s).update(body).digest());
   if (sig.length !== expected.length) return null;
 
   try {

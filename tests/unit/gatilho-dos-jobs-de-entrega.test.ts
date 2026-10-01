@@ -235,6 +235,13 @@ const GATILHO_ESPERADO: Record<string, { condicao: string | null; efeito: string
     efeito: "Este é o check obrigatório `build-and-size` (`pnpm build` em Node 22).",
   },
 
+  // SonghaiCRM: varredura de segredo (gitleaks, versão fixa). Sem `if:`: um PR
+  // que desligasse o job passaria um segredo commitado sem ninguém ver.
+  "ci.yml::secrets": {
+    condicao: null,
+    efeito: "Rede de segurança do pre-commit: acha segredo commitado por quem não tem o hook (PR de fork, --no-verify).",
+  },
+
   // --- e o que legitimamente tem interruptor -----------------------------------
   "acolhida.yml::acolher": {
     condicao:
