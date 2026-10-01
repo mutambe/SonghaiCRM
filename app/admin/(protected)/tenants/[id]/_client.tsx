@@ -4,6 +4,8 @@ import { useTenantDetail } from "@/hooks/useTenantDetail";
 import { TenantOverview } from "@/components/admin/tenants/TenantOverview";
 import { TenantActions } from "@/components/admin/tenants/TenantActions";
 import { PlanoDaOrganizacao } from "@/components/admin/tenants/PlanoDaOrganizacao";
+import { GestaoDaOrganizacao } from "@/components/admin/tenants/GestaoDaOrganizacao";
+import { ResponsavelDaOrganizacao } from "@/components/admin/tenants/ResponsavelDaOrganizacao";
 import { SuspendedBanner } from "@/components/admin/tenants/SuspendedBanner";
 import { useT } from "@/hooks/i18n/useT";
 
@@ -49,17 +51,24 @@ export function TenantOverviewClient({ id }: TenantOverviewClientProps) {
         <div className="space-y-6">
           {/* SonghaiCRM — o pacote vigente e a troca (migration 0504). */}
           <PlanoDaOrganizacao organizationId={organization.id} />
+          <ResponsavelDaOrganizacao organizationId={organization.id} />
           <TenantOverview
             organization={organization}
             counts={counts}
             integrations={integrations}
           />
         </div>
-        <TenantActions
-          organizationId={organization.id}
-          status={organization.status}
-          displayName={organization.display_name}
-        />
+        <div className="space-y-4">
+          <TenantActions
+            organizationId={organization.id}
+            status={organization.status}
+            displayName={organization.display_name}
+          />
+          {/* SonghaiCRM — editar e apagar (porte do b1b1eb812). */}
+          <div className="space-y-2 rounded-lg border bg-card p-5">
+            <GestaoDaOrganizacao organization={organization} />
+          </div>
+        </div>
       </div>
     </div>
   );

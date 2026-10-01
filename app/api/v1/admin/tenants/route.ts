@@ -252,6 +252,35 @@ export async function POST(req: NextRequest) {
           issuedAt: org.issued_at,
           dispatch: org.created,
         });
+  // SonghaiCRM — o convite do dono passa a ter LINHA em `team_invites`, com o
+  // mesmo `invite_id` do token. Sem ela o convite não aparecia na Equipe, não
+  // podia ser revogado (um token enviado ao e-mail errado valia as 24h inteiras)
+  // e o painel não sabia dizer se o responsável estava pendente
+  // (`lib/admin/responsavel-da-organizacao.ts`). Só na criação real: o replay
+  // devolve o mesmo `invite_id`, e `ignoreDuplicates` torna a escrita idempotente.
+  if (org.created && ownerInvitation) {
+    const { error: erroDoConvite } = await admin.from("team_invites").upsert(
+      {
+        id: ownerInvitation.invite_id,
+        organization_id: org.id,
+        email: ownerInvitation.email,
+        role: "admin",
+        ...(request.owner_interface_settings ? { interface_settings: request.owner_interface_settings } : {}),
+        invited_by: adminCtx.user.id,
+        inviter_name: adminCtx.user.user_metadata?.full_name ?? adminCtx.user.email ?? "Administrador",
+        email_dispatched: ownerInvitation.email_dispatched,
+        last_sent_at: new Date().toISOString(),
+        expires_at: ownerInvitation.expires_at,
+      },
+      { onConflict: "id", ignoreDuplicates: true },
+    );
+    if (erroDoConvite) {
+      logger.error("[admin.tenants] convite do dono sem linha em team_invites", {
+        organizationId: org.id,
+        error: erroDoConvite.message,
+      });
+    }
+  }
   return ok(
     {
       id: org.id,
