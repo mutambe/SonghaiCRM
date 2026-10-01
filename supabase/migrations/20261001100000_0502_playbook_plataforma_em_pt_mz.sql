@@ -1,4 +1,36 @@
-# Camada plataforma — compliance e marca
+-- SonghaiCRM — 0502: a camada PLATAFORMA do playbook fala português de Moçambique.
+--
+-- O platform.md do upstream manda o modelo escrever "sempre em português do
+-- Brasil", à frente do prompt de TODO agente. O seed do worker
+-- (lib/agent-engine/agent/playbook-seed.ts) só grava quando NÃO há ponteiro, então
+-- a instalação que já existe continua com o texto brasileiro para sempre.
+--
+-- Esta migration publica uma versão nova (playbook_versions é imutável: nunca
+-- UPDATE) com o conteúdo de lib/agent-engine/playbooks/platform.md e move o
+-- ponteiro — SÓ quando a versão ativa ainda contém "português do Brasil". Uma
+-- camada plataforma reescrita à mão não é tocada. Reaplicar é no-op.
+--
+-- O conteúdo abaixo é o do platform.md byte a byte; o teste
+-- tests/unit/playbook-plataforma-em-portugues-de-mocambique.test.ts reprova divergência.
+
+do $songhai_0502$
+declare
+  v_ativo text;
+  v_nova uuid;
+begin
+  select v.content into v_ativo
+  from public.playbook_pointers p
+  join public.playbook_versions v on v.id = p.version_id
+  where p.organization_id is null and p.layer = 'platform';
+
+  -- Sem ponteiro (instalação nova): o seed do worker já lê o platform.md novo.
+  -- Camada sem o texto brasileiro (já trocada, ou escrita à mão): não toca.
+  if v_ativo is null or position('português do Brasil' in v_ativo) = 0 then
+    return;
+  end if;
+
+  insert into public.playbook_versions (organization_id, layer, content)
+  values (null, 'platform', $playbook_mz$# Camada plataforma — compliance e marca
 
 > Seed versionada em git; a versão ATIVA mora em `playbook_versions` (DB) e é
 > carregada por ponteiro a cada run. Regras duras (janela de envio, STOP,
@@ -54,3 +86,11 @@ persona vêm das instruções do agente, logo abaixo desta camada.
 - Mensagens curtas, uma ideia por mensagem, como uma pessoa escreveria.
 - Zero jargão empresarial; nada de "estimado cliente" ou parágrafos de e-mail.
 - Emojis com moderação e só se o cliente os usar primeiro.
+$playbook_mz$)
+  returning id into v_nova;
+
+  update public.playbook_pointers
+     set version_id = v_nova, updated_at = now()
+   where organization_id is null and layer = 'platform';
+end
+$songhai_0502$;

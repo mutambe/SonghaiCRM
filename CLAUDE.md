@@ -33,6 +33,10 @@ Brasil, LGPD, real, pt-BR ou HostGator, vale o que está aqui.
     das telas passa por `t()` e pela camada de vocabulário
     `lib/i18n/pt-mz.ts` (troca só palavra de MESMO gênero, com teste).
     O espanhol do dicionário fica como dado não lido — não apague (merge).
+    Mensagem que o CLIENTE recebe sem passar pela IA (agenda, modelos de
+    follow-up) vai escrita por inteiro em `lib/i18n/frases-pt-mz.ts`; a voz
+    do agente de IA é a camada plataforma `lib/agent-engine/playbooks/platform.md`
+    (mudou o arquivo? a migration que a publica tem de mudar junto — há teste).
   - módulos brasileiros (Honorários, Nuvemshop, CRM B2B com BrasilAPI) ficam
     **desligados** pelos mecanismos do upstream, não apagados.
 - **Banco: `supabase/songhai.sql`** é o apêndice da distribuição, aplicado

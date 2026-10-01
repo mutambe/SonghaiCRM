@@ -32,6 +32,7 @@
  * do que estava.
  */
 import type { Idioma } from "./idiomas";
+import { fraseEmPortuguesDeMocambique } from "./frases-pt-mz";
 import { paraPortuguesDeMocambique } from "./pt-mz";
 
 /** `pt-BR` não aparece: é a chave. Só o que DIFERE precisa de linha. */
@@ -13687,8 +13688,9 @@ export const DICIONARIO: Traducoes = {
  * tradução parcial não pode deixar a tela PIOR do que estava.
  */
 export function traduzir(texto: string, idioma: Idioma): string {
-  // SonghaiCRM: a entrada explícita em `pt-MZ` vence (frase que a camada de
-  // vocabulário não acerta sozinha); sem ela, o texto-fonte passa pela camada
-  // de português de Moçambique (`./pt-mz.ts`).
-  return paraPortuguesDeMocambique(DICIONARIO[texto]?.[idioma] ?? texto);
+  // SonghaiCRM: a frase escrita em português de Moçambique (`./frases-pt-mz.ts`)
+  // vence; sem ela, a entrada do dicionário ou o texto-fonte passa pela camada
+  // de vocabulário (`./pt-mz.ts`).
+  const frase = idioma === "pt-MZ" ? fraseEmPortuguesDeMocambique(texto) : undefined;
+  return paraPortuguesDeMocambique(frase ?? DICIONARIO[texto]?.[idioma] ?? texto);
 }

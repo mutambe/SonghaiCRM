@@ -6,6 +6,21 @@
 > Precedência quando dois documentos discordam: `CLAUDE.md` > `docs/specs/` > `docs/prd/` >
 > `HANDOFF-*.md` > `README.md`.
 
+## SonghaiCRM — distribuição moçambicana (leia primeiro)
+
+Este repositório é o **SonghaiCRM**: o DeskcommCRM (`upstream`) com a identidade de Moçambique
+por cima. Regra completa na seção "SONGHAICRM" do [`CLAUDE.md`](CLAUDE.md); o essencial:
+
+- **Tudo é Moçambique, nada do Brasil:** país `MZ`, moeda `MZN`, fuso `Africa/Maputo`, idioma
+  `pt-MZ`, NUIT, telefone +258, Lei n.º 3/2017. Use `MOEDA_PADRAO`/`FUSO_PADRAO`, nunca literal.
+- **Sincronizar é `git merge upstream/main`:** a identidade entra pelos pontos de extensão do
+  upstream; módulos brasileiros ficam desligados, não apagados.
+- **Banco:** migration nossa = arquivo em `supabase/migrations/` + linha no MANIFEST + bloco em
+  `supabase/songhai.sql` — **nunca** no `baseline.sql`.
+- **Texto ao cliente:** frases em `lib/i18n/frases-pt-mz.ts`; voz da IA em
+  `lib/agent-engine/playbooks/platform.md`. Teste novo da distribuição vai em arquivo próprio.
+- Registro do que veio de onde: [`docs/upstream-sync.md`](docs/upstream-sync.md).
+
 ## Project Overview
 
 Sistema operacional de vendas open source com agentes de IA nativos, multi-nicho (e-commerce,

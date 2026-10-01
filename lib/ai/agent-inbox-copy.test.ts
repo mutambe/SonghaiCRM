@@ -127,14 +127,5 @@ describe("copyDaPromessaSemDono — o aviso só afirma o que foi apurado", () =>
   });
 });
 
-describe("copyDaPromessaSemDono — no idioma de quem lê", () => {
-  // SonghaiCRM: espanhol desligado — este caso media a saída em espanhol.
-  it.skip("organização em espanhol recebe o aviso em espanhol, título e corpo", () => {
-    const { title, body } = copyDaPromessaSemDono(1, "operador_nao_agiu", "es");
-    expect(title).toBe("El asistente prometió algo al cliente y nadie quedó a cargo");
-    expect(body).not.toContain("Nesta conversa");
-    expect(copyDaPromessaSemDono(3, "operador_nao_agiu", "es").title).toBe(
-      "3 promesas al cliente sin nadie a cargo",
-    );
-  });
-});
+// SonghaiCRM: o caso "no idioma de quem lê" media a saída em espanhol, que a
+// distribuição desligou — o tipo `Idioma` nem aceita mais "es".

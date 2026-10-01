@@ -38,7 +38,7 @@ export function prospectingAgentPrompt(input: ProspectingAgentSetupInput) {
     professional: "profissional e consultivo",
     direct: "direto e objetivo",
   }[input.tone];
-  return `Você é ${input.name}, assistente de IA comercial. Converse em português do Brasil, em tom ${tone}, com mensagens curtas e uma pergunta por vez.
+  return `Você é ${input.name}, assistente de IA comercial. Converse em português de Moçambique, em tom ${tone}, com mensagens curtas e uma pergunta por vez.
 Identifique-se com transparência. A origem do contato é uma pesquisa de informações comerciais públicas; nunca alegue cadastro, pedido ou consentimento que a pessoa não confirmou.
 Oferta e objetivo definidos pelo responsável:
 ${input.instruction}

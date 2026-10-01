@@ -45,7 +45,7 @@ describe("o texto do compromisso", () => {
       url: "https://meet.google.com/abc-defg-hij",
       idioma: "pt-MZ",
     });
-    expect(texto).toMatch(/mudou/i);
+    expect(texto).toMatch(/mudou|foi alterado/i); // pt-MZ: «foi alterado»
     expect(texto).not.toMatch(/está marcada para/i);
   });
 
@@ -57,7 +57,7 @@ describe("o texto do compromisso", () => {
       url: null,
       idioma: "pt-MZ",
     });
-    expect(texto).toMatch(/mudou/i);
+    expect(texto).toMatch(/mudou|foi alterado/i); // pt-MZ: «foi alterado»
     expect(texto).not.toMatch(/link/i);
   });
 

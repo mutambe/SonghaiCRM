@@ -20,6 +20,13 @@
  *   • acíclico: a escada só anda para a frente.
  */
 import type { FlowGraph, FlowNode, FlowEdge } from "@/lib/followup/graph-schema";
+import { fraseEmPortuguesDeMocambique } from "@/lib/i18n/frases-pt-mz";
+import { paraPortuguesDeMocambique } from "@/lib/i18n/pt-mz";
+
+/** A frase escrita para Moçambique, ou o texto-fonte pela camada de vocabulário. */
+function paraOClienteEmMocambique(texto: string): string {
+  return paraPortuguesDeMocambique(fraseEmPortuguesDeMocambique(texto) ?? texto);
+}
 
 /** Um toque: a mensagem que sai e quanto tempo se espera ANTES dela. */
 export interface Toque {
@@ -92,7 +99,8 @@ export function montarEscada(spec: EscadaSpec): FlowGraph {
       type: "action",
       label: toque.rotulo,
       position: { x: x(), y: 0 },
-      config: { mode: "text", body: toque.texto },
+      // SonghaiCRM: o paciente lê em português de Moçambique (`lib/i18n/frases-pt-mz.ts`).
+      config: { mode: "text", body: paraOClienteEmMocambique(toque.texto) },
     });
     if (anterior) edges.push(aresta(anterior, msg));
 

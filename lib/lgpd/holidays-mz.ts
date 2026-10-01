@@ -8,6 +8,9 @@
  * and computed here via the Anonymous Gregorian (Meeus/Jones/Butcher)
  * algorithm rather than hardcoded, so it stays correct past 2030 without
  * anyone maintaining a lookup table.
+ *
+ * Decisão do dono do produto (2026-10-01): a Sexta-feira Santa CONTA como
+ * feriado nos prazos (SLA) — não remover.
  */
 
 const YEARS = [2026, 2027, 2028, 2029, 2030];
