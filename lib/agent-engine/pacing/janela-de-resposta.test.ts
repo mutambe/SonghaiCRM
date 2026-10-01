@@ -128,7 +128,7 @@ describe('janela de resposta separada da janela de disparo (0495)', () => {
     });
     expect(d.allow).toBe(false);
     if (!d.allow) {
-      expect(d.reason).toContain('7h-22h');
+      expect(d.reason).toContain(`${PACING_DEFAULTS.windowStartHour}h-${PACING_DEFAULTS.windowEndHour}h`);
       expect(d.reason).not.toContain('0h-24h');
     }
   });
@@ -161,7 +161,7 @@ describe('janela de resposta separada da janela de disparo (0495)', () => {
     // Às 21h, para o disparo só amanhã 7h; para a resposta, amanhã 0h.
     const paraDisparo = proximaAberturaDaJanela(AS_21H, k, false, () => 0);
     const paraResposta = proximaAberturaDaJanela(AS_21H, k, true, () => 0);
-    expect(horaNoFuso(paraDisparo)).toBe(7);
+    expect(horaNoFuso(paraDisparo)).toBe(PACING_DEFAULTS.windowStartHour);
     expect(horaNoFuso(paraResposta)).toBe(0);
   });
 });

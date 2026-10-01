@@ -22,6 +22,8 @@
 
 export const FRASES_PT_MZ: Readonly<Record<string, string>> = {
   // ---- Agenda (texto-do-compromisso.ts e cron agenda-reminder) ----
+  // Janela de cortesia do SonghaiCRM (lib/agent-engine/pacing/defaults.ts).
+  "Janela operacional 7h-22h": "Janela operacional 6h-23h",
   "Sua reunião está marcada para": "A sua reunião está marcada para",
   "Seu compromisso está marcado para": "O seu compromisso está marcado para",
   "O horário da sua reunião mudou. Agora é": "O horário da sua reunião foi alterado. Passa a ser",

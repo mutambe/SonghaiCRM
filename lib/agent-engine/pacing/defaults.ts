@@ -107,14 +107,17 @@ export const PACING_DEFAULTS: PacingKnobs = {
   msPorCaractere: 22,
   atrasoMinimoMs: 1200,
   atrasoMaximoMs: 7500,
-  windowStartHour: 7, // janela 7h-22h
-  windowEndHour: 22,
+  // SonghaiCRM — janela de cortesia 6h-23h (decisão do dono do produto; o
+  // upstream usa 7h-22h). Continua sendo cortesia, não anti-ban, e é knob por
+  // canal em channel_knobs.
+  windowStartHour: 6, // janela 6h-23h
+  windowEndHour: 23,
   // Espelha a janela de disparo: quem nunca gravou as colunas `resposta_*`
   // continua com o comportamento de sempre (a resposta espera fora da janela).
   // O dono que QUER 24h grava 0 e 24 no `channel_knobs` — não neste arquivo,
   // que é default de fallback, não configuração de instalação.
-  respostaStartHour: 7,
-  respostaEndHour: 22,
+  respostaStartHour: 6,
+  respostaEndHour: 23,
   allowSunday: true,
   timezone: 'Africa/Maputo',
   // Número sem linha em channel_knobs é tratado como idade 0 (o degrau mais

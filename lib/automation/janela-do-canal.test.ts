@@ -40,9 +40,11 @@ describe("a régua é o fuso do TENANT, não o relógio de quem roda", () => {
   // consegue produzir: ela daria a mesma resposta para os dois, porque só
   // conhece um relógio — o do processo. Se alguém ressuscitar aquela régua,
   // este caso é o que reprova.
-  const INSTANTE = new Date("2026-07-17T09:00:00Z");
+  // SonghaiCRM: 08:30Z (05h30 em São Paulo, 17h30 em Tóquio) — com a janela
+  // de cortesia 6h-23h, 06h já é dentro.
+  const INSTANTE = new Date("2026-07-17T08:30:00Z");
 
-  it("06h em São Paulo → fechada (adia)", async () => {
+  it("05h30 em São Paulo → fechada (adia)", async () => {
     const knobs = admin({
       data: { throttle_ms: null, jitter_max_ms: null, window_start_hour: null,
               window_end_hour: null, allow_sunday: null,
@@ -52,7 +54,7 @@ describe("a régua é o fuso do TENANT, não o relógio de quem roda", () => {
     expect(await adiarAteAJanelaAbrir(knobs, ORG, CANAL, INSTANTE)).not.toBeNull();
   });
 
-  it("18h em Tóquio → aberta (envia), no MESMO instante", async () => {
+  it("17h30 em Tóquio → aberta (envia), no MESMO instante", async () => {
     const knobs = admin({
       data: { throttle_ms: null, jitter_max_ms: null, window_start_hour: null,
               window_end_hour: null, allow_sunday: null,
@@ -80,10 +82,10 @@ describe("as duas horas que a régua antiga errava, em Maputo", () => {
     const quando = await adiarAteAJanelaAbrir(SEM_LINHA, ORG, CANAL, new Date("2026-07-17T21:30:00Z"));
     expect(quando).not.toBeNull();
 
-    // A próxima abertura é 7h de Maputo do dia SEGUINTE = 05:00Z — mais um
+    // A próxima abertura é 6h de Maputo do dia SEGUINTE = 04:00Z (janela 6h-23h) — mais um
     // JITTER de até `jitterMaxMs` (ver o upstream: a asserção é de FAIXA, para
     // cem automações represadas não abrirem todas no mesmo segundo).
-    const abertura = Date.parse("2026-07-18T05:00:00.000Z");
+    const abertura = Date.parse("2026-07-18T04:00:00.000Z");
     const t = Date.parse(quando as string);
     expect(t).toBeGreaterThanOrEqual(abertura);
     expect(t).toBeLessThanOrEqual(abertura + PACING_DEFAULTS.jitterMaxMs);
