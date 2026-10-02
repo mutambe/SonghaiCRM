@@ -28,7 +28,11 @@
 #   - `env_file` é lido pelo CLIENTE no `docker stack deploy` e os valores vão
 #     dentro da especificação do serviço — funciona em qualquer nó. O caminho é
 #     `${SWARM_ENV_FILE:-stack.env}`: `stack.env` é o do Portainer; o script
-#     passa `.env`. Nada de lista de variáveis à mão: a do fork envelheceu.
+#     passa `.env.swarm`. Nada de lista de variáveis à mão: a do fork envelheceu.
+#   - ⚠️ O `env_file` do Swarm NÃO tira aspas (o do compose tira): uma linha
+#     `NEXT_PUBLIC_APP_URL="https://…"` chega ao contêiner COM as aspas e o app
+#     recusa no arranque. O .env do kit é todo entre aspas, por isso o script
+#     gera `.env.swarm` sem elas. No Portainer, cole os valores SEM aspas.
 #   - SEM `caddy`: o Traefik do servidor faz o HTTPS. As labels ficam em
 #     `deploy.labels` (o provider Swarm só lê as do SERVIÇO).
 #   - SEM `wacalls`, `asterisk` e `voice-agent`: o `docker stack deploy` IGNORA

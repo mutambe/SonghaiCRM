@@ -111,9 +111,28 @@ gravar_imagens .env "$VERSAO"
 load_env .env
 export APP_IMAGE WORKER_IMAGE SCHEDULER_IMAGE
 # `docker stack deploy` não lê o .env sozinho para interpolar `${DOMAIN}` e
-# afins: o `load_env` acima exportou tudo. E os serviços recebem o .env inteiro
-# por `env_file` (SWARM_ENV_FILE), lido aqui, no cliente.
-SWARM_ENV_FILE=.env docker stack deploy \
+# afins: o `load_env` acima exportou tudo.
+#
+# Os serviços recebem as variáveis por `env_file` (SWARM_ENV_FILE) — mas NÃO
+# o .env do kit diretamente. O instalador grava os valores entre aspas
+# (`NEXT_PUBLIC_APP_URL="https://…"`, ver `envq`), e o `env_file` do
+# `docker stack deploy`, ao contrário do `docker compose`, NÃO tira as aspas:
+# todo valor chegava ao contêiner com elas, e o app recusava no arranque
+# ("NEXT_PUBLIC_ADMIN_URL: Invalid URL"). Medido na primeira instalação
+# SonghaiCRM 2.0.0 em Swarm (2026-10-02). `.env.swarm` é o .env já DECODIFICADO
+# pelo `load_env` (aspas e escapes desfeitos), uma linha KEY=valor por variável,
+# com o mesmo rigor de permissão do .env.
+ENV_SWARM="$PROJECT_DIR/.env.swarm"
+( umask 077; : > "$ENV_SWARM" )
+while IFS= read -r linha || [ -n "$linha" ]; do
+  chave="${linha%%=*}"
+  case "$chave" in ''|*[!A-Za-z0-9_]*) continue ;; esac
+  [ "$chave" != "$linha" ] || continue
+  valor="${!chave-}"
+  case "$valor" in *$'\n'*) continue ;; esac   # env_file não carrega valor multilinha
+  printf '%s=%s\n' "$chave" "$valor" >> "$ENV_SWARM"
+done < .env
+SWARM_ENV_FILE=.env.swarm docker stack deploy \
   -c "$COMPOSE" --with-registry-auth --resolve-image always "$STACK" \
   || die "O docker stack deploy falhou (acima). O banco já está na v$VERSAO; é seguro repetir."
 

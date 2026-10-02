@@ -179,6 +179,9 @@ describe("deploy-swarm.sh aplica o banco antes das imagens", () => {
 
   it("a versão vem da release publicada, e o stack lê o .env inteiro", () => {
     expect(script).toContain("ultima_release_estavel");
-    expect(script).toMatch(/SWARM_ENV_FILE=\.env docker stack deploy/);
+    // Nunca o .env cru: o env_file do Swarm não tira as aspas que o kit grava.
+    expect(script).toMatch(/SWARM_ENV_FILE=\.env\.swarm docker stack deploy/);
+    expect(script).not.toMatch(/SWARM_ENV_FILE=\.env docker stack deploy/);
+    expect(script).toContain("ENV_SWARM=");
   });
 });

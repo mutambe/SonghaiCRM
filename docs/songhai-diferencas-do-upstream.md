@@ -204,6 +204,15 @@ inteiro; na dúvida, o roteiro pergunta de novo.
   `bash hostgator-setup-kit/deploy-swarm.sh` (banco ANTES das imagens).
 - O `docker-compose.swarm.yml` antigo do fork (lista de variáveis à mão,
   imagens `melgarafael`, evento `message` duplicado) **não** deve ser usado.
+- **O `env_file` do Swarm não tira aspas** (o do `docker compose` tira). O
+  .env do kit grava tudo entre aspas, e na primeira instalação 2.0.0 todas as
+  variáveis chegaram ao contêiner com elas: o app não arrancava
+  ("NEXT_PUBLIC_ADMIN_URL: Invalid URL"). O `deploy-swarm.sh` gera
+  `.env.swarm` (permissão 600, ignorado pelo git) com os valores já
+  descodificados. No Portainer, cole as variáveis **sem aspas**.
+- **Trocar só as imagens sem o banco quebra o CRM.** Em 2026-10-02 a VPS ficou
+  horas a correr o código novo sobre o esquema antigo (alguém fez pull de
+  `:latest`). Atualize sempre por `deploy-swarm.sh`, nunca com um pull solto.
 
 ## 10. Ambiente de desenvolvimento (Windows)
 
