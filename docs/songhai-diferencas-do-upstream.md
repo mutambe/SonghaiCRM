@@ -73,7 +73,11 @@ exigir a entrada `es` de cada texto novo). Mas **não há seletor de espanhol na
 tela**: `pt-MZ` é o único idioma em `lib/i18n/registro.ts`.
 
 **Erros que isto já causou.** Specs do e2e que clicam em `idioma-es` esperam
-até ao fim do tempo e falham.
+até ao fim do tempo e falham. E há um SEGUNDO caminho, que a busca por
+`idioma-es` não acha: a spec grava `user_metadata: { locale: "es" }` na base de
+dados, recarrega e espera texto em espanhol ("Abrir conversación", "Historial
+cerrado") — aqui a tela continua em português. Procure os dois:
+`grep -rlnE 'locale: "es"|idioma-es' tests/e2e/*.spec.ts`.
 
 **Como fazer certo.**
 - Texto novo de tela continua a precisar da entrada `es` no dicionário (é
@@ -84,7 +88,10 @@ até ao fim do tempo e falham.
 - Spec que só **em parte** usa espanhol → tira-se o trecho e deixa-se o
   comentário `SonghaiCRM: a distribuição só oferece pt-MZ`
   (feito em `extensoes-recuperacao`, `central-avisos-resolver-em-lote`,
-  `agenda-presenca-recuperacao`).
+  `agenda-presenca-recuperacao`, `central-avisos-destino`,
+  `encerramento-atendimento`). Se o trecho em espanhol também exercitava um
+  comportamento (reabrir, fechar), mantenha o comportamento com os rótulos em
+  português — só a troca de idioma sai.
 
 ## 3. Fuso horário — Africa/Maputo
 
@@ -195,9 +202,10 @@ grep -rnE "America/Sao_Paulo|-03:00" app components hooks lib workers tests/e2e 
 # 2. moeda e documento brasileiros em specs (compare com a lista ANTES do merge:
 #    só importa o que o merge acrescentou)
 grep -rlnE "R\\$|BRL|MXN|cpf é|CPF\?" tests/e2e/*.spec.ts
-# 3. specs que escolhem espanhol (agenda-presenca-recuperacao aparece por um
-#    ramo "es" que ficou desligado de propósito — não é achado)
-grep -rln "idioma-es" tests/e2e/*.spec.ts
+# 3. specs que põem a tela em espanhol — pelo botão OU pela base de dados
+#    (agenda-presenca-recuperacao e central-avisos-resolver-em-lote aparecem
+#    por um ramo "es" desligado e um caso em test.skip — não são achado)
+grep -rlnE 'locale: "es"|idioma-es' tests/e2e/*.spec.ts
 # 4. o resto é o CI: verify, invariants e e2e verdes
 ```
 
