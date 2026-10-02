@@ -457,7 +457,8 @@ test.describe("datas do compromisso seguem idioma e fuso próprios", () => {
       const label =
         locale === "es" ? "Asistencia registrada por el equipo" : "Presença registrada pela equipe";
       await expect(page.getByRole("dialog").getByText(new RegExp(`^${label}:`))).toHaveText(
-        new RegExp(`^${label}: ${day}\\b.*\\b${year}, 0?${hour}:${minute}$`),
+        // SonghaiCRM: o formato pt-MZ é dd/mm/aaaa — o dia vem com zero à esquerda.
+        new RegExp(`^${label}: 0?${day}\\b.*\\b${year}, 0?${hour}:${minute}$`),
       );
       await evidence(page, info, `datas-${locale}-desktop`);
       await page.setViewportSize({ width: 390, height: 844 });
