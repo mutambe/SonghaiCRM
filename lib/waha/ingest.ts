@@ -37,6 +37,7 @@ import type { createAdminClient } from "@/lib/supabase/admin";
 import { ackToStatus } from "@/lib/types/messaging";
 import type { WahaEnvelope, WahaPayload } from "@/lib/waha/envelope";
 import { bareWaMessageId, chatIdFromWaMessageId } from "@/lib/waha/message-id";
+import { gravarReacaoRecebida } from "@/lib/waha/reacao-recebida";
 import { logger } from "@/lib/logger";
 import {
   ehNumeroInternoDeAviso,
@@ -1416,6 +1417,9 @@ export async function dispatchWahaEvent(
     await handleMessageEdited(admin, session, payload);
   } else if (eventType === "message.revoked") {
     await handleMessageRevoked(admin, session, payload);
+  } else if (eventType === "message.reaction") {
+    // SonghaiCRM — reação do cliente (ou do dono, pelo aparelho).
+    await gravarReacaoRecebida(admin, session, payload);
   } else if (eventType === "session.status" || eventType === "state.change") {
     await handleSessionStatus(admin, session, payload);
   }

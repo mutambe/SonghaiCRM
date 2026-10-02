@@ -770,6 +770,58 @@ export class WahaClient {
     }
     return res.json();
   }
+
+  // ─── SonghaiCRM — leitura, reação e localização (ideias do OpenWA) ─────────
+  //
+  // Os três endpoints são da API pública do WAHA (`/api/sendSeen`,
+  // `/api/reaction`, `/api/sendLocation`), todos com a sessão no CORPO, como o
+  // `sendText`. Lançam `waha_<status>` como os vizinhos: engolir é decisão de
+  // quem chama.
+
+  /**
+   * Os dois tiques azuis no aparelho do cliente. `messageIds` são os ids
+   * COMPLETOS das recebidas (`false_<chat>_<id>`, como o webhook as grava);
+   * sem eles o NOWEB não sabe o que marcar.
+   */
+  async sendSeen(session: string, chatId: string, messageIds: string[]): Promise<void> {
+    const res = await this.fetchComTeto(`${this.baseUrl}/api/sendSeen`, {
+      method: "POST",
+      headers: { "X-Api-Key": this.apiKey, "Content-Type": "application/json" },
+      body: JSON.stringify({ session, chatId, messageIds }),
+    });
+    if (!res.ok) throw new Error(`waha_${res.status}`);
+  }
+
+  /** Reage a uma mensagem. `reaction: ""` tira a reação — é o contrato do WhatsApp. */
+  async setReaction(session: string, messageId: string, reaction: string): Promise<void> {
+    const res = await this.fetchComTeto(`${this.baseUrl}/api/reaction`, {
+      method: "PUT",
+      headers: { "X-Api-Key": this.apiKey, "Content-Type": "application/json" },
+      body: JSON.stringify({ session, messageId, reaction }),
+    });
+    if (!res.ok) throw new Error(`waha_${res.status}`);
+  }
+
+  /** O pino de verdade, que o aparelho abre no mapa — não um link em texto. */
+  async sendLocation(
+    session: string,
+    chatId: string,
+    loc: { latitude: number; longitude: number; title?: string | null },
+  ): Promise<unknown> {
+    const res = await this.fetchComTeto(`${this.baseUrl}/api/sendLocation`, {
+      method: "POST",
+      headers: { "X-Api-Key": this.apiKey, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        session,
+        chatId,
+        latitude: loc.latitude,
+        longitude: loc.longitude,
+        ...(loc.title ? { title: loc.title } : {}),
+      }),
+    });
+    if (!res.ok) throw new Error(`waha_${res.status}`);
+    return res.json();
+  }
 }
 
 /**

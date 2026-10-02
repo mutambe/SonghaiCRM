@@ -140,6 +140,8 @@ export const AUDIT_ACTIONS = [
   "message.revoked",
   "message.hidden_in_crm",
   "message.restored_in_crm",
+  // SonghaiCRM — a equipa reagiu (ou tirou a reação) a uma mensagem.
+  "message.reacted",
   // Uma rodada do cron `recover-stuck-messages` que de fato marcou mensagem
   // como falha (rodada vazia não vira linha — varredura não é mutação).
   "message.recover_stuck_run",
