@@ -15,6 +15,7 @@ import { createClient } from "@/lib/supabase/server";
 
 import { markConversationReadHandler } from "../../_handler";
 import { marcarRecebidasComoLidas } from "@/lib/inbox/leitura-das-recebidas";
+import { avisarLeituraAoCanal } from "@/lib/inbox/leitura-no-canal";
 import { logger } from "@/lib/logger";
 
 export const dynamic = "force-dynamic";
@@ -47,12 +48,24 @@ export async function POST(_req: NextRequest, ctx: RouteCtx): Promise<Response> 
     );
     // SonghaiCRM — as mensagens do cliente passam a ficar lidas no CRM (ticks
     // verdes na bolha). Falhar aqui não desfaz o contador já zerado.
-    await marcarRecebidasComoLidas(supabase, authz.org.orgId, id).catch((err: unknown) => {
+    const marcadas = await marcarRecebidasComoLidas(supabase, authz.org.orgId, id).catch((err: unknown) => {
       logger.warn("[mark-read] recebidas não marcadas como lidas", {
         conversationId: id,
         error: err instanceof Error ? err.message : String(err),
       });
+      return 0;
     });
+    // SonghaiCRM — e o cliente vê os tiques azuis no aparelho. Só quando o CRM
+    // acabou de marcar alguma: reabrir a conversa não avisa outra vez. É
+    // cortesia — falhar aqui não desfaz a leitura no CRM.
+    if (marcadas > 0) {
+      await avisarLeituraAoCanal(supabase, authz.org.orgId, id).catch((err: unknown) => {
+        logger.warn("[mark-read] o aparelho do cliente não foi avisado da leitura", {
+          conversationId: id,
+          error: err instanceof Error ? err.message : String(err),
+        });
+      });
+    }
     return ok(conv, { requestId });
   } catch (err) {
     if (err instanceof ApiError) {

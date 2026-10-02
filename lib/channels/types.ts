@@ -164,6 +164,20 @@ export interface OutboundEnvelope extends ChannelTenantScope {
    * `undefined` = envio solto, que é o caso comum.
    */
   replyToExternalId?: string | null;
+  /**
+   * SonghaiCRM — o pino, quando `kind === "location"`. O `body` continua a
+   * levar o link do mapa: canal que não sabe mandar pino manda o texto, e o
+   * cliente ainda chega ao lugar.
+   */
+  location?: OutboundLocation;
+}
+
+/** SonghaiCRM — coordenadas de saída, já validadas por `lerLocalizacao`. */
+export interface OutboundLocation {
+  latitude: number;
+  longitude: number;
+  nome?: string | null;
+  endereco?: string | null;
 }
 
 /**
@@ -358,6 +372,28 @@ export interface ChannelAdapter {
     sessionRef: string;
     recipient: string | null;
     externalId: string;
+  }): Promise<void>;
+
+  /**
+   * SonghaiCRM — diz ao aparelho do cliente que a equipa LEU (os tiques azuis).
+   * `externalIds` são as recebidas que o CRM acabou de marcar como lidas.
+   * OPCIONAL: quem chama testa a presença do método, nunca QUAL provider é.
+   */
+  markRead?(input: ChannelTenantScope & {
+    sessionRef: string;
+    recipient: string;
+    externalIds: string[];
+  }): Promise<void>;
+
+  /**
+   * SonghaiCRM — reage a uma mensagem com um emoji; `emoji: ""` tira a reação.
+   * Mesmo endereçamento de `editMessage` (`externalId` + `recipient`).
+   */
+  reactToMessage?(input: ChannelTenantScope & {
+    sessionRef: string;
+    recipient: string | null;
+    externalId: string;
+    emoji: string;
   }): Promise<void>;
 
   /**

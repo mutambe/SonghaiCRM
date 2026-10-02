@@ -17,6 +17,8 @@ import { usePassagensDaConversa } from "@/hooks/inbox/usePassagensDaConversa";
 import { useClaimConversation } from "@/hooks/inbox/useClaimConversation";
 import { useDeleteNote } from "@/hooks/inbox/useDeleteNote";
 import { useAlterarMensagem } from "@/hooks/inbox/useAlterarMensagem";
+import { useReagirMensagem } from "@/hooks/inbox/useReagirMensagem";
+import { canalReageAMensagens } from "@/lib/channels/reacao-do-canal";
 import { useDebugToggle } from "@/hooks/ai/useDebugToggle";
 import { useActiveOrg, useUser } from "@/hooks/auth/AuthProvider";
 import { ROLE_RANK } from "@/lib/auth/types";
@@ -114,6 +116,9 @@ export function ChatThread({
   const canalAlteraEnviada = transportaMensagem(provider)
     && capabilitiesOf(provider as ChannelProvider).alteraMensagemEnviada;
   const { enabled: debugCitations } = useDebugToggle(activeOrg?.role ?? null);
+  // SonghaiCRM — reagir com emoji (o canal tem de saber; ver reacao-do-canal).
+  const reagir = useReagirMensagem(conversationId);
+  const canalReage = canalReageAMensagens(provider);
 
   const messages: Message[] = useMemo(
     () => q.data?.pages.flatMap((p) => p.data) ?? [],
@@ -408,6 +413,9 @@ export function ChatThread({
                     : undefined}
                   onRestaurar={canManage && item.data.direction === "inbound"
                     ? () => restaurar.mutateAsync(item.data.id).then(() => undefined)
+                    : undefined}
+                  onReagir={canalReage
+                    ? (emoji) => reagir.mutateAsync({ id: item.data.id, emoji }).then(() => undefined)
                     : undefined}
                 />
               ),
