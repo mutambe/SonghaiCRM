@@ -595,10 +595,30 @@ const AJUSTES_FINAIS: ReadonlyArray<readonly [string, string]> = [
 /** A sigla da lei brasileira não é a base legal aqui: vira o nome do tema. */
 const LGPD = /(?<![\p{L}\p{N}_])LGPD(?![\p{L}\p{N}_])/gu;
 
+/**
+ * INTERRUPTOR SÓ PARA OS TESTES DE ECRÃ DO UPSTREAM (e2e).
+ *
+ * As specs do Playwright procuram o texto original do produto (português do
+ * Brasil); com a camada ligada, o robô não acha "Email ou senha incorretos"
+ * porque o ecrã diz "e-mail" e "palavra-passe". Com
+ * `NEXT_PUBLIC_PT_MZ_TEXTO_ORIGINAL=1` a camada devolve o texto como veio, e o
+ * e2e volta a medir COMPORTAMENTO (fluxo, clique, banco). O texto moçambicano
+ * segue provado pelos testes unitários.
+ *
+ * `NEXT_PUBLIC_` de propósito: o Next grava o valor no bundle NO BUILD. Só o
+ * build do e2e (`.github/workflows/e2e.yml`) o define; a imagem publicada é
+ * construída sem ele, então em produção a camada está SEMPRE ligada — e o teste
+ * `tests/unit/pt-mz-interruptor-so-no-e2e.test.ts` vigia que nada mais o liga.
+ */
+export function camadaPtMzDesligada(): boolean {
+  return process.env.NEXT_PUBLIC_PT_MZ_TEXTO_ORIGINAL === "1";
+}
+
 const cache = new Map<string, string>();
 const TETO_DO_CACHE = 20_000;
 
 export function paraPortuguesDeMocambique(texto: string): string {
+  if (camadaPtMzDesligada()) return texto;
   const memo = cache.get(texto);
   if (memo !== undefined) return memo;
 
@@ -624,6 +644,7 @@ export function paraPortuguesDeMocambique(texto: string): string {
  * `<style>`/`<script>` também não é tocado.
  */
 export function htmlEmPortuguesDeMocambique(html: string): string {
+  if (camadaPtMzDesligada()) return html;
   return html.replace(/(<(style|script)\b[\s\S]*?<\/\2>)|>([^<]+)</gi, (achado, bloco: string | undefined, _tag, texto: string | undefined) =>
     bloco !== undefined || texto === undefined ? achado : `>${paraPortuguesDeMocambique(texto)}<`,
   );

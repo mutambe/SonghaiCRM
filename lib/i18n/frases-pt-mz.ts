@@ -83,5 +83,7 @@ export const FRASES_PT_MZ: Readonly<Record<string, string>> = {
 
 /** A frase em português de Moçambique, ou `undefined` quando o registro não a tem. */
 export function fraseEmPortuguesDeMocambique(texto: string): string | undefined {
+  // O mesmo interruptor do e2e de `lib/i18n/pt-mz.ts` (`camadaPtMzDesligada`).
+  if (process.env.NEXT_PUBLIC_PT_MZ_TEXTO_ORIGINAL === "1") return undefined;
   return Object.prototype.hasOwnProperty.call(FRASES_PT_MZ, texto) ? FRASES_PT_MZ[texto] : undefined;
 }
