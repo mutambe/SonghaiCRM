@@ -138,7 +138,9 @@ test("um clique fecha os abertos da minha organização e não encosta na vizinh
   expect(vizinha.data.map((l) => l.status)).toEqual(["open"]);
 });
 
-test("em espanhol, o título do aviso continua o que foi gravado (issue #603)", async ({
+// SonghaiCRM: a distribuição só oferece pt-MZ (lib/i18n/registro.ts); a interface
+// em espanhol não existe aqui, então este caso não se aplica.
+test.skip("em espanhol, o título do aviso continua o que foi gravado (issue #603)", async ({
   page,
 }) => {
   test.setTimeout(120_000);

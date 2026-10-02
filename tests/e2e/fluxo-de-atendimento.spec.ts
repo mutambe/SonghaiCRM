@@ -237,7 +237,7 @@ test("liga o módulo, cria um roteiro pela tela, o cliente responde pelo WhatsAp
       await page.locator(`.react-flow__node[data-id="${inicio}"]`).click();
       await page.getByTestId("configuracoes-do-roteiro").locator("#roteiro-gatilhos").fill(GATILHO);
 
-      await configurarPergunta(page, cpf, { pergunta: "Qual é o seu CPF?", chave: "cpf", tipo: "CPF (confere o dígito)" });
+      await configurarPergunta(page, cpf, { pergunta: "Qual é o seu NUIT?", chave: "cpf", tipo: "CPF (confere o dígito)" });
       await configurarPergunta(page, modelo, {
         pergunta: "Qual modelo te interessa?",
         chave: "modelo_interesse",
@@ -278,20 +278,21 @@ test("liga o módulo, cria um roteiro pela tela, o cliente responde pelo WhatsAp
     let contatoId = "";
     await test.step("o cliente escreve pelo WhatsApp e o roteiro coleta", async () => {
       contatoId = await turnoDoAgente(pool, await mensagemDoCliente(page, creds, `oi, quero ${GATILHO} uma moto`));
-      await turnoDoAgente(pool, await mensagemDoCliente(page, creds, "meu cpf é 529.982.247-25"));
+      // SonghaiCRM: o tipo `cpf` é o NUIT (9 dígitos) — documento de Moçambique.
+      await turnoDoAgente(pool, await mensagemDoCliente(page, creds, "o meu NUIT é 400 123 456"));
       await turnoDoAgente(pool, await mensagemDoCliente(page, creds, "quero a XRE 300"));
     });
 
     await test.step("a ficha do contato mostra o que o roteiro coletou", async () => {
       const { data: contato } = await db.from("contacts").select("id, custom_fields").eq("id", contatoId).single();
-      expect(contato?.custom_fields).toMatchObject({ cpf: "52998224725", modelo_interesse: "XRE 300" });
+      expect(contato?.custom_fields).toMatchObject({ cpf: "400123456", modelo_interesse: "XRE 300" });
 
       await page.goto(`/app/contacts/${contato!.id}`);
       const cartao = page.getByTestId("roteiros-do-contato");
       await expect(cartao).toBeVisible({ timeout: 20_000 });
       await expect(cartao.getByText(NOME_DO_ROTEIRO)).toBeVisible();
       await expect(cartao.getByText("Concluído")).toBeVisible();
-      await expect(page.getByTestId("roteiro-campo-cpf")).toContainText("52998224725");
+      await expect(page.getByTestId("roteiro-campo-cpf")).toContainText("400123456");
       await expect(page.getByTestId("roteiro-campo-modelo_interesse")).toContainText("XRE 300");
 
       // Medido por ferramenta: o cartão ocupa espaço de verdade na tela e está

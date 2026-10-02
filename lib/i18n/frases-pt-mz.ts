@@ -22,6 +22,9 @@
 
 export const FRASES_PT_MZ: Readonly<Record<string, string>> = {
   // ---- Agenda (texto-do-compromisso.ts e cron agenda-reminder) ----
+  // O tipo `cpf` do roteiro é o documento do titular, que aqui é o NUIT
+  // (lib/followup/captura-do-fluxo.ts, `capturarCpf`).
+  "CPF (confere o dígito)": "NUIT (9 dígitos)",
   // O exemplo de fuso é o de Moçambique (lib/tempo/fusos.ts, FUSO_PADRAO).
   "A janela de envio é avaliada neste fuso (ex.: America/Sao_Paulo).":
     "A janela de envio é avaliada neste fuso (ex.: Africa/Maputo).",

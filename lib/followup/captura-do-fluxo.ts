@@ -161,15 +161,26 @@ function validaData(ano: number, mes: number, dia: number): boolean {
  * O DOCUMENTO DO TITULAR — o tipo de campo se chama `cpf` por vocabulário do
  * upstream, mas nesta distribuição é o NUIT: 9 dígitos, com ou sem separador
  * a cada três ("123 456 789"). O NUIT não tem dígito verificador público, então
- * a captura confere a FORMA (`isValidNuit`), e as bordas `(?<!\d)`/`(?!\d)`
- * impedem que um pedaço de um número maior (telefone com +258) vire NUIT.
+ * a captura confere a FORMA (`isValidNuit`).
+ *
+ * As BORDAS são o que impede um pedaço de número maior de virar NUIT, e elas
+ * olham também o separador: `(?<!\d[ .-]?)` e `(?![ .-]?\d)`. Só `(?<!\d)`/
+ * `(?!\d)` deixava passar "529.982.247-25" (11 dígitos): o caractere depois de
+ * "247" é um hífen, não um dígito, e o NUIT gravado saía CORTADO, em silêncio —
+ * achado pelo e2e do SonghaiCRM em 2026-10-02. Na dúvida (dois números colados
+ * por espaço, por exemplo), não captura: o roteiro pergunta de novo, que é o
+ * erro barato.
  */
+const NUIT_NO_TEXTO = /(?<!\d[ .-]?)\d{3}[ .-]?\d{3}[ .-]?\d{3}(?![ .-]?\d)/g;
+
+/** Os NUITs que aparecem INTEIROS no texto, só com os dígitos. */
+function nuitsDoTexto(texto: string): string[] {
+  return [...texto.matchAll(NUIT_NO_TEXTO)].map((m) => m[0].replace(/\D/g, "")).filter(isValidNuit);
+}
+
 function capturarCpf(campo: CampoPendenteParaCaptura, bruto: string): CapturaDeCampo | null {
-  for (const m of bruto.matchAll(/(?<!\d)\d{3}[ .-]?\d{3}[ .-]?\d{3}(?!\d)/g)) {
-    const digitos = m[0].replace(/\D/g, "");
-    if (isValidNuit(digitos)) return { key: campo.key, valor: digitos, bruto };
-  }
-  return null;
+  const [digitos] = nuitsDoTexto(bruto);
+  return digitos ? { key: campo.key, valor: digitos, bruto } : null;
 }
 
 function capturarNumero(
@@ -477,7 +488,10 @@ export function respostaTemLastro(
     }
     case "cpf": {
       const digitos = v.replace(/\D/g, "");
-      return isValidNuit(digitos) && t.replace(/\D/g, "").includes(digitos);
+      // O NUIT proposto tem de ser um NÚMERO INTEIRO do texto, não um pedaço de
+      // um número maior — `includes` sobre os dígitos colados aceitava 9 dígitos
+      // de dentro de um CPF de 11.
+      return isValidNuit(digitos) && nuitsDoTexto(t).includes(digitos);
     }
     case "date": {
       // A data devolvida tem de ser A MESMA escrita — não basta haver uma data

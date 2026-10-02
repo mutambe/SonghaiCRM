@@ -157,26 +157,9 @@ test("recupera preparação em HTTP real e mantém tema, idioma e fallback legí
     await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
     await capturar(page, testInfo, "recuperacao-dark.png");
 
-    await page.getByTestId("seletor-de-idioma").click();
-    const reloadEs = page.waitForEvent("load");
-    await page.getByTestId("idioma-es").click();
-    await reloadEs;
-    await expect(page.getByTestId("seletor-de-idioma")).toHaveText("ES");
-    await expect(page.getByRole("heading", { name: "Extensiones", exact: true })).toBeVisible();
-    await page.getByRole("tab", { name: "Catálogo", exact: true }).click();
-    await expect(page.getByText("Texto disponible en portugués.").first()).toBeVisible();
-    await expect(
-      page.getByRole("button", { name: "Instalar versión revisada", exact: true }).first(),
-    ).toBeVisible();
-    await capturar(page, testInfo, "recuperacao-es-fallback.png");
-
-    await page.getByTestId("seletor-de-idioma").click();
-    const reloadPt = page.waitForEvent("load");
-    await page.getByTestId("idioma-pt-BR").click();
-    await reloadPt;
-    await expect(page.getByTestId("seletor-de-idioma")).toHaveText("PT");
-    await expect(page.getByRole("heading", { name: "Extensões", exact: true })).toBeVisible();
-    await page.getByRole("tab", { name: "Catálogo", exact: true }).click();
+    // SonghaiCRM: a distribuição só oferece pt-MZ (lib/i18n/registro.ts) — não há
+    // seletor de espanhol na tela, então o trecho que trocava para ES e conferia o
+    // fallback "Texto disponible en portugués." não se aplica aqui.
   });
 
   await test.step("cancela em outra aba enquanto o download continua aberto", async () => {

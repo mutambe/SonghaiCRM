@@ -198,9 +198,11 @@ test.describe("a automação conta o que aconteceu de verdade", () => {
       await expect(page.getByText("Automação ligada.")).toBeVisible({ timeout: 15_000 });
 
       // ── O lead entra pelo formulário ─────────────────────────────────────
+      // SonghaiCRM: telemóvel de Moçambique (+258). Um número do Brasil não vira
+      // contacto aqui, e a automação falharia por "sem contacto", não pelo canal.
       const envio = await request.post(
         `${APP_URL}/api/v1/webhooks/in/${fonte.data.path_token}`,
-        { data: { nome: LEAD_NAME, telefone: "11933332222" } },
+        { data: { nome: LEAD_NAME, telefone: "843332222" } },
       );
       expect(envio.status()).toBe(200);
 

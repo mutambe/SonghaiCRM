@@ -416,8 +416,9 @@ test.describe("datas do compromisso seguem idioma e fuso próprios", () => {
       start: [29, 11, 30],
       end: [29, 12, 30],
     });
+    // SonghaiCRM: o formato de data do pt-MZ é o numérico (dd/mm/aaaa).
     await expect(page.getByTestId("compromisso-horario")).toHaveText(
-      "29 de ago. de 2026, 23:30 – 30 de ago. de 2026, 00:30",
+      "29/08/2026, 23:30 – 30/08/2026, 00:30",
     );
     const confirmed = page.waitForResponse(
       (r) => r.url().endsWith("/api/v1/agenda/agendamentos") && r.request().method() === "PATCH",
@@ -439,7 +440,8 @@ test.describe("datas do compromisso seguem idioma e fuso próprios", () => {
       year = recorded.getUTCFullYear();
     const hour = recorded.getUTCHours(),
       minute = String(recorded.getUTCMinutes()).padStart(2, "0");
-    for (const locale of ["pt-BR", "es"] as const) {
+    // SonghaiCRM: só pt-MZ é oferecido (lib/i18n/registro.ts); o ramo "es" não se aplica.
+    for (const locale of ["pt-BR"] as ("pt-BR" | "es")[]) {
       if (locale === "es") {
         await page.keyboard.press("Escape");
         await page.getByTestId("seletor-de-idioma").click();
