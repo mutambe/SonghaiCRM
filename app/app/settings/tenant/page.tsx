@@ -4,6 +4,7 @@ import { requireAuth, resolveActiveOrg } from "@/lib/auth/server";
 import { ROLE_RANK } from "@/lib/auth/types";
 import { normalizarIdioma } from "@/lib/i18n/idiomas";
 import { traduzir } from "@/lib/i18n/dicionario";
+import { PAIS_PADRAO } from "@/lib/legal/perfil-do-pais";
 import { moedaServidaOu } from "@/lib/money";
 import { createClient } from "@/lib/supabase/server";
 import { ZonaDePerigoDaOrganizacao } from "./_danger-zone";
@@ -61,12 +62,12 @@ export default async function TenantSettingsPage() {
             display_name: row.display_name,
             legal_name: row.legal_name,
             cnpj: row.cnpj,
-            // `null` na coluna é Brasil (migration 0277): o seletor não tem
-            // opção vazia, então o país padrão aparece EXPLÍCITO. Salvar sem
-            // trocar nada grava `BR` onde estava `null` — mesmo país, mesma
-            // lei, mesmo calendário; o que muda é a linha deixar de depender
-            // do default implícito.
-            country: row.country ?? "BR",
+            // `null` na coluna é o país padrão da instalação (migration 0277):
+            // o seletor não tem opção vazia, então ele aparece EXPLÍCITO.
+            // SonghaiCRM: o padrão é Moçambique (`PAIS_PADRAO`). O "BR" que estava
+            // aqui fazia TODA gravação desta tela falhar com "País sem perfil
+            // revisado: BR" — o Brasil não está no registro desta distribuição.
+            country: row.country ?? PAIS_PADRAO,
             timezone: row.timezone,
             // `en-US` saiu da lista (nunca teve tradução). Uma linha antiga
             // com ele cai no padrão em vez de quebrar a tela.

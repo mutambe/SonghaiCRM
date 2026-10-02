@@ -14,6 +14,7 @@
 
 | Tema | Upstream (Brasil) | SonghaiCRM (Moçambique) | Fonte única no código | Vigiado por |
 |---|---|---|---|---|
+| País | `BR` (vazio = Brasil) | **`MZ`** (vazio = Moçambique); o Brasil NÃO está no registro | `PAIS_PADRAO` em `lib/legal/perfil-do-pais.ts` | `tests/unit/pais-padrao-mocambique.test.ts` |
 | Idioma visível | pt-BR, es, en | **só pt-MZ** | `lib/i18n/registro.ts` | `tests/unit/i18n-portugues-de-mocambique.test.ts` |
 | Texto da tela | português do Brasil | camada pt-MZ sobre `t()`, `fail()` e e-mail | `lib/i18n/pt-mz.ts`, `lib/i18n/frases-pt-mz.ts` | idem + `frases-pt-mz-casam-com-a-fonte.test.ts` |
 | Espanhol | seletor na tela | **sem seletor**; fica no dicionário como dado | `lib/i18n/registro.ts` | `e2e.yml` (`FORA_DO_CI`) |
@@ -27,6 +28,23 @@
 | Janela de envio | 7h–22h | **6h–23h**, domingo aberto | `PACING_DEFAULTS` | `tests/unit/janela-de-cortesia-6h-23h.test.ts` |
 | Marca | DeskcommCRM | **SonghaiCRM** pela semente do instalador | `hostgator-setup-kit/_common.sh` | `tests/shell/single-server-operacao.test.sh` |
 | Módulos | Nuvemshop, Honorários, CRM B2B (BrasilAPI) | **desligados** (nunca apagados) | mecanismos do upstream | — |
+
+## 0. País — Moçambique, e o Brasil fora do registro
+
+**A regra.** O país padrão é `PAIS_PADRAO` = `MZ`; a coluna
+`organizations.country` vazia vale Moçambique. O perfil brasileiro não está no
+registro, e a gravação recusa país sem perfil ("País sem perfil revisado").
+
+**Erro que isto já causou — no PRODUTO, o mais grave até agora.** A tela
+Configurações › Organização abria com `country: row.country ?? "BR"`. Como a
+organização nasce com o país vazio, TODA gravação dessa tela (nome, fuso,
+moeda, retenção) voltava "País sem perfil revisado: BR" — nenhuma organização
+conseguia salvar as próprias configurações. Achado pelo e2e de moeda, que
+"falhava" sem a confirmação "Organização atualizada".
+
+**Como fazer certo.** Nunca escreva `"BR"` como valor de reserva: use
+`PAIS_PADRAO`. O teste reprova qualquer `"BR"` fora de comentário no código
+que embarca.
 
 ## 1. Idioma — só português de Moçambique
 

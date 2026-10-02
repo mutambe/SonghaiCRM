@@ -17,7 +17,7 @@ import { updateTenant } from "@/app/actions/settings/updateTenant";
 import { useT } from "@/hooks/i18n/useT";
 import { IDIOMAS_VISIVEIS } from "@/lib/i18n/registro";
 import { MOEDAS_SERVIDAS, rotuloDaMoeda, type MoedaServida } from "@/lib/money";
-import { paisesOferecidos } from "@/lib/legal/perfil-do-pais";
+import { PAIS_PADRAO, paisesOferecidos } from "@/lib/legal/perfil-do-pais";
 import { tenantSchema, type Locale, type TenantInput } from "@/lib/schemas/settings";
 
 interface Props {
@@ -144,7 +144,7 @@ export function TenantForm({ initial }: Props) {
           </div>
           <div className="space-y-2">
             <Label htmlFor="country">{t("País")}</Label>
-            <Select value={form.country ?? "BR"} onValueChange={(v) => set("country", v)}>
+            <Select value={form.country ?? PAIS_PADRAO} onValueChange={(v) => set("country", v)}>
               <SelectTrigger id="country">
                 <SelectValue />
               </SelectTrigger>
