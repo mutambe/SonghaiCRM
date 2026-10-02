@@ -25,9 +25,6 @@ export const FRASES_PT_MZ: Readonly<Record<string, string>> = {
   // O tipo `cpf` do roteiro é o documento do titular, que aqui é o NUIT
   // (lib/followup/captura-do-fluxo.ts, `capturarCpf`).
   "CPF (confere o dígito)": "NUIT (9 dígitos)",
-  // O exemplo de fuso é o de Moçambique (lib/tempo/fusos.ts, FUSO_PADRAO).
-  "A janela de envio é avaliada neste fuso (ex.: America/Sao_Paulo).":
-    "A janela de envio é avaliada neste fuso (ex.: Africa/Maputo).",
   // Janela de cortesia do SonghaiCRM (lib/agent-engine/pacing/defaults.ts).
   "Janela operacional 7h-22h": "Janela operacional 6h-23h",
   "Sua reunião está marcada para": "A sua reunião está marcada para",

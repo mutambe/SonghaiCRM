@@ -14,7 +14,7 @@
  *   2. código que EMBARCA não traz São Paulo nem `-03:00` fora de comentário
  *      (as exceções estão nomeadas, com motivo);
  *   3. as specs de ecrã (tests/e2e) não trazem São Paulo nem `-03:00` nenhum;
- *   4. a dica de fuso que a tela mostra dá o exemplo de Maputo.
+ *   4. a dica de fuso que a tela mostra (proteção de envio) dá o exemplo de Maputo.
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -22,7 +22,6 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { PACING_DEFAULTS } from "@/lib/agent-engine/pacing/defaults";
-import { traduzir } from "@/lib/i18n/dicionario";
 import { FUSO_PADRAO } from "@/lib/tempo/fusos";
 
 const RAIZ = path.resolve(__dirname, "../..");
@@ -31,8 +30,7 @@ const BRASIL = /America\/Sao_Paulo|-03:00/;
 /** Exceções no código que embarca — cada uma diz por que não é defeito. */
 const PODE_CITAR_O_BRASIL: Record<string, string> = {
   "lib/lgpd/holidays-br.ts": "feriados do Brasil: módulo do upstream, fora do registro de países do SonghaiCRM",
-  "lib/i18n/dicionario.ts": "chave original do upstream; a tela em pt-MZ mostra a versão de lib/i18n/frases-pt-mz.ts",
-  "lib/i18n/frases-pt-mz.ts": "a mesma chave, do lado esquerdo do registro que a substitui por Africa/Maputo",
+  "lib/i18n/dicionario.ts": "chave antiga do upstream; a tela (AntiBanSheet) já usa o texto com Africa/Maputo",
 };
 
 function arquivos(dir: string, filtro: (f: string) => boolean): string[] {
@@ -93,8 +91,7 @@ describe("fuso de Moçambique", () => {
   });
 
   it("a dica de fuso da tela dá o exemplo de Maputo", () => {
-    expect(traduzir("A janela de envio é avaliada neste fuso (ex.: America/Sao_Paulo).", "pt-MZ")).toContain(
-      "Africa/Maputo",
-    );
+    const tela = fs.readFileSync(path.join(RAIZ, "components/connections/AntiBanSheet.tsx"), "utf8");
+    expect(tela).toContain("A janela de envio é avaliada neste fuso (ex.: Africa/Maputo).");
   });
 });

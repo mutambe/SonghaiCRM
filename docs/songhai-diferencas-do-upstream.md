@@ -46,8 +46,12 @@ com concordância, artigo antes do possessivo, ênclise. Frases inteiras que o
   brasileira.**
 - Etiquetas do upstream que nomeiam coisas do Brasil aparecem ao utilizador
   moçambicano se ninguém as traduzir: "CPF (confere o dígito)" no construtor de
-  roteiros, "ex.: America/Sao_Paulo" na proteção de envio. Corrigidas pelo
-  registo de frases.
+  roteiros (corrigida pelo registo de frases). A dica "ex.: Africa/Maputo" da
+  proteção de envio foi corrigida no próprio componente.
+- **Chave do registo de frases que não existe no código reprova o CI**
+  (`frases-pt-mz-casam-com-a-fonte`). Antes de acrescentar uma frase, confira
+  com `grep` que o texto EXATO está num `t("…")` de `app/`, `components/`
+  ou `lib/` — não basta estar no dicionário.
 
 **Como fazer certo.**
 - Texto novo de tela: escreva-o em `t("…")`, como o upstream. Se a camada não

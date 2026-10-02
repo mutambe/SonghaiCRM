@@ -104,8 +104,8 @@ grep -rnE "America/Sao_Paulo|-03:00" app components hooks lib workers tests/e2e 
   --include=*.ts --include=*.tsx | grep -v '\.test\.' | grep -vE ':\s*(//|\*|/\*)'
 ```
 
-O resultado esperado são só as exceções do teste (feriados do Brasil e a
-chave do dicionário que o registro pt-MZ substitui).
+O resultado esperado são só as exceções do teste (feriados do Brasil e uma
+chave antiga do dicionário do upstream, que a tela já não usa).
 
 ---
 
