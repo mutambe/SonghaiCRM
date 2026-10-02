@@ -260,7 +260,7 @@ test("marcar um horário pela tela e vê-lo aparecer na grade — sem recarregar
   // O rótulo escolhido no painel tem de aparecer no nome acessível do cartão. Em
   // produção o contêiner roda em UTC (`node:22-alpine` sem `tzdata`, serviço
   // `app` sem `TZ`), então uma grade que desenhasse no fuso do SERVIDOR
-  // divergiria em três horas para `America/Sao_Paulo` — e este par não bateria.
+  // divergiria em três horas para `Africa/Maputo` — e este par não bateria.
   const cartaoCriado = page.locator(`button:has([data-testid="faixa-${idCriado}"])`);
   await expect(
     cartaoCriado,

@@ -369,7 +369,7 @@ test.describe("a ocupação do Google na grade da agenda", () => {
         title: "Compromisso nosso QA",
         starts_at: await instanteNoDia(page, alvo, 10),
         ends_at: await instanteNoDia(page, alvo, 11),
-        time_zone: "America/Sao_Paulo",
+        time_zone: "Africa/Maputo",
         status: "confirmed",
         owner_user_id: dono.id,
         contact_id: creds.agenda!.contato_id,

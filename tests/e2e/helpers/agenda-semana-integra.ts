@@ -80,7 +80,7 @@ export const MARCA_DE_HIDRATACAO = "__reactFiber$";
  * semana inicial com `new Date()` no fuso DELE (`app/app/agenda/page.tsx`, a
  * semente da grade — UTC no runner do CI); o cliente recalcula no fuso do
  * NAVEGADOR (`app/app/agenda/_client.tsx`, `React.useState(() => new Date())`),
- * que estas specs fixam em `America/Sao_Paulo`. Entre 00:00Z e 03:00Z de
+ * que estas specs fixam em `Africa/Maputo`. Entre 00:00Z e 03:00Z de
  * sábado→domingo os dois discordam: para o servidor já é a semana seguinte.
  *
  * Medido em 2026-09-20, três runs consecutivos e um rerun (jobs 105992226489,

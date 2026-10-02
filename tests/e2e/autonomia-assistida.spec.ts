@@ -15,7 +15,7 @@ const db = createClient(credentials.url, credentials.serviceRole, {
 const password = `Local-${randomUUID()}!`;
 const orgs: string[] = [],
   users: string[] = [];
-test.use({ trace: "on", timezoneId: "America/Sao_Paulo", viewport: { width: 1440, height: 1000 } });
+test.use({ trace: "on", timezoneId: "Africa/Maputo", viewport: { width: 1440, height: 1000 } });
 test.describe.configure({ timeout: 180_000 });
 async function insert(table: string, value: Record<string, unknown>) {
   const { data, error } = await db.from(table).insert(value).select("id").single();

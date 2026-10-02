@@ -79,7 +79,7 @@ async function organizacaoDeTeste() {
       user_id: usuario,
       is_available: true,
       schedule: {
-        timezone: "America/Sao_Paulo",
+        timezone: "Africa/Maputo",
         windows: [1, 2, 3, 4, 5].map((dow) => ({ dow, start: "09:00", end: "18:00" })),
       },
     },

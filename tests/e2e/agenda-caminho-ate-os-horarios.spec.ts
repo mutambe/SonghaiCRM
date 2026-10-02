@@ -141,7 +141,7 @@ test("o selo de plantão distingue de plantão, fora do horário e desligado", a
     timeout: 20_000,
   });
 
-  const TZ = "America/Sao_Paulo";
+  const TZ = "Africa/Maputo";
   // Dia da semana e hora AGORA, no fuso da jornada — a mesma pergunta que
   // `localMoment` faz no produto.
   const partes = new Intl.DateTimeFormat("en-US", {

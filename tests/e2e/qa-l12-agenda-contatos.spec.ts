@@ -135,11 +135,11 @@ test.describe("Lote 12 — #915 compromisso que cruza a borda da janela", () => 
       is_destination: false,
       access_role: "owner",
       available: true,
-      time_zone: "America/Sao_Paulo",
+      time_zone: "Africa/Maputo",
       last_sync_at: new Date().toISOString(),
       sync_coverage: { window_start: "2026-01-01T00:00:00Z", window_end: "2027-12-31T00:00:00Z" },
     });
-    // Ontem 23:30 → hoje 00:30, no fuso de São Paulo. Ele ATRAVESSA a borda do
+    // Ontem 23:30 → hoje 00:30, no fuso de Maputo. Ele ATRAVESSA a borda do
     // dia; a tela de hoje só sabe desenhá-lo se o recorte o cortar na borda.
     const hoje = new Date();
     const ontem2330 = new Date(hoje);

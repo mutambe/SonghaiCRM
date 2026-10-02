@@ -73,7 +73,7 @@ async function fixture() {
       user_id: user,
       is_available: true,
       schedule: {
-        timezone: "America/Sao_Paulo",
+        timezone: "Africa/Maputo",
         windows: [1, 2, 3, 4, 5].map((dow) => ({ dow, start: "09:00", end: "18:00" })),
       },
     },
@@ -371,10 +371,10 @@ test.describe("datas do compromisso seguem idioma e fuso próprios", () => {
   test("PT e ES preservam a virada de dia e o instante da presença", async ({ page }, info) => {
     const f = await fixture(),
       p = await person(f);
-    // 23h30 de 29/08 até 00h30 de 30/08 em São Paulo. No navegador,
-    // os dois instantes ainda são 29/08, às 16h30 e 17h30 respectivamente.
-    const starts = "2026-08-30T02:30:00.000Z",
-      ends = "2026-08-30T03:30:00.000Z";
+    // 23h30 de 29/08 até 00h30 de 30/08 em Maputo (UTC+2). No navegador
+    // (Honolulu, UTC−10), os dois instantes ainda são 29/08, às 11h30 e 12h30.
+    const starts = "2026-08-29T21:30:00.000Z",
+      ends = "2026-08-29T22:30:00.000Z";
     const id = await insert("calendar_appointments", {
       organization_id: f.org,
       contact_id: p.contact,
@@ -385,7 +385,7 @@ test.describe("datas do compromisso seguem idioma e fuso próprios", () => {
       status: "confirmed",
       starts_at: starts,
       ends_at: ends,
-      time_zone: "America/Sao_Paulo",
+      time_zone: "Africa/Maputo",
     });
     await login(page, f.email);
     const loaded = page.waitForResponse(
@@ -395,7 +395,7 @@ test.describe("datas do compromisso seguem idioma e fuso próprios", () => {
     await detail(page, id, "Consulta atravessa meia-noite");
     const response = await loaded;
     expect(response.ok()).toBe(true);
-    expect((await response.json()).data.time_zone).toBe("America/Sao_Paulo");
+    expect((await response.json()).data.time_zone).toBe("Africa/Maputo");
     expect(
       await page.evaluate(
         ({ starts, ends }) => ({
@@ -413,8 +413,8 @@ test.describe("datas do compromisso seguem idioma e fuso próprios", () => {
     ).toEqual({
       locale: "en-US",
       timeZone: "Pacific/Honolulu",
-      start: [29, 16, 30],
-      end: [29, 17, 30],
+      start: [29, 11, 30],
+      end: [29, 12, 30],
     });
     await expect(page.getByTestId("compromisso-horario")).toHaveText(
       "29 de ago. de 2026, 23:30 – 30 de ago. de 2026, 00:30",
@@ -433,8 +433,8 @@ test.describe("datas do compromisso seguem idioma e fuso próprios", () => {
     if (outcome.error) throw outcome.error;
     expect(outcome.data.outcome_user_id).toBe(f.user);
     expect(outcome.data.revision).toBe(2);
-    // Oráculo independente do formatter: UTC−3 no calendário moderno de São Paulo.
-    const recorded = new Date(Date.parse(outcome.data.outcome_recorded_at) - 3 * 3600000);
+    // Oráculo independente do formatter: Maputo é UTC+2 o ano inteiro (sem horário de verão).
+    const recorded = new Date(Date.parse(outcome.data.outcome_recorded_at) + 2 * 3600000);
     const day = recorded.getUTCDate(),
       year = recorded.getUTCFullYear();
     const hour = recorded.getUTCHours(),

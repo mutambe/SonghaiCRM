@@ -15,7 +15,7 @@ const db = createClient(credentials.url, credentials.serviceRole, {
 const password = `Local-${randomUUID()}!`;
 const orgs: string[] = [],
   users: string[] = [];
-test.use({ trace: "on", timezoneId: "America/Sao_Paulo" });
+test.use({ trace: "on", timezoneId: "Africa/Maputo" });
 test.describe.configure({ timeout: 120000 });
 async function insert(table: string, value: Record<string, unknown>) {
   const { data, error } = await db.from(table).insert(value).select("id").single();
@@ -64,7 +64,7 @@ async function fixture() {
     is_destination: true,
     counts_for_conflicts: true,
     access_role: "owner",
-    time_zone: "America/Sao_Paulo",
+    time_zone: "Africa/Maputo",
   });
   const destination = await insert("calendar_connection_calendars", {
     organization_id: org,
@@ -74,7 +74,7 @@ async function fixture() {
     is_destination: false,
     counts_for_conflicts: false,
     access_role: "writer",
-    time_zone: "America/Sao_Paulo",
+    time_zone: "Africa/Maputo",
   });
   const readonly = await insert("calendar_connection_calendars", {
     organization_id: org,
@@ -84,7 +84,7 @@ async function fixture() {
     is_destination: false,
     counts_for_conflicts: true,
     access_role: "reader",
-    time_zone: "America/Sao_Paulo",
+    time_zone: "Africa/Maputo",
   });
   const type = await insert("calendar_event_types", {
     organization_id: org,
@@ -102,7 +102,7 @@ async function fixture() {
       user_id: user,
       is_available: true,
       schedule: {
-        timezone: "America/Sao_Paulo",
+        timezone: "Africa/Maputo",
         windows: [0, 1, 2, 3, 4, 5, 6].map((dow) => ({ dow, start: "00:00", end: "23:59" })),
       },
     },
@@ -219,7 +219,7 @@ async function seedAppointment(f: Fixture) {
     status: "confirmed",
     starts_at: new Date(Date.now() + 86400000).toISOString(),
     ends_at: new Date(Date.now() + 90000000).toISOString(),
-    time_zone: "America/Sao_Paulo",
+    time_zone: "Africa/Maputo",
   });
 }
 test.afterAll(async () => {
@@ -234,8 +234,8 @@ test("fontes e destino entre duas contas, somente leitura e ocupação imediatam
   await page.goto("/app/agenda");
   const days = await irParaASemanaSeguinte(page);
   const day = days[2]!;
-  const start = new Date(`${day}T10:00:00-03:00`).toISOString();
-  const end = new Date(`${day}T11:00:00-03:00`).toISOString();
+  const start = new Date(`${day}T10:00:00+02:00`).toISOString();
+  const end = new Date(`${day}T11:00:00+02:00`).toISOString();
   const block = page.getByTestId(`bloco-${day}-10:00`);
   await expect(block).toBeEnabled({ timeout: 20000 });
   const externalId = await insert("calendar_external_events", {
@@ -511,11 +511,11 @@ test("retry pela tela usa filtro PostgREST real; conflito exige escolha e conser
       ...remote!,
       start: {
         dateTime: new Date(Date.now() + 3 * 86400000).toISOString(),
-        timeZone: "America/Sao_Paulo",
+        timeZone: "Africa/Maputo",
       },
       end: {
         dateTime: new Date(Date.now() + 3 * 86400000 + 3600000).toISOString(),
-        timeZone: "America/Sao_Paulo",
+        timeZone: "Africa/Maputo",
       },
       summary: "Título preservado no Google",
       etag: `"v${++version}"`,

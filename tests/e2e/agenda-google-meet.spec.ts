@@ -17,7 +17,7 @@ const password = `Local-${randomUUID()}!`;
 const orgs: string[] = [],
   users: string[] = [];
 const link = "https://meet.google.com/abc-defg-hij";
-test.use({ trace: "on", timezoneId: "America/Sao_Paulo", viewport: { width: 1440, height: 1000 } });
+test.use({ trace: "on", timezoneId: "Africa/Maputo", viewport: { width: 1440, height: 1000 } });
 test.describe.configure({ timeout: 180_000 });
 async function insert(table: string, value: Record<string, unknown>) {
   const { data, error } = await db.from(table).insert(value).select("id").single();
@@ -64,7 +64,7 @@ async function fixture() {
     is_destination: true,
     counts_for_conflicts: true,
     access_role: "owner",
-    time_zone: "America/Sao_Paulo",
+    time_zone: "Africa/Maputo",
     allowed_conference_types: ["hangoutsMeet"],
   });
   await insert("calendar_event_types", {
@@ -86,7 +86,7 @@ async function fixture() {
         user_id: user,
         is_available: true,
         schedule: {
-          timezone: "America/Sao_Paulo",
+          timezone: "Africa/Maputo",
           windows: [0, 1, 2, 3, 4, 5, 6].map((dow) => ({ dow, start: "09:00", end: "18:00" })),
         },
       },

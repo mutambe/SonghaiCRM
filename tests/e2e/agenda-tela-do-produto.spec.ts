@@ -23,7 +23,7 @@ import { partesNoFuso } from "../../lib/agenda/fuso";
 const ESPERA = 60_000;
 // O fuso que o seed grava na organização (`scripts/seed-e2e-credentials.ts`).
 // A grade desenha nele; o relógio do runner não entra na conta.
-const FUSO_DA_ORG = "America/Sao_Paulo";
+const FUSO_DA_ORG = "Africa/Maputo";
 test.describe.configure({ mode: "serial", timeout: 180_000 });
 
 test.describe("a Agenda como o dono do produto a usa", () => {
@@ -203,7 +203,7 @@ test.describe("a Agenda como o dono do produto a usa", () => {
     // ⚠️ E A HORA É LIDA NO FUSO DA ORGANIZAÇÃO, não no relógio deste processo
     // (#1362). A grade desenha a régua em `minutosDesdeOTopo(agora, fuso)`, com
     // o fuso da org; o runner do CI roda em UTC e a org do seed está em
-    // `America/Sao_Paulo` (`scripts/seed-e2e-credentials.ts`). Com
+    // `Africa/Maputo` (`scripts/seed-e2e-credentials.ts`). Com
     // `getHours()` aqui, as duas réguas discordavam ~6h por dia (07:00-09:59Z e
     // 22:01-01:00Z) — o mesmo defeito do minuto das 22:00, só que 360 vezes maior.
     const agora = new Date();

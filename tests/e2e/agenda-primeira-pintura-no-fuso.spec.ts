@@ -173,7 +173,7 @@ test("fuso inutilizável no banco não derruba a tela — ela abre no padrão do
  * produto e ficaria verde junto com ele. Ou os dois lados batem, ou não batem.
  */
 test.describe("com o navegador em outro fuso que a organização", () => {
-  test.use({ timezoneId: "America/Sao_Paulo" });
+  test.use({ timezoneId: "Africa/Maputo" });
 
   test("a grade depois da hidratação mostra a MESMA semana que o servidor pintou", async ({
     page,

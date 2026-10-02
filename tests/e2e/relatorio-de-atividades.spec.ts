@@ -199,7 +199,7 @@ test.describe("Relatório de atividades — o período, pela tela", () => {
   test.describe.configure({ timeout: 240_000 });
   // Fuso FIXO: a série diária é agrupada no fuso de quem lê, e um spec que
   // herdasse o fuso da máquina mediria coisas diferentes em máquinas diferentes.
-  test.use({ timezoneId: "America/Sao_Paulo" });
+  test.use({ timezoneId: "Africa/Maputo" });
 
   test.beforeAll(async () => {
     if (!fs.existsSync(CREDS_PATH)) {

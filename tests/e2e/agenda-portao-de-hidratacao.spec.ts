@@ -27,7 +27,7 @@ import { aguardarGradeHidratada } from "./helpers/agenda-semana-integra";
 
 // Mesmo fuso das irmãs: o portão não depende disso, mas o ambiente da guarda
 // tem de ser o mesmo em que o defeito apareceu.
-test.use({ timezoneId: "America/Sao_Paulo" });
+test.use({ timezoneId: "Africa/Maputo" });
 
 const RAIZ = path.resolve(__dirname, "../..");
 
