@@ -28,7 +28,8 @@ Brasil, LGPD, real, pt-BR ou HostGator, vale o que está aqui.
   - país: perfil `MZ` em `lib/legal/perfil-do-pais.ts` (o brasileiro não está
     no registro); feriados em `lib/lgpd/holidays-mz.ts`;
   - moeda: `MOEDA_PADRAO`/`MOEDAS_SERVIDAS` em `lib/money.ts` (MZN, USD, ZAR, EUR);
-  - fuso: `FUSO_PADRAO` em `lib/tempo/fusos.ts` — nunca o literal;
+  - fuso: `FUSO_PADRAO` em `lib/tempo/fusos.ts` — nunca o literal (ver
+    "Fuso horário" logo abaixo);
   - idioma: `pt-MZ` é o único visível em `lib/i18n/registro.ts`; o texto
     das telas passa por `t()` e pela camada `lib/i18n/pt-mz.ts` — a norma
     moçambicana em regras (vocabulário, gerúndio → «a» + infinitivo, troca de
@@ -50,6 +51,53 @@ Brasil, LGPD, real, pt-BR ou HostGator, vale o que está aqui.
 - **Teste novo da distribuição vai em arquivo próprio** (ex.:
   `tests/unit/promessa-em-metical.test.ts`), não dentro de teste do upstream.
 - Registro do que veio de onde: `docs/upstream-sync.md`.
+
+### Fuso horário — Moçambique (NÃO NEGOCIÁVEL)
+
+**O fuso é `Africa/Maputo`: UTC+2 o ano inteiro, SEM horário de verão.** Nunca
+`America/Sao_Paulo` (UTC−3), que é o que o upstream crava em código, specs e
+exemplos. A diferença é de **5 horas**, e o erro não aparece como erro: aparece
+como compromisso marcado na hora errada, mensagem enviada de madrugada ou
+teste que "falha por tempo esgotado".
+
+O que já custou caro (2026-10-01/02): o primeiro e2e do `main` reprovou em
+dezenas de casos porque as specs do upstream criavam dados em São Paulo sobre
+uma organização que nasce em Maputo; e a descrição da ferramenta MCP de
+agendamento ensinava a IA a escrever `-03:00`.
+
+1. **No código, o fuso vem da organização** (`organizations.timezone`,
+   `channel_knobs.timezone`) e, na falta, de **`FUSO_PADRAO`**
+   (`lib/tempo/fusos.ts`). Nunca escreva o nome de um fuso como valor de
+   reserva.
+2. **Instante absoluto sempre com fuso explícito:** `…Z` ou `…+02:00`. Nunca
+   `new Date("2026-07-17T23:00:00")` sem fuso, nem `getHours()`/`setHours()` —
+   eles usam o relógio do PROCESSO, que no servidor e no CI é **UTC**, não
+   Maputo. Para a hora local use `Intl.DateTimeFormat(…, { timeZone })` com o
+   fuso da organização.
+3. **Horas de janela vêm de `PACING_DEFAULTS`** (`lib/agent-engine/pacing/defaults.ts`:
+   envio e resposta das **6h às 23h**, domingo aberto), nunca de um `7` ou `22`
+   escrito à mão. Dívida conhecida do upstream: `lib/automation/throttle.ts`
+   ainda adia o limite diário para as 7h do relógio do processo.
+4. **Exemplos para a IA** (descrição de ferramenta MCP, prompt, playbook) usam
+   `+02:00`/`Africa/Maputo` — o modelo copia o exemplo.
+5. **Testes:** a organização dos testes nasce em Maputo (`songhai.sql` e o seed
+   por `FUSO_PADRAO`). Specs de ecrã fixam navegador e dados em
+   `Africa/Maputo`/`+02:00`; conta de hora à mão é `+ 2 * 3600000`, não `- 3`.
+   Ao trazer spec nova do upstream (`git merge upstream/main`), troque São
+   Paulo por Maputo e **refaça os instantes** — trocar só o texto não basta
+   quando o caso depende de atravessar a meia-noite.
+
+Vigiado por `tests/unit/fuso-de-mocambique.test.ts`: reprova São Paulo ou
+`-03:00` em código que embarca (fora de comentário e das exceções nomeadas) e
+em qualquer spec de `tests/e2e/`. Para conferir sem rodar a suíte:
+
+```bash
+grep -rnE "America/Sao_Paulo|-03:00" app components hooks lib workers tests/e2e \
+  --include=*.ts --include=*.tsx | grep -v '\.test\.' | grep -vE ':\s*(//|\*|/\*)'
+```
+
+O resultado esperado são só as exceções do teste (feriados do Brasil e a
+chave do dicionário que o registro pt-MZ substitui).
 
 ---
 

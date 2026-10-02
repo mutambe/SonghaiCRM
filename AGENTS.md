@@ -13,6 +13,13 @@ por cima. Regra completa na seção "SONGHAICRM" do [`CLAUDE.md`](CLAUDE.md); o 
 
 - **Tudo é Moçambique, nada do Brasil:** país `MZ`, moeda `MZN`, fuso `Africa/Maputo`, idioma
   `pt-MZ`, NUIT, telefone +258, Lei n.º 3/2017. Use `MOEDA_PADRAO`/`FUSO_PADRAO`, nunca literal.
+- **Fuso `Africa/Maputo` = UTC+2, sem horário de verão — nunca `America/Sao_Paulo`/`-03:00`**
+  (5 horas de erro). O fuso vem da organização ou de `FUSO_PADRAO`; instante sempre com `Z` ou
+  `+02:00`; nada de `getHours()`/`setHours()` (relógio do processo, que é UTC no servidor e no
+  CI); janela de envio de `PACING_DEFAULTS` (6h–23h); exemplos para a IA em `+02:00`; specs do
+  upstream trazidas por merge trocam São Paulo por Maputo **e refazem os instantes**. Regra
+  inteira na secção "Fuso horário" do `CLAUDE.md`; vigiado por
+  `tests/unit/fuso-de-mocambique.test.ts`.
 - **Sincronizar é `git merge upstream/main`:** a identidade entra pelos pontos de extensão do
   upstream; módulos brasileiros ficam desligados, não apagados.
 - **Banco:** migration nossa = arquivo em `supabase/migrations/` + linha no MANIFEST + bloco em

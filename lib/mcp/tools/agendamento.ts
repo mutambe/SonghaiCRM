@@ -399,7 +399,7 @@ const listarShape = {
     .datetime({ offset: true })
     .optional()
     .describe(
-      "início do PERÍODO, como instante ISO com fuso (ex.: 2026-09-01T00:00:00-03:00). Com " +
+      "início do PERÍODO, como instante ISO com fuso (ex.: 2026-09-01T00:00:00+02:00). Com " +
         "`ate`, lista a agenda INTEIRA da organização no intervalo — nenhum outro recorte é " +
         "preciso. Os dois vêm juntos; a janela aceita no máximo " +
         `${MAXIMO_DE_DIAS} dias.`,
