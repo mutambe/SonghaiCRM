@@ -4,6 +4,9 @@ O SonghaiCRM (Songhai, Lda — Moçambique) é o
 [DeskcommCRM](https://github.com/melgarafael/DeskcommCRM) (remote `upstream`) com a
 identidade moçambicana por cima.
 
+> As diferenças que causam erro (idioma, fuso, moeda, telefone, NUIT, CI) e o
+> checklist depois de cada merge: [`songhai-diferencas-do-upstream.md`](songhai-diferencas-do-upstream.md).
+
 ## A estratégia (decisão do dono do produto, 2026-10-01)
 
 Até 2026-09-30 o fork vivia separado e portava funcionalidades do upstream à mão. Medido

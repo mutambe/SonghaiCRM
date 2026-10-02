@@ -29,6 +29,11 @@ por cima. Regra completa na seção "SONGHAICRM" do [`CLAUDE.md`](CLAUDE.md); o 
   `lib/agent-engine/playbooks/platform.md`. Moeda: "Metical (MTn)". Teste novo da distribuição
   vai em arquivo próprio.
 - Registro do que veio de onde: [`docs/upstream-sync.md`](docs/upstream-sync.md).
+- **As diferenças upstream × SonghaiCRM que já causaram erro** (idioma, espanhol desligado, fuso,
+  moeda, data, telefone, NUIT, CI, VPS em Swarm) e o checklist pós-merge:
+  [`docs/songhai-diferencas-do-upstream.md`](docs/songhai-diferencas-do-upstream.md). Antes de
+  "consertar" um teste vermelho, confira ali: em geral o produto está certo e a expectativa é
+  brasileira.
 
 ## Project Overview
 

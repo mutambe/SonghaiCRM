@@ -51,6 +51,14 @@ Brasil, LGPD, real, pt-BR ou HostGator, vale o que está aqui.
 - **Teste novo da distribuição vai em arquivo próprio** (ex.:
   `tests/unit/promessa-em-metical.test.ts`), não dentro de teste do upstream.
 - Registro do que veio de onde: `docs/upstream-sync.md`.
+- **Toda diferença entre o upstream (Brasil) e o SonghaiCRM que já causou erro**
+  — idioma, espanhol desligado, fuso, moeda, formato de data, telefone, NUIT,
+  janela, tags e CI, VPS em Swarm — está em
+  [`docs/songhai-diferencas-do-upstream.md`](docs/songhai-diferencas-do-upstream.md),
+  com a regra, a fonte única no código, o teste que a vigia e o checklist de
+  **depois de cada `git merge upstream/main`**. Leia-o antes de ajustar um
+  teste vermelho: na maioria das vezes o produto está certo e a expectativa do
+  teste é que é brasileira.
 
 ### Fuso horário — Moçambique (NÃO NEGOCIÁVEL)
 

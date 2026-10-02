@@ -38,6 +38,8 @@ de menor precedência e registre.
 | [`CONTRIBUTING.md`](../CONTRIBUTING.md) | Como contribuir |
 | [`CHANGELOG.md`](../CHANGELOG.md) | Mudanças por versão (SemVer). **Quem roda VPS lê antes de `update.sh`** — mudança que exige ação manual aparece sob "⚠️ Requer atenção" |
 | [`docs/current-state.md`](current-state.md) | **O que está pronto, incompleto e quebrado hoje** |
+| [`docs/songhai-diferencas-do-upstream.md`](songhai-diferencas-do-upstream.md) | **SonghaiCRM × upstream:** as diferenças que já causaram erro (idioma, espanhol, fuso, moeda, data, telefone, NUIT, CI, VPS) e o checklist depois de cada merge |
+| [`docs/upstream-sync.md`](upstream-sync.md) | O que foi portado do fork antigo e decidido sobre o upstream |
 | [`.agents/skills/`](../.agents/skills/deskcomm-instalar/SKILL.md) | **Guias do assistente** — instalar, montar cliente por nicho, métricas, prompt, contribuir. Skills lidas por Claude Code, Codex, Cursor, OpenCode e Antigravity (não confundir com as *Skills* do agente de IA, na tela IA › Skills) |
 
 ## 2. Produto e intenção
