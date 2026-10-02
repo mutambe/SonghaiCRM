@@ -75,6 +75,10 @@ interface Excecao {
  * linhas da OUTRA organização, não uma leitura como superusuário.
  */
 const PROVA_PROPRIA: readonly Excecao[] = [
+  // SonghaiCRM — tabelas da distribuição (migrations 0503 e 0504, supabase/songhai.sql).
+  { tabela: "organization_subscriptions", razao: "tests/invariants/licenca-por-organizacao.test.ts — dois tenants por JWT: o usuário de A vê a assinatura de A e ZERO da de B; anon sem privilégio e authenticated não escreve (a troca só pela fn_trocar_plano_da_organizacao, revogada de anon/authenticated)." },
+  { tabela: "payments", razao: "tests/invariants/pagamentos-paysuite.test.ts — dois tenants por JWT: o usuário de A vê o pagamento de A e ZERO o de B; authenticated barrado ao escrever (só o servidor grava)." },
+  { tabela: "payment_credentials", razao: "tests/invariants/pagamentos-paysuite.test.ts — credencial exclusiva do servidor: anon e authenticated sem privilégio nenhum (permission denied, não zero linhas), RLS ligada sem policy." },
   { tabela: "golden_candidates", razao: "tests/invariants/golden-candidates.test.ts — dois tenants reais por JWT (agent): leitura positiva local e ZERO do vizinho nos dois sentidos, a tabela inteira sem filtro igual à própria, anon recusado, e insert/update/delete de authenticated sem efeito (só o servidor grava)." },
   { tabela: "jev_observacoes", razao: "tests/invariants/jev-observacoes.test.ts — dois tenants reais por JWT (agent): leitura positiva local e ZERO do vizinho nos dois sentidos, a tabela inteira sem filtro igual à própria, anon recusado, e insert/update/delete de authenticated sem efeito (só o servidor grava)." },
   { tabela: "prospecting_settings", razao: "tests/invariants/prospecting.test.ts — tabela exclusiva do servidor, ACL e RLS verificadas; FK composta e comandos autenticados cercam a organização." },

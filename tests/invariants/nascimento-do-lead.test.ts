@@ -253,7 +253,8 @@ describe("o lead NASCE", () => {
     const { rows } = await pool.query<{ title: string }>("select title from crm_leads where id = $1", [
       r.leadId,
     ]);
-    expect(rows[0]!.title).toBe("Novo contato pelo WhatsApp");
+    // SonghaiCRM: o título nasce em pt-MZ ("contacto"), pela camada lib/i18n/pt-mz.ts.
+    expect(rows[0]!.title).toBe("Novo contacto pelo WhatsApp");
   });
 });
 

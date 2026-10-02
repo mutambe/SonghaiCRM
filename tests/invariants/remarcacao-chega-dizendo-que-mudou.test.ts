@@ -173,7 +173,8 @@ it("⛔ remarcar depois de enviado: a correção chega DIZENDO que mudou", async
   await autorizar(f);
   const primeiro = await entregar(f);
   expect(primeiro, "o primeiro envio não saiu — o defeito é antes da remarcação").toHaveLength(1);
-  expect(primeiro[0]).not.toMatch(/mudou/i);
+  // SonghaiCRM: em pt-MZ a correção diz "foi alterado" (lib/i18n/frases-pt-mz.ts).
+  expect(primeiro[0]).not.toMatch(/mudou|alterad/i);
 
   // Remarcar: o gatilho grava `motivo:remarcado` e o enfileirador o copia para
   // o payload do job. A espera de 2 min vai para o `run_after`, e aqui ela é
@@ -188,7 +189,7 @@ it("⛔ remarcar depois de enviado: a correção chega DIZENDO que mudou", async
   );
   const correcao = await entregar(f);
   expect(correcao, "a correção não saiu").toHaveLength(1);
-  expect(correcao[0]).toMatch(/mudou/i);
+  expect(correcao[0]).toMatch(/mudou|alterad/i);
   expect(correcao[0]).toContain(link);
 });
 

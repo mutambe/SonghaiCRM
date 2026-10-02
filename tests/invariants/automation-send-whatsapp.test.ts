@@ -422,7 +422,7 @@ describe("send_whatsapp_message — execute (Task 11)", () => {
 });
 
 describe("send_whatsapp_message — postponeUntil (Task 11)", () => {
-  it("3. fora da janela (23h no fuso do TENANT): adia pra 7h de amanhã", async () => {
+  it("3. fora da janela (23h no fuso do TENANT): adia pra 6h de amanhã", async () => {
     // ⚠️ INSTANTE ABSOLUTO (com `Z`), e as asserções no fuso do TENANT.
     //
     // Era `new Date("2026-07-17T23:00:00")` — sem `Z` —, que o JS lê no fuso do
@@ -452,10 +452,10 @@ describe("send_whatsapp_message — postponeUntil (Task 11)", () => {
       hour: "2-digit",
       minute: "2-digit",
     });
-    // 18/07 às 07:00 — a abertura seguinte. O `proximaAberturaDaJanela` soma
+    // 18/07 às 06:00 — a abertura seguinte (SonghaiCRM: janela de cortesia 6h-23h). O `proximaAberturaDaJanela` soma
     // jitter de até 800ms, que não muda o minuto.
     expect(noFusoDoTenant).toContain("18/07");
-    expect(noFusoDoTenant).toContain("07:00");
+    expect(noFusoDoTenant).toContain("06:00");
   });
 
   it("4. limite diário atingido: adia pra 7h de amanhã (daily_limit)", async () => {
