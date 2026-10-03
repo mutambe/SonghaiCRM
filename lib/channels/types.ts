@@ -164,6 +164,20 @@ export interface OutboundEnvelope extends ChannelTenantScope {
    * `undefined` = envio solto, que é o caso comum.
    */
   replyToExternalId?: string | null;
+  /**
+   * SonghaiCRM — o pino, quando `kind === "location"`. O `body` continua a
+   * levar o link do mapa: canal que não sabe mandar pino manda o texto, e o
+   * cliente ainda chega ao lugar.
+   */
+  location?: OutboundLocation;
+}
+
+/** SonghaiCRM — coordenadas de saída, já validadas por `lerLocalizacao`. */
+export interface OutboundLocation {
+  latitude: number;
+  longitude: number;
+  nome?: string | null;
+  endereco?: string | null;
 }
 
 /**
@@ -329,10 +343,17 @@ export interface ChannelAdapter {
    * LANÇA quando o transporte recusa, e é de propósito: a decisão de engolir é
    * de quem chama (o indicador é decoração; a mensagem é o produto), e engolir
    * aqui esconderia de todo chamador futuro que a chamada nem chega.
+   *
+   * `inboundExternalId` é o `messages.external_id` da última mensagem que o
+   * cliente mandou nesta conversa, ou `null` quando não há. Há canal que não
+   * acende presença por conversa, e sim "respondendo a esta mensagem" — o
+   * oficial é assim, e sem o id ele não tem o que sinalizar. Quem não precisa
+   * ignora o campo.
    */
   signalTyping?(input: ChannelTenantScope & {
     sessionRef: string;
     recipient: string;
+    inboundExternalId: string | null;
   }): Promise<void>;
 
   /**
@@ -358,6 +379,28 @@ export interface ChannelAdapter {
     sessionRef: string;
     recipient: string | null;
     externalId: string;
+  }): Promise<void>;
+
+  /**
+   * SonghaiCRM — diz ao aparelho do cliente que a equipa LEU (os tiques azuis).
+   * `externalIds` são as recebidas que o CRM acabou de marcar como lidas.
+   * OPCIONAL: quem chama testa a presença do método, nunca QUAL provider é.
+   */
+  markRead?(input: ChannelTenantScope & {
+    sessionRef: string;
+    recipient: string;
+    externalIds: string[];
+  }): Promise<void>;
+
+  /**
+   * SonghaiCRM — reage a uma mensagem com um emoji; `emoji: ""` tira a reação.
+   * Mesmo endereçamento de `editMessage` (`externalId` + `recipient`).
+   */
+  reactToMessage?(input: ChannelTenantScope & {
+    sessionRef: string;
+    recipient: string | null;
+    externalId: string;
+    emoji: string;
   }): Promise<void>;
 
   /**

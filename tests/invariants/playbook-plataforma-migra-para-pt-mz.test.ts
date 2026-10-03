@@ -1,5 +1,5 @@
 /**
- * Migration 0502 (SonghaiCRM): a camada plataforma que manda escrever em
+ * Migration 9002 (SonghaiCRM): a camada plataforma que manda escrever em
  * "português do Brasil" é trocada pela de Moçambique — e SÓ ela.
  *
  * Roda o bloco REAL do `supabase/songhai.sql` (o que o kit aplica) num banco
@@ -19,13 +19,13 @@ import { sql } from "./psql-transporte";
 const SONGHAI = readFileSync(join(process.cwd(), "supabase", "songhai.sql"), "utf8");
 const PLATFORM = readFileSync(join(process.cwd(), "lib", "agent-engine", "playbooks", "platform.md"), "utf8");
 
-const ROTULO = "-- ---- Camada plataforma do playbook em português de Moçambique (migration 0502) ----";
+const ROTULO = "-- ---- Camada plataforma do playbook em português de Moçambique (migration 9002) ----";
 
 function blocoDa0502(): string {
   const inicio = SONGHAI.indexOf(ROTULO);
-  if (inicio === -1) throw new Error("rótulo da 0502 não encontrado no songhai.sql");
+  if (inicio === -1) throw new Error("rótulo da 9002 não encontrado no songhai.sql");
   const fim = SONGHAI.indexOf("\n-- ---- ", inicio + ROTULO.length);
-  if (fim === -1) throw new Error("fim do bloco da 0502 não encontrado");
+  if (fim === -1) throw new Error("fim do bloco da 9002 não encontrado");
   return SONGHAI.slice(inicio, fim);
 }
 
@@ -75,7 +75,7 @@ function divergencia(a: string | null, b: string): string {
 const BRASILEIRA ="## Identidade\n\nVocê conversa por WhatsApp, sempre em\nportuguês do Brasil, com naturalidade.\n";
 const ESCRITA_A_MAO = "## Identidade\n\nFale como a nossa loja de Nampula fala.\n";
 
-describe("migration 0502 — camada plataforma em português de Moçambique", () => {
+describe("migration 9002 — camada plataforma em português de Moçambique", () => {
   it("versão brasileira ativa: publica o platform.md e move o ponteiro", () => {
     const r = rodar(apontarPara(BRASILEIRA), 1);
     expect(r.versoes).toBe(1); // versões NOVAS: só a do platform.md

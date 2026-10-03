@@ -30,7 +30,7 @@
 --     depois dela.
 -- ============================================================================
 
--- ---- Moçambique por padrão: MZN, Africa/Maputo, pt-MZ (migration 0501) ----
+-- ---- Moçambique por padrão: MZN, Africa/Maputo, pt-MZ (migration 9001) ----
 do $$
 declare
   c record;
@@ -59,7 +59,7 @@ begin
   end loop;
 end $$;
 
--- ---- Camada plataforma do playbook em português de Moçambique (migration 0502) ----
+-- ---- Camada plataforma do playbook em português de Moçambique (migration 9002) ----
 do $songhai_0502$
 declare
   v_ativo text;
@@ -144,7 +144,7 @@ $playbook_mz$)
 end
 $songhai_0502$;
 
--- ---- Pagamentos PaySuite: payment_credentials (só servidor) + payments (log por organização) (migration 0503) ----
+-- ---- Pagamentos PaySuite: payment_credentials (só servidor) + payments (log por organização) (migration 9003) ----
 create table if not exists public.payment_credentials (
   id uuid primary key default gen_random_uuid(),
   organization_id uuid not null references public.organizations(id) on delete cascade,
@@ -213,7 +213,7 @@ create trigger trg_payments_updated_at
   before update on public.payments
   for each row execute function public.fn_set_updated_at();
 
--- ---- Licença por organização: plans (catálogo) + organization_subscriptions (migration 0504) ----
+-- ---- Licença por organização: plans (catálogo) + organization_subscriptions (migration 9004) ----
 create table if not exists public.plans (
   id uuid primary key default gen_random_uuid(),
   slug text not null unique check (slug in ('agente_simples', 'agente_medio', 'agente_avancado', 'enterprise')),

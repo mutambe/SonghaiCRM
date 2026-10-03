@@ -4,7 +4,7 @@
  * para o resto. Esta prova cria a organização pelo MESMO caminho da tela
  * (`fn_create_tenant_with_owner`: vínculo provisório do criador + chave de
  * idempotência), acrescenta o que a criação do SonghaiCRM escreve depois (a
- * assinatura da 0504 e a linha do convite do dono em `team_invites`) e apaga
+ * assinatura da 9004 e a linha do convite do dono em `team_invites`) e apaga
  * como `service_role`, o papel da rota. Uma FK sem cascade nova, vinda do
  * upstream ou nossa, faria o botão "Apagar" responder 500 — aqui ela aparece.
  *

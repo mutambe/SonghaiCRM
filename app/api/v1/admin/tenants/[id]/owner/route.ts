@@ -22,8 +22,11 @@ import { z } from "zod";
 
 import { ok, fail } from "@/lib/api/wrappers";
 import { audit, hashEmail } from "@/lib/audit";
-import { mfaEmDivida } from "@/lib/auth/server";
-import { requirePlatformAdmin } from "@/lib/auth/requirePlatformAdmin";
+import {
+  falhaDaEscritaDePlatformAdmin,
+  requirePlatformAdmin,
+  requirePlatformAdminEscrita,
+} from "@/lib/auth/requirePlatformAdmin";
 import { requireSupportWrite } from "@/lib/impersonate/support";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { responsavelDaOrganizacao } from "@/lib/admin/responsavel-da-organizacao";
@@ -63,15 +66,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   let adminCtx: Awaited<ReturnType<typeof requirePlatformAdmin>>;
   try {
-    adminCtx = await requirePlatformAdmin();
-  } catch {
-    return fail("forbidden", "Platform admin required", 403, { requestId });
-  }
-  if (adminCtx.platformAdmin.scope !== "full") {
-    return fail("forbidden", "O seu acesso de suporte não permite convidar o responsável.", 403, { requestId });
-  }
-  if (await mfaEmDivida()) {
-    return fail("mfa_required", "Confirme a verificação em duas etapas", 403, { requestId });
+    // Escrita de platform admin exige scope `full` e MFA em dia — o helper do
+    // upstream (#2078) recusa `support_readonly` com `forbidden_scope`.
+    adminCtx = await requirePlatformAdminEscrita();
+  } catch (err) {
+    return falhaDaEscritaDePlatformAdmin(err, requestId);
   }
 
   let raw: unknown;

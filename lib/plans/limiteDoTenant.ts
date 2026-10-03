@@ -1,5 +1,5 @@
 /**
- * SonghaiCRM — os limites do plano vigente de uma organização (migration 0504).
+ * SonghaiCRM — os limites do plano vigente de uma organização (migration 9004).
  * Sem assinatura vigente devolve `null`, e quem chama NÃO bloqueia: é o estado
  * de toda instalação nova e de quem ainda não recebeu plano.
  */

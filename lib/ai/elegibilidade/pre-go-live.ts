@@ -25,7 +25,7 @@ const numeroDeTesteSchema = z.string().transform((valor, ctx) => {
   if (discavel === null || !/^\+[1-9][0-9 ()-]*$/.test(valor.trim())) {
     ctx.addIssue({
       code: "custom",
-      message: "Use um telefone com DDI, por exemplo +5511999998888.",
+      message: "Use um telefone com indicativo do país, por exemplo +258841234567.",
     });
     return z.NEVER;
   }

@@ -103,7 +103,7 @@ export function deriveLgpdFromContact(c: LgpdContactFields, isProspecting: boole
 }
 
 /**
- * Escala um veto de LGPD à inbox do RUNTIME (regra dura nº 13; tabela `agent_inbox_items`).
+ * Escala um veto de proteção de dados à inbox do RUNTIME (regra dura nº 13; tabela `agent_inbox_items`).
  * Dedup por episódio aberto (mesmo padrão do escalateJailbreakPromise/handoff): 2× no mesmo
  * contato com item aberto → 1. `kind='other'` + `ref_kind='lgpd_escalation'` evita mexer no
  * check de `kind` (sem migration de constraint). ref_id = contact_id de fonte confiável (row
@@ -118,8 +118,8 @@ export async function escalateLgpdVeto(
 ): Promise<void> {
   const isAnon = input.code === 'lgpd_anonymized';
   const title = isAnon
-    ? 'Contato anonimizado — envio bloqueado por LGPD'
-    : 'Base legal ausente/inválida — 1º toque bloqueado por LGPD';
+    ? 'Contato anonimizado — envio bloqueado pela proteção de dados'
+    : 'Base legal ausente/inválida — 1º toque bloqueado pela proteção de dados';
   const body = isAnon
     ? 'O contato deste lead está anonimizado no CRM (anonimização é irreversível): nenhum envio ' +
       'pode ir a ele. Confira o cadastro no CRM — se for engano, reverta a anonimização lá.'
@@ -137,7 +137,7 @@ export async function escalateLgpdVeto(
       [input.tenantId, title, body, input.leadId],
     );
   } catch (err) {
-    log.error('falha ao escalar veto de LGPD à inbox (segue: o gate já barrou o envio)', {
+    log.error('falha ao escalar veto de proteção de dados à inbox (segue: o gate já barrou o envio)', {
       code: input.code,
       error: err instanceof Error ? err.name : 'unknown',
     });

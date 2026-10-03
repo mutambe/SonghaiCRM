@@ -100,7 +100,7 @@ export function PairingOptions({ sessionId, qr }: { sessionId: string; qr: React
             id={id}
             type="tel"
             autoComplete="tel"
-            placeholder="+55 11 99999-9999"
+            placeholder="+258 84 123 4567"
             required
             maxLength={32}
             value={phone}

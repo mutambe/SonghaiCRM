@@ -231,6 +231,12 @@ jobs:
 
       - name: Typecheck
         if: matrix.parte == 1
+        # SonghaiCRM: sem a cache incremental, o tsc deste repositório usa ~4,2 GB
+        # (medido em 2026-10-03), o mesmo que o heap padrão do Node — e morreu
+        # por falta de memória no CI depois do merge do upstream. A máquina tem
+        # 16 GB; o teto sobe só para este passo.
+        env:
+          NODE_OPTIONS: --max-old-space-size=8192
         run: pnpm typecheck
 
       # Na parte 2, não na 1: o porquê e a conta estão no cabeçalho do job.
@@ -478,7 +484,10 @@ jobs:
 
       - name: Instala gitleaks (CLI, versão fixa)
         run: |
-          curl -sSL -o gitleaks.tar.gz \
+          # -f: erro HTTP falha AQUI, com o código, em vez de gravar a página de
+          # erro e o tar acusar "not in gzip format" (medido no PR #18). O GitHub
+          # às vezes devolve 5xx no download de release: tenta de novo.
+          curl -fsSL --retry 5 --retry-delay 5 --retry-all-errors -o gitleaks.tar.gz \
             https://github.com/gitleaks/gitleaks/releases/download/v8.21.2/gitleaks_8.21.2_linux_x64.tar.gz
           tar -xzf gitleaks.tar.gz gitleaks
           sudo mv gitleaks /usr/local/bin/gitleaks

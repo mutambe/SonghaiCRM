@@ -150,6 +150,7 @@ declare `REVERSE_PROXY=traefik` no `.env` — aí a escolha é sua e ele segue s
 | `restore.sh` | Restaura um backup |
 | `reset-password.sh` | Redefine senha de um usuário |
 | `reset-mfa.sh` | Remove o MFA de um usuário travado |
+| `platform-admin.sh` | Lista, adiciona ou retira administradores da plataforma (e exige MFA), sem SQL à mão |
 | `healthcheck.sh` | Diagnóstico dos serviços |
 
 ## Automações e webhooks

@@ -88,7 +88,7 @@ export const HANDOFF_REASON_ORCAMENTO = 'orcamento_de_ia';
 
 /** Escreve dólar, porque o número É dólar (`pricing.ts` calcula em USD). */
 function emDolares(cents: number): string {
-  return `US$ ${(cents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  return `US$ ${(cents / 100).toLocaleString('pt-MZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 /**

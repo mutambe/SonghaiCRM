@@ -94,6 +94,7 @@ interface Consulta {
   is(coluna: string, valor: unknown): Consulta;
   in(coluna: string, valores: unknown[]): Consulta;
   not(coluna: string, operador: string, valor: unknown): Consulta;
+  filter(coluna: string, operador: string, valor: unknown): Consulta;
   gte(coluna: string, valor: unknown): Consulta;
   order(coluna: string, opcoes?: { ascending?: boolean }): Consulta;
   limit(n: number): Consulta;
@@ -175,6 +176,12 @@ function fazerAdmin(banco: Banco, rpcs: Linha[]) {
       is: (col, val) => (filtros.push((l) => (l[col] ?? null) === val), c),
       in: (col, vals) => (filtros.push((l) => vals.includes(l[col])), c),
       not: (col, _op, val) => (filtros.push((l) => (l[col] ?? null) !== val), c),
+      // Só o operador que o worker usa: `isdistinct` casa NULL (é `IS DISTINCT
+      // FROM`), e um operador desconhecido explode em vez de casar tudo calado.
+      filter: (col, op, val) => {
+        if (op !== "isdistinct") throw new Error(`filter não emulado: ${op}`);
+        return (filtros.push((l) => (l[col] ?? null) !== val), c);
+      },
       gte: (col, val) => (filtros.push((l) => (l[col] as never) >= (val as never)), c),
       order: (col, opcoes) => ((ordem = { coluna: col, asc: opcoes?.ascending !== false }), c),
       limit: (n) => ((limite = n), c),
@@ -203,7 +210,7 @@ interface Cenario {
 
 function montarBanco(c: Cenario): Banco {
   return {
-    organizations: [{ id: ORG, settings: c.settings ?? {}, locale: "pt-MZ" }],
+    organizations: [{ id: ORG, status: "active", settings: c.settings ?? {}, locale: "pt-MZ" }],
     ai_provider_credentials: c.credenciais ?? [],
     ai_purpose_bindings: c.bindings ?? [],
     messages: [
@@ -527,6 +534,32 @@ function jevLigado(modo: "observacao" | "decide", comIaDeSempre = true): Cenario
 const linhasDoJev = (b: Banco) => b.llm_calls.filter((l) => l.provider === "typesafe");
 const linhasDaIaDeSempre = (b: Banco) => b.llm_calls.filter((l) => l.provider !== "typesafe");
 const alertas = (rpcs: Linha[]) => rpcs.filter((r) => r["p_event_type"] === "ai.sentiment_alert");
+
+describe("LGPD: a nota não volta para uma mensagem anonimizada durante a medição", () => {
+  // A corrida: o worker lê a mensagem, o contato é anonimizado enquanto o
+  // modelo classifica (body vira o sentinela, metadata vira `{}`), e o UPDATE
+  // regravaria a foto antiga da metadata mais a nota. O controle do caminho
+  // vivo é o primeiro caso do D12, que afirma a nota gravada.
+  it("lê → anonimiza → grava: metadata continua `{}`", async () => {
+    const banco = montarBanco({
+      settings: { llm: { provider: "anthropic" } },
+      credenciais: [credencial(CRED_ANTHROPIC, "anthropic", "sk-ant-da-tela")],
+    });
+    banco.messages[0]!.metadata = { push_name: "Maria Silva" };
+    vi.mocked(generateObject).mockImplementationOnce((async () => {
+      Object.assign(banco.messages[0]!, { body: "[mensagem anonimizada]", metadata: {} });
+      return {
+        object: { sentiment_score: 0.2, reasoning_short: "cliente repetindo o pedido" },
+        usage: { inputTokens: 40, outputTokens: 12 },
+      };
+    }) as unknown as typeof generateObject);
+
+    await rodar({}, banco);
+
+    expect(generateObject).toHaveBeenCalledTimes(1);
+    expect(banco.messages[0]!.metadata).toEqual({});
+  });
+});
 
 describe("o Jev no worker de clima", () => {
   beforeEach(() => {
@@ -985,6 +1018,9 @@ function comAgenteNoAr(
       assigned_to_user_id: null,
       bot_silenced_until: null,
       last_handoff_at: null,
+      // O embed `organizations:organization_id(status)` que o portão de
+      // elegibilidade lê (spec cobrança §4): sem status, a régua falha fechada.
+      organizations: { status: "active" },
       ...over.conversa,
     },
   ];
@@ -1169,6 +1205,8 @@ describe("os pedidos do cliente no worker de clima", () => {
     // turno nesta conversa — a regra de hoje nem roda aqui.
     ["o único agente publicado em OUTRO número", { sessaoDoAgente: OUTRO_NUMERO }],
     ["conversa sem número", { conversa: { channel_session_id: null } }],
+    // A empresa suspensa: o portão veta o turno (`org_nao_operante`), então o Jev não pergunta.
+    ["empresa suspensa", { conversa: { organizations: { status: "suspended" } } }],
   ])("%s: o turno não rodaria, e os pedidos não são perguntados", async (_caso, over) => {
     fornecedor(respostaPorPergunta({ humano: 0.99 }));
     const cenario = jevLigado("decide");

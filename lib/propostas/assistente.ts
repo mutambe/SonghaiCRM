@@ -3,6 +3,7 @@ import type pg from "pg";
 import { tool, type ModelMessage, runModelCall, type LlmEdgeConfig } from "@/lib/agent-engine/edge/llm/run-model-call";
 import type { ProposalItemInput } from "./tipos";
 import { definirCaminho } from "./briefing-caminho";
+import { formatCents, MOEDA_PADRAO } from "@/lib/money";
 
 export const mudancaSchema = z.discriminatedUnion("tipo", [
   z.object({
@@ -76,7 +77,7 @@ export function aplicarMudancas(estado: EstadoDaProposta, mudancas: readonly Mud
 
 function promptDoEstado(estado: EstadoDaProposta): string {
   const itens = estado.itens
-    .map((it) => `- [${it.id}] ${it.descricao} — qtd ${it.quantidade} × ${it.preco_unitario_cents === null ? "a definir" : `R$ ${(it.preco_unitario_cents / 100).toFixed(2)}`}, desconto R$ ${(it.desconto_cents / 100).toFixed(2)}`)
+    .map((it) => `- [${it.id}] ${it.descricao} — qtd ${it.quantidade} × ${it.preco_unitario_cents === null ? "a definir" : formatCents(it.preco_unitario_cents, MOEDA_PADRAO)}, desconto ${formatCents(it.desconto_cents, MOEDA_PADRAO)}`)
     .join("\n");
   return [
     `Proposta atual:`,

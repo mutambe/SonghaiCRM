@@ -38,11 +38,12 @@ describe("quais caminhos são superfície interna", () => {
     ["/api/mcp/sse", "mcp"],
     ["/api/internal/agents/run", "internal"],
     ["/api/v1/cron/event-log-drain", "cron"],
+    ["/api/v1/health", "health"],
   ])("%s → %s", (p, escopo) => {
     expect(superficieInterna(p)?.escopo).toBe(escopo);
   });
 
-  it.each(["/api/mcpx", "/api/v1/contacts", "/app/inbox", "/api/v1/crons"])("%s não é", (p) => {
+  it.each(["/api/mcpx", "/api/v1/contacts", "/app/inbox", "/api/v1/crons", "/api/v1/healthz"])("%s não é", (p) => {
     expect(superficieInterna(p)).toBeNull();
   });
 });
@@ -61,6 +62,15 @@ describe("o teto", () => {
   it("MCP tem teto próprio, mais folgado (agente conversa muito)", async () => {
     expect(await tentar("/api/mcp", comIp("203.0.113.9"), 120)).toBe(0);
     expect(await tentar("/api/mcp", comIp("203.0.113.9"), 1)).toBe(1);
+  });
+
+  it("health: público e caro (banco + Redis + WAHA), a 31.ª chamada do mesmo IP no minuto é barrada", async () => {
+    expect(await tentar("/api/v1/health", comIp("203.0.113.9"), 30)).toBe(0);
+    expect(await tentar("/api/v1/health", comIp("203.0.113.9"), 1)).toBe(1);
+  });
+
+  it("health: a sonda interna do kit (sem IP) nunca é barrada", async () => {
+    expect(await tentar("/api/v1/health", new Headers(), 500)).toBe(0);
   });
 
   it("⭐ SEM IP identificável nunca barra — o scheduler da instalação chama os crons assim", async () => {

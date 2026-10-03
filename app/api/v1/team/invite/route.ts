@@ -89,7 +89,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     }
   }
 
-  // SonghaiCRM — teto de usuários do plano vigente (migration 0504). Sem
+  // SonghaiCRM — teto de usuários do plano vigente (migration 9004). Sem
   // assinatura, `limitesDoTenant` devolve null e nada é bloqueado. Só convites
   // REALMENTE novos contam: quem já é membro ativo é reenvio, não usuário a mais.
   // O aceite confere de novo (app/actions/team/acceptInvite.ts): convite pendente

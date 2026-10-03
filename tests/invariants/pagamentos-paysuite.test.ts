@@ -1,5 +1,5 @@
 /**
- * Pagamentos PaySuite (migration 0503, SonghaiCRM).
+ * Pagamentos PaySuite (migration 9003, SonghaiCRM).
  *
  * `payment_credentials` segura token de API e segredo de webhook de pagamento:
  * o PostgREST não pode servi-la a ninguém. `payments` é o log de cobrança que a

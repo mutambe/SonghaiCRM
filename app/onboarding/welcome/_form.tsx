@@ -8,7 +8,6 @@ import { acceptWelcome } from "@/app/actions/onboarding/acceptWelcome";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { FUSO_PADRAO } from "@/lib/tempo/fusos";
 import {
   Select,
   SelectContent,
@@ -16,20 +15,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { FUSO_PADRAO, FUSOS_DO_ONBOARDING } from "@/lib/tempo/fusos";
 
-/**
- * Cidade, não identificador de fuso. A lista mostrava "America/Bahia" e
- * "America/Fortaleza" e esperava que a pessoa soubesse em qual delas mora — o
- * identificador é do sistema, o que ela reconhece é a cidade.
- */
-const FUSOS: { id: string; cidade: string }[] = [
-  { id: "Africa/Maputo", cidade: "Maputo, Beira, Nampula e todo Moçambique" },
-  { id: "Africa/Johannesburg", cidade: "Joanesburgo" },
-  { id: "Europe/Lisbon", cidade: "Lisboa" },
-  { id: "UTC", cidade: "Outro (horário universal)" },
-];
 
-export function WelcomeForm({ defaultOrgName }: { defaultOrgName: string }) {
+export function WelcomeForm({
+  defaultOrgName,
+  orgId,
+}: {
+  defaultOrgName: string;
+  orgId: string;
+}) {
   const t = useT();
   const [displayName, setDisplayName] = useState(defaultOrgName);
   const [oQueFaz, setOQueFaz] = useState("");
@@ -100,7 +95,7 @@ export function WelcomeForm({ defaultOrgName }: { defaultOrgName: string }) {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {FUSOS.map((f) => (
+            {FUSOS_DO_ONBOARDING.map((f) => (
               <SelectItem key={f.id} value={f.id}>
                 {t(f.cidade)}
               </SelectItem>
@@ -108,6 +103,10 @@ export function WelcomeForm({ defaultOrgName }: { defaultOrgName: string }) {
           </SelectContent>
         </Select>
         <input type="hidden" name="timezone" value={timezone} />
+        {/* A org para a qual ESTA aba foi aberta. No submit, o server action
+            resolve por ela (validada como membership), não pela org ativa do
+            momento — que outra aba pode ter trocado. */}
+        <input type="hidden" name="organization_id" value={orgId} />
         <p className="text-xs text-muted-foreground">
           {t("Decide o horário em que seu funcionário pode falar com clientes.")}
         </p>

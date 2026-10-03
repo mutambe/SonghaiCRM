@@ -145,7 +145,7 @@ export function TelefoniaClient() {
             <div className="space-y-1">
               <Label>{t("Número (E.164)")}</Label>
               <Input
-                placeholder="+555130562494"
+                placeholder="+258211234567"
                 value={form.number}
                 onChange={(e) => setForm((f) => ({ ...f, number: e.target.value }))}
               />

@@ -8,7 +8,25 @@ const h = vi.hoisted(() => ({
   audit: vi.fn(),
 }));
 
-vi.mock("@/lib/auth/requirePlatformAdmin", () => ({ requirePlatformAdmin: h.platform }));
+// SonghaiCRM: as rotas usam o helper de ESCRITA do upstream (#2078); o mock o
+// reproduz sobre os mesmos dublês (`h.platform`, `h.mfa`).
+vi.mock("@/lib/auth/requirePlatformAdmin", async () => {
+  const { EscritaDePlatformAdminNegada } = await import("@/lib/auth/recusa-de-escrita-de-admin");
+  const { fail } = await import("@/lib/api/wrappers");
+  return {
+    requirePlatformAdmin: h.platform,
+    requirePlatformAdminEscrita: async () => {
+      const c = await h.platform();
+      if (c.platformAdmin.scope !== "full") throw new EscritaDePlatformAdminNegada("forbidden_scope");
+      if (await h.mfa()) throw new EscritaDePlatformAdminNegada("mfa_required");
+      return c;
+    },
+    falhaDaEscritaDePlatformAdmin: (err: unknown, requestId?: string) =>
+      err instanceof EscritaDePlatformAdminNegada
+        ? fail(err.code, err.message, 403, { requestId })
+        : fail("forbidden", "Platform admin required", 403, { requestId }),
+  };
+});
 vi.mock("@/lib/auth/server", () => ({ mfaEmDivida: h.mfa }));
 vi.mock("@/lib/impersonate/support", () => ({ requireSupportWrite: h.suporte }));
 vi.mock("@/lib/audit", () => ({ audit: h.audit }));

@@ -33,10 +33,12 @@ import { extrairEEstamparAtribuicaoGoogle } from "@/lib/plataformas-de-anuncio/g
 import { extrairAtribuicaoWaha } from "@/lib/waha/atribuicao-de-anuncio";
 import { criarIngestDeGrupoDb, gravarMensagemDeGrupo } from "@/lib/grupos/ingest";
 import type { RemetenteDeGrupo } from "@/lib/messaging/remetente-de-grupo";
+import { semAssinatura } from "@/lib/messaging/assinatura";
 import type { createAdminClient } from "@/lib/supabase/admin";
 import { ackToStatus } from "@/lib/types/messaging";
 import type { WahaEnvelope, WahaPayload } from "@/lib/waha/envelope";
 import { bareWaMessageId, chatIdFromWaMessageId } from "@/lib/waha/message-id";
+import { gravarReacaoRecebida } from "@/lib/waha/reacao-recebida";
 import { logger } from "@/lib/logger";
 import {
   ehNumeroInternoDeAviso,
@@ -135,7 +137,11 @@ async function ehEcoDeEnvioNosso(
       if ((l.type ?? "chat") !== "chat") return true;
       continue;
     }
-    if (corpo.length > 0 && (l.body ?? "").trim() === corpo) return true;
+    // Com a assinatura do emissor ligada (#2066), o eco traz `*Nome*\ntexto` e a
+    // linha guarda `texto`: sem tirar a linha do nome, o eco do próprio envio
+    // assinado seria lido como digitação no celular e calaria a IA.
+    const gravado = (l.body ?? "").trim();
+    if (corpo.length > 0 && (gravado === corpo || gravado === semAssinatura(corpo).trim())) return true;
   }
   return false;
 }
@@ -1416,6 +1422,9 @@ export async function dispatchWahaEvent(
     await handleMessageEdited(admin, session, payload);
   } else if (eventType === "message.revoked") {
     await handleMessageRevoked(admin, session, payload);
+  } else if (eventType === "message.reaction") {
+    // SonghaiCRM — reação do cliente (ou do dono, pelo aparelho).
+    await gravarReacaoRecebida(admin, session, payload);
   } else if (eventType === "session.status" || eventType === "state.change") {
     await handleSessionStatus(admin, session, payload);
   }

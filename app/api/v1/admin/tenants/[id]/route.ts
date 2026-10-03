@@ -1,11 +1,14 @@
 import { type NextRequest } from "next/server";
-import { requirePlatformAdmin } from "@/lib/auth/requirePlatformAdmin";
+import {
+  falhaDaEscritaDePlatformAdmin,
+  requirePlatformAdmin,
+  requirePlatformAdminEscrita,
+} from "@/lib/auth/requirePlatformAdmin";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { ok, fail } from "@/lib/api/wrappers";
 import { audit } from "@/lib/audit";
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
-import { mfaEmDivida } from "@/lib/auth/server";
 import { requireSupportWrite } from "@/lib/impersonate/support";
 import { logger } from "@/lib/logger";
 import { colunasDaEdicao, edicaoDaOrganizacaoSchema, organizacaoTemUso } from "@/lib/admin/edicao-da-organizacao";
@@ -171,22 +174,13 @@ export async function GET(
 
 /** Quem chama já passou por `requireSupportWrite` — o gate a quer em cada handler. */
 async function adminComAcessoTotal(requestId: string) {
-  let ctx: Awaited<ReturnType<typeof requirePlatformAdmin>>;
   try {
-    ctx = await requirePlatformAdmin();
-  } catch {
-    return { ok: false, negado: fail("forbidden", "Platform admin required", 403, { requestId }) } as const;
+    // Escrita de platform admin: scope `full` e MFA em dia (helper do upstream, #2078).
+    const ctx = await requirePlatformAdminEscrita();
+    return { ok: true, ctx } as const;
+  } catch (err) {
+    return { ok: false, negado: falhaDaEscritaDePlatformAdmin(err, requestId) } as const;
   }
-  if (ctx.platformAdmin.scope !== "full") {
-    return {
-      ok: false,
-      negado: fail("forbidden", "O seu acesso de suporte não permite alterar organizações", 403, { requestId }),
-    } as const;
-  }
-  if (await mfaEmDivida()) {
-    return { ok: false, negado: fail("mfa_required", "Confirme a verificação em duas etapas", 403, { requestId }) } as const;
-  }
-  return { ok: true, ctx } as const;
 }
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }): Promise<Response> {

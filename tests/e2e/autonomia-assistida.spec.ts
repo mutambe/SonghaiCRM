@@ -185,12 +185,16 @@ async function capture(page: Page, target: Locator, info: TestInfo, name: string
 }
 async function receiver() {
   const bodies: Record<string, unknown>[] = [];
+  // SonghaiCRM: abrir a conversa confirma a leitura ao cliente (tiques azuis,
+  // POST /api/sendSeen). Isso não é ENVIAR mensagem — fica numa lista própria,
+  // e `bodies` continua a medir só o que o cliente recebe como mensagem.
+  const leituras: Record<string, unknown>[] = [];
   const target = new URL(process.env.WAHA_API_BASE_URL!);
   expect(["127.0.0.1", "localhost"]).toContain(target.hostname);
   const server = createServer(async (req, res) => {
     let raw = "";
     for await (const part of req) raw += String(part);
-    bodies.push(JSON.parse(raw));
+    (req.url?.includes("/sendSeen") ? leituras : bodies).push(JSON.parse(raw));
     res.setHeader("content-type", "application/json");
     res.end(JSON.stringify({ id: randomUUID() }));
   });
@@ -200,6 +204,7 @@ async function receiver() {
   });
   return {
     bodies,
+    leituras,
     close: async () => {
       server.closeAllConnections();
       await new Promise<void>((resolve) => server.close(() => resolve()));

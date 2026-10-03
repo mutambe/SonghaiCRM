@@ -14,6 +14,8 @@ import { Button } from "@/components/ui/button";
 import { AttachMenu } from "@/components/inbox/composer/AttachMenu";
 import { AttachmentPreviewDialog } from "@/components/inbox/composer/AttachmentPreviewDialog";
 import { ContactPickerDialog } from "@/components/inbox/composer/ContactPickerDialog";
+import { LocationPickerDialog } from "@/components/inbox/composer/LocationPickerDialog";
+import { corpoDaLocalizacao } from "@/lib/messaging/localizacao";
 import { AudioRecorder } from "@/components/inbox/composer/AudioRecorder";
 import { ReplyReviewPanel } from "@/components/inbox/composer/ReplyReviewPanel";
 import { EmojiButton } from "@/components/inbox/composer/EmojiButton";
@@ -135,6 +137,7 @@ export const Composer = forwardRef<ComposerHandle, Props>(function Composer(
    */
   const [pendingEm, setPendingEm] = useState<"reply" | "note">("reply");
   const [contactPickerOpen, setContactPickerOpen] = useState(false);
+  const [localizacaoOpen, setLocalizacaoOpen] = useState(false);
   const [menuDismissed, setMenuDismissed] = useState(false);
   const [mode, setMode] = useState<"reply" | "note">(initialMode);
   useEffect(() => {
@@ -400,6 +403,7 @@ export const Composer = forwardRef<ComposerHandle, Props>(function Composer(
             disabled={respostaBarrada}
             onPick={escolherArquivo}
             onPickContact={mode === "reply" ? () => setContactPickerOpen(true) : undefined}
+            onPickLocation={mode === "reply" ? () => setLocalizacaoOpen(true) : undefined}
           />
           <EmojiButton
             disabled={isDisabled}
@@ -548,6 +552,31 @@ export const Composer = forwardRef<ComposerHandle, Props>(function Composer(
                   },
             },
             { onSuccess: () => setContactPickerOpen(false) },
+          );
+        }}
+      />
+      <LocationPickerDialog
+        open={localizacaoOpen}
+        onOpenChange={setLocalizacaoOpen}
+        sending={send.isPending}
+        onPick={(loc) => {
+          // O corpo vai pronto (o link do mapa) para a bolha otimista não sair
+          // vazia; o handler confere as coordenadas de novo antes do envio.
+          send.mutate(
+            {
+              conversation_id: conversationId,
+              type: "location",
+              body: corpoDaLocalizacao(loc),
+              metadata: {
+                location: {
+                  latitude: loc.latitude,
+                  longitude: loc.longitude,
+                  ...(loc.nome ? { name: loc.nome } : {}),
+                  ...(loc.endereco ? { address: loc.endereco } : {}),
+                },
+              },
+            },
+            { onSuccess: () => setLocalizacaoOpen(false) },
           );
         }}
       />

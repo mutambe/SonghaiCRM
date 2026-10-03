@@ -8,7 +8,7 @@
  * webhook para colar de volta no PaySuite.
  *
  * Nunca devolve o token nem o segredo — nem cifrados. `payment_credentials` não
- * tem privilégio para anon/authenticated (migration 0503): só esta rota, com
+ * tem privilégio para anon/authenticated (migration 9003): só esta rota, com
  * service role, lê e decifra.
  */
 import { randomUUID } from "node:crypto";

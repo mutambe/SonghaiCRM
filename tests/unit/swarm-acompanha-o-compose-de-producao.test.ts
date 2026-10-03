@@ -137,10 +137,43 @@ describe("docker-compose.swarm.yml acompanha o compose de produção", () => {
     const doCompose = subsecao(TRAEFIK.get("app")!, "labels").filter((l) => !l.startsWith("traefik.docker.network:"));
     const doSwarm = subsecao(SWARM.get("app")!, "labels", 6);
     expect(doCompose.length).toBeGreaterThan(10);
-    for (const label of doCompose) expect(doSwarm, label).toContain(label);
+    // O Swarm do SonghaiCRM ACRESCENTA middlewares ao roteador principal (limite
+    // por IP, ver o arquivo); os do produto continuam todos lá, na mesma ordem.
+    const MIDDLEWARES = "traefik.http.routers.deskcomm.middlewares:";
+    for (const label of doCompose) {
+      if (!label.startsWith(MIDDLEWARES)) {
+        expect(doSwarm, label).toContain(label);
+        continue;
+      }
+      // `${VAR:-padrão}` vale pelo PADRÃO: é o que sobe quando o .env não diz nada.
+      const lista = (l: string) =>
+        l
+          .slice(MIDDLEWARES.length)
+          .replace(/["\s]/g, "")
+          .replace(/^\$\{[A-Z_]+:-(.*)\}$/, "$1")
+          .split(",");
+      const noSwarm = doSwarm.find((l) => l.startsWith(MIDDLEWARES));
+      expect(noSwarm, label).toBeDefined();
+      const doSwarmLista = lista(noSwarm!);
+      expect(doSwarmLista.filter((m) => lista(label).includes(m)), label).toEqual(lista(label));
+    }
     expect(doSwarm).toContain('traefik.swarm.network: "${TRAEFIK_NETWORK_SWARM:-traefik_public}"');
     expect(doSwarm).toContain('traefik.docker.network: "${TRAEFIK_NETWORK_SWARM:-traefik_public}"');
   });
+
+  it("os limites por IP existem, contam pelo IP da Cloudflare e nascem DESLIGADOS", () => {
+    const doSwarm = subsecao(SWARM.get("app")!, "labels", 6);
+    const mw = doSwarm.find((l) => l.startsWith("traefik.http.routers.deskcomm.middlewares:"))!;
+    // Desligados por padrão: com portas "ingress" todo visitante tem o mesmo IP
+    // interno, e um limite ligado sem a Cloudflare bloquearia o site inteiro.
+    expect(mw).toBe('traefik.http.routers.deskcomm.middlewares: "${TRAEFIK_MIDDLEWARES_DO_APP:-deskcomm-compress}"');
+    for (const mid of ["deskcomm-limite.ratelimit", "deskcomm-ligacoes.inflightreq"]) {
+      expect(doSwarm, mid).toContain(`traefik.http.middlewares.${mid}.sourcecriterion.requestheadername: "CF-Connecting-IP"`);
+    }
+    expect(doSwarm.some((l) => l.startsWith("traefik.http.middlewares.deskcomm-limite.ratelimit.average:"))).toBe(true);
+    expect(doSwarm.some((l) => l.startsWith("traefik.http.middlewares.deskcomm-ligacoes.inflightreq.amount:"))).toBe(true);
+  });
+
 
   it("rede interna é overlay; a do Traefik é externa; só o app fica nas duas", () => {
     expect(SWARM_TXT).toMatch(/^networks:\n {2}internal:\n {4}driver: overlay\n {2}proxy:\n {4}external: true\n {4}name: "\$\{TRAEFIK_NETWORK_SWARM:-traefik_public\}"\n?$/m);

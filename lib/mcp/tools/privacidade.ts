@@ -30,13 +30,15 @@ const inputShape = {
 export const crmListPrivacyRequests: McpToolDefinition<typeof inputShape> = {
   name: "crm_list_privacy_requests",
   description:
-    "Lista pedidos de privacidade (LGPD) da organização — exportação ou exclusão de dados — com " +
+    "Lista pedidos de privacidade (proteção de dados) da organização — exportação ou exclusão de dados — com " +
     "tipo, situação, quando chegou e o prazo. NÃO executa nada: é leitura. Use para não insistir " +
     "com quem pediu exclusão e para explicar o prazo a quem perguntar pelo próprio pedido.",
   inputSchema: inputShape,
   category: "read",
   requiresRole: "agent",
   requiresScope: "mcp:read",
+  // LGPD nunca é bloqueada: o prazo do titular corre com a empresa suspensa.
+  permiteOrgSuspensa: true,
   handler: async (input, ctx) => {
     let q = ctx.supabase
       .from("lgpd_requests")

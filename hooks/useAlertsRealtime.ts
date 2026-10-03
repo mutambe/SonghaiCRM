@@ -7,7 +7,7 @@ import type { AlertKind } from "@/app/api/v1/admin/dashboard/kpis/route";
 
 const KIND_LABELS: Record<AlertKind, string> = {
   waha_ban: "Alerta WAHA",
-  lgpd_at_risk: "Prazo LGPD",
+  lgpd_at_risk: "Prazo de Proteção de Dados",
   ai_budget: "Budget IA",
   tenant_pending_overflow: "Overflow de conversas",
 };

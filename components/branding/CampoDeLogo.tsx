@@ -51,6 +51,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { ajustarLogo } from "@/lib/branding/ajuste-de-logo";
+import { logoTemTransparencia } from "@/lib/branding/transparencia-do-logo";
 import { melhorFrenteSobre } from "@/lib/branding/contraste";
 import { lonaDoNavegador } from "@/lib/branding/lona-do-navegador";
 import { TAMANHO_MAXIMO_DO_LOGO } from "@/lib/branding/logo";
@@ -288,6 +289,16 @@ export function CampoDeLogo({
         return;
       }
       toast.success(t("Logo atualizado."));
+      // SonghaiCRM: logo sem nenhum pixel transparente aparece como um retângulo
+      // sobre qualquer fundo de outra cor (ver `lib/branding/transparencia-do-logo.ts`).
+      if ((await logoTemTransparencia(arquivo)) === false) {
+        toast.warning(
+          t(
+            "Este logo não tem fundo transparente: aparece como um retângulo sobre fundos de outra cor. Para ficar limpo, envie um PNG com fundo transparente.",
+          ),
+          { duration: 12_000 },
+        );
+      }
       const gravado = await logoDaResposta(resposta);
       if (gravado !== undefined) {
         if (tema === "escuro") setLogoEscuroGravado(gravado);

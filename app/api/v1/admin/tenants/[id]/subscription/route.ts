@@ -1,6 +1,6 @@
 /**
  * GET/PATCH /api/v1/admin/tenants/[id]/subscription — o plano de uma
- * organização (SonghaiCRM, migration 0504).
+ * organização (SonghaiCRM, migration 9004).
  *
  * GET devolve a assinatura vigente (ou `null`), o histórico e o catálogo à venda
  * — o que a tela do admin precisa para trocar de plano.
@@ -15,8 +15,11 @@ import { z } from "zod";
 
 import { ok, fail } from "@/lib/api/wrappers";
 import { audit } from "@/lib/audit";
-import { mfaEmDivida } from "@/lib/auth/server";
-import { requirePlatformAdmin } from "@/lib/auth/requirePlatformAdmin";
+import {
+  falhaDaEscritaDePlatformAdmin,
+  requirePlatformAdmin,
+  requirePlatformAdminEscrita,
+} from "@/lib/auth/requirePlatformAdmin";
 import { requireSupportWrite } from "@/lib/impersonate/support";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -73,14 +76,12 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
   let adminCtx: Awaited<ReturnType<typeof requirePlatformAdmin>>;
   try {
-    adminCtx = await requirePlatformAdmin();
-  } catch {
-    return fail("forbidden", "Platform admin required", 403, { requestId });
+    // Escrita de platform admin exige scope `full` e MFA em dia — o helper do
+    // upstream (#2078) recusa `support_readonly` com `forbidden_scope`.
+    adminCtx = await requirePlatformAdminEscrita();
+  } catch (err) {
+    return falhaDaEscritaDePlatformAdmin(err, requestId);
   }
-  if (adminCtx.platformAdmin.scope !== "full") {
-    return fail("forbidden", "Seu acesso de suporte não permite mudar o plano de uma organização.", 403, { requestId });
-  }
-  if (await mfaEmDivida()) return fail("mfa_required", "Confirme a verificação em duas etapas.", 403, { requestId });
 
   let body: unknown;
   try {

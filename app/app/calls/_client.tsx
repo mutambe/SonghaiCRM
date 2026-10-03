@@ -107,7 +107,7 @@ function DialerDialog() {
             <Input
               id="dialer-number"
               type="tel"
-              placeholder="+55 32 98479-3302"
+              placeholder="+258 84 123 4567"
               value={toNumber}
               onChange={(e) => setToNumber(e.target.value)}
               autoFocus

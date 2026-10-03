@@ -150,7 +150,7 @@ export const CATALOGO_DA_INSTALACAO: readonly ChaveDaInstalacao[] = [
     chave: "LGPD_DPO_EMAIL",
     rotulo: "E-mail do encarregado de dados (DPO)",
     explicacao:
-      "O contato obrigatório pela LGPD para pedidos de privacidade. Aparece nos documentos legais.",
+      "O contato exigido pela lei de proteção de dados para pedidos de privacidade. Aparece nos documentos legais.",
     grupo: "seguranca",
     natureza: "texto",
     controle: "edita",
@@ -220,7 +220,7 @@ export const CATALOGO_DA_INSTALACAO: readonly ChaveDaInstalacao[] = [
   {
     chave: "LGPD_SIGNING_KEY",
     rotulo: "Chave que assina os documentos de privacidade",
-    explicacao: "Assina digitalmente os relatórios de dados que a LGPD obriga a entregar.",
+    explicacao: "Assina digitalmente os relatórios de dados que a lei de proteção de dados obriga a entregar.",
     grupo: "seguranca",
     natureza: "segredo",
     controle: "diagnostico",

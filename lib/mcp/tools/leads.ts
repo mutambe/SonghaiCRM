@@ -33,7 +33,7 @@ import type { McpContext, McpToolDefinition } from "../types";
  * cada organização, e um prompt que esquecesse gravava o pedido cem vezes menor.
  */
 const VALOR_DO_NEGOCIO =
-  "valor do negócio × 100, em QUALQUER moeda (também guarani): R$ 249,90 → 24990; ₲125.000 → 12500000. " +
+  "valor do negócio × 100, em QUALQUER moeda (também guarani): 249,90 MTn → 24990; ₲125.000 → 12500000. " +
   "O preço do catálogo (preco_cents) NÃO segue esta régua em moeda sem centavos: multiplique por 100.";
 
 /**

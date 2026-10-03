@@ -170,6 +170,38 @@ export const wahaAdapter: ChannelAdapter = {
   },
 
   /**
+   * SonghaiCRM — os tiques azuis no aparelho do cliente.
+   *
+   * O chat vem do PRÓPRIO id da recebida quando ele é completo (preserva o
+   * @lid com que o cliente escreveu); o `recipient` é só o recurso. Recebida
+   * gravada bare é do cliente, daí o `false_` — o inverso de
+   * `idCompletoDaMensagem`, que completa o que é nosso.
+   *
+   * Transporte não configurado é NOOP: a leitura no CRM já aconteceu e é ela
+   * que importa; o aviso ao aparelho é cortesia.
+   */
+  async markRead(input: { sessionRef: string; recipient: string; externalIds: string[] }): Promise<void> {
+    const client = getWahaClient();
+    const primeiro = input.externalIds[0];
+    if (!client || !primeiro) return;
+    const chatId = chatIdFromWaMessageId(primeiro) ?? input.recipient;
+    const ids = input.externalIds.map((id) =>
+      id.includes("_") ? id : `false_${chatId}_${bareWaMessageId(id)}`,
+    );
+    await client.sendSeen(input.sessionRef, chatId, ids);
+  },
+
+  async reactToMessage(input: {
+    sessionRef: string;
+    recipient: string | null;
+    externalId: string;
+    emoji: string;
+  }): Promise<void> {
+    const { client, messageId } = enderecoDaMensagem(input);
+    await client.setReaction(input.sessionRef, messageId, input.emoji);
+  },
+
+  /**
    * Pergunta ao transporte se a conexão está de pé.
    *
    * Três desfechos, e a diferença entre eles é o que o operador vai FAZER:
@@ -275,6 +307,15 @@ export const wahaAdapter: ChannelAdapter = {
       );
       await envelope.beforeSend?.();
       res = await client.sendContactVcard(envelope.sessionRef, to, [contact]);
+    } else if (envelope.kind === "location" && envelope.location) {
+      // SonghaiCRM — o pino nativo. O título é o nome do lugar, e na falta
+      // dele o endereço: é o que aparece por baixo do mapa no aparelho.
+      await envelope.beforeSend?.();
+      res = await client.sendLocation(envelope.sessionRef, to, {
+        latitude: envelope.location.latitude,
+        longitude: envelope.location.longitude,
+        title: envelope.location.nome ?? envelope.location.endereco ?? null,
+      });
     } else if (envelope.media) {
       await envelope.beforeSend?.();
       res = await client.sendMedia(

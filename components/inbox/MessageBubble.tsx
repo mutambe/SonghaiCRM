@@ -20,6 +20,7 @@ import { MediaRenderer } from "@/components/inbox/media/MediaRenderer";
 import { ContactCard } from "@/components/inbox/media/ContactCard";
 import { LocationCard } from "@/components/inbox/media/LocationCard";
 import { localizacaoDaMensagem } from "@/lib/messaging/localizacao";
+import { REACOES_RAPIDAS, lerReacoes, reacaoDaEquipa } from "@/lib/messaging/reacoes";
 import {
   extractCitations,
   isAiGeneratedMessage,
@@ -48,6 +49,8 @@ interface Props {
   onApagar?: () => Promise<void>;
   onOcultar?: () => Promise<void>;
   onRestaurar?: () => Promise<void>;
+  /** SonghaiCRM — reagir com um emoji; `""` tira a reação da equipa. */
+  onReagir?: (emoji: string) => Promise<void>;
 }
 
 function AckIndicator({ status, t }: { status: string; t: (texto: string) => string }) {
@@ -88,6 +91,7 @@ export function MessageBubble({
   onApagar,
   onOcultar,
   onRestaurar,
+  onReagir,
 }: Props) {
   const [editando, setEditando] = useState(false);
   const [texto, setTexto] = useState(message.body ?? "");
@@ -133,7 +137,12 @@ export function MessageBubble({
     && agora - new Date(message.sent_at).getTime() <= 15 * 60 * 1000;
   const podeApagar = enviadaPeloAtendente && Boolean(onApagar);
   const podeOcultar = !isOutbound && !apagada && Boolean(ocultaNoCrm ? onRestaurar : onOcultar);
-  const temMenu = Boolean(onResponder || (podeEditar && onEditar) || podeApagar || podeOcultar);
+  // SonghaiCRM — reagir pede id no canal: mensagem que ainda não saiu (ou
+  // falhou) não existe no aparelho do cliente.
+  const podeReagir = Boolean(onReagir) && Boolean(message.external_id) && !apagada;
+  const reacoes = lerReacoes(message.metadata);
+  const minhaReacao = reacaoDaEquipa(message.metadata);
+  const temMenu = Boolean(onResponder || (podeEditar && onEditar) || podeApagar || podeOcultar || podeReagir);
   const aiGenerated = isAiGeneratedMessage(message.metadata);
   const citations = extractCitations(message.metadata);
   const showCitationButton =
@@ -214,6 +223,7 @@ export function MessageBubble({
       data-search-match={searchMatch || undefined}
       className={cn(
         "group flex w-full min-w-0 items-center gap-1 px-4 py-1",
+        reacoes.length > 0 && "pb-4",
         isOutbound ? "justify-end" : "justify-start",
       )}
     >
@@ -263,6 +273,23 @@ export function MessageBubble({
                 editorRef.current?.querySelector("textarea")?.focus({ preventScroll: true });
                 editorRef.current?.scrollIntoView?.({ behavior: "smooth", block: "nearest", inline: "nearest" });
               }}>
+              {podeReagir && onReagir && (
+                <>
+                  <div role="group" aria-label={t("Reagir")} className="flex gap-0.5 px-1 py-0.5">
+                    {REACOES_RAPIDAS.map((emoji) => (
+                      <DropdownMenuItem
+                        key={emoji}
+                        aria-label={minhaReacao === emoji ? `${t("Tirar reação")} ${emoji}` : `${t("Reagir com")} ${emoji}`}
+                        className={cn("justify-center px-1.5 text-lg leading-none", minhaReacao === emoji && "bg-muted")}
+                        onSelect={() => void onReagir(minhaReacao === emoji ? "" : emoji).catch(() => undefined)}
+                      >
+                        {emoji}
+                      </DropdownMenuItem>
+                    ))}
+                  </div>
+                  <DropdownMenuSeparator />
+                </>
+              )}
               {onResponder && (
                 <DropdownMenuItem onSelect={() => onResponder(message)}>
                   <ArrowBendUpLeft size={16} aria-hidden />{t("Responder a esta mensagem")}
@@ -388,7 +415,7 @@ export function MessageBubble({
           <>
             {hasMedia && (
               <div className={cn(message.body && "mb-1")}>
-                <MediaRenderer message={message} />
+                <MediaRenderer message={message} agora={agora} />
               </div>
             )}
 
@@ -443,6 +470,30 @@ export function MessageBubble({
             </TooltipProvider>
           )}
         </div>
+        {reacoes.length > 0 && (
+          // As reações, como no aparelho: uma pílula pendurada no canto de
+          // baixo. Agrupadas por emoji; o título diz quem reagiu.
+          <div
+            data-testid="reacoes-da-mensagem"
+            className={cn(
+              "absolute -bottom-3 flex items-center gap-0.5 rounded-full border border-border bg-background px-1.5 py-0.5 text-xs text-foreground shadow-sm",
+              isOutbound ? "right-2" : "left-2",
+            )}
+          >
+            {Array.from(
+              reacoes.reduce((m, r) => m.set(r.emoji, [...(m.get(r.emoji) ?? []), r.daEquipa]), new Map<string, boolean[]>()),
+            ).map(([emoji, quem]) => (
+              <span
+                key={emoji}
+                title={quem.map((daEquipa) => (daEquipa ? t("Equipa") : t("Cliente"))).join(", ")}
+                aria-label={`${emoji} ${quem.map((daEquipa) => (daEquipa ? t("Equipa") : t("Cliente"))).join(", ")}`}
+              >
+                {emoji}
+                {quem.length > 1 && <span className="ml-0.5 text-[10px] text-muted-foreground">{quem.length}</span>}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
       <AlertDialog open={apagando} onOpenChange={setApagando}>
         <AlertDialogContent>
@@ -466,7 +517,7 @@ export function MessageBubble({
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>{t("Ocultar esta mensagem no CRM?")}</AlertDialogTitle>
-            <AlertDialogDescription>{t("A mensagem continua no WhatsApp do cliente e no registro da empresa. Um gestor pode restaurá-la aqui.")}</AlertDialogDescription>
+            <AlertDialogDescription>{t("A mensagem continua na conversa do cliente e no registro da empresa. Um gestor pode restaurá-la aqui.")}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={ocupado}>{t("Cancelar")}</AlertDialogCancel>

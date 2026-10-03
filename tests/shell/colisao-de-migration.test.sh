@@ -627,6 +627,22 @@ assert_exit "$(wc -l < "$n33" | tr -d ' ')" 2 "e absorvida REPETINDO o clone, n�
 if [ -n "$(ls "$d/supabase/migrations/" 2>/dev/null)" ]; then ok "a árvore chega inteira"
 else falha "a árvore chega inteira" "supabase/migrations vazio: seguiu com o clone pela metade"; fi
 
+echo "34. o PR que RENUMERA a migration da base liberta o número que ela tinha"
+# SonghaiCRM, 2026-10-03: o mesmo PR levou as 0501–0504 da distribuição para 9001–9004 e
+# trouxe as 0501–0504 do upstream. Medir contra a árvore da base acusava colisão com
+# arquivos que, depois do merge, já não existem.
+c="$TMP/c34"; clonar "$c"; git -C "$c" switch -q -c fix/renumera
+git -C "$c" mv supabase/migrations/20260101120000_0262_existente.sql               supabase/migrations/20260101120000_9262_existente.sql
+migrar "$c" "20260916140000_0262_do_upstream.sql"; commit "$c" "renumera a da base e traz outra no número"
+saida="$(gate "$c")"; code=$?
+assert_exit "$code" 0 "número libertado pelo próprio PR passa"
+assert_not_contains "$saida" "CI REPROVADO" "não acusa colisão com arquivo que o PR renumerou"
+# controle: sem renumerar, o mesmo NNNN continua reprovando (caso 1 com outro timestamp)
+c="$TMP/c34b"; clonar "$c"; git -C "$c" switch -q -c fix/sem-renumerar
+migrar "$c" "20260916140000_0262_do_upstream.sql"; commit "$c" "traz no número tomado"
+saida="$(gate "$c")"; code=$?
+assert_exit "$code" 1 "controle: sem renumerar, o número tomado continua reprovando"
+
 echo
 if [ "$falhas" = 0 ]; then echo "colisao-de-migration: $casos casos, todos verdes"; exit 0
 else echo "colisao-de-migration: $falhas de $casos casos vermelhos"; exit 1; fi

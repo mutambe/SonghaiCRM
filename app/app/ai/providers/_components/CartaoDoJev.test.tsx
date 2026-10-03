@@ -1550,3 +1550,13 @@ describe("CartaoDoJev — a tarefa do follow-up, que só observa", () => {
     expect(screen.getByTestId("jev-concordancia-followup")).toHaveTextContent(/pusieron la respuesta del cliente en la misma salida del flujo en 3 de 4 mensajes\./);
   });
 });
+
+describe("CartaoDoJev — o aviso da área da saúde (DEC-012 #2)", () => {
+  it("avisa quem é da área da saúde que o dado é sensível e que o contrato da TypeSafe precisa cobri-lo", () => {
+    montar(dados());
+    const aviso = screen.getByTestId("jev-aviso-area-saude");
+    expect(aviso).toHaveTextContent(/Se a sua empresa é da área da saúde/);
+    expect(aviso).toHaveTextContent(/Proteção de Dados trata como sensível/) /* SonghaiCRM: a camada pt-MZ troca a sigla */;
+    expect(aviso).toHaveTextContent(/contrato da TypeSafe/);
+  });
+});

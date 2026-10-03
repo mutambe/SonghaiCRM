@@ -25,6 +25,11 @@ const SUPERFICIES: ReadonlyArray<{ prefixo: string; escopo: string; limite: numb
   { prefixo: "/api/mcp", escopo: "mcp", limite: 120 },
   { prefixo: "/api/internal/", escopo: "internal", limite: 60 },
   { prefixo: "/api/v1/cron/", escopo: "cron", limite: 30 },
+  // Público por design e CARO: cada chamada consulta banco, Redis e o canal de WhatsApp (medido
+  // 4–5 s em produção, 2026-10-03) — sem teto, poucos pedidos repetidos ocupam o
+  // servidor. 30/min por IP sobra para monitor de disponibilidade; as sondas
+  // internas do kit (127.0.0.1, sem x-forwarded-for) não têm IP e não contam.
+  { prefixo: "/api/v1/health", escopo: "health", limite: 30 },
 ];
 const JANELA_SEG = 60;
 

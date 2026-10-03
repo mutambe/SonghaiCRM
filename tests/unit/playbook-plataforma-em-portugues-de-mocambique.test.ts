@@ -5,7 +5,7 @@
  * lugares: a camada plataforma do playbook (à frente de TODO agente), o prompt
  * padrão de agente novo e o prompt do agente de prospecção. E a instalação que
  * já existia nunca receberia um platform.md novo, porque o seed não move
- * ponteiro: a migration 0502 publica a versão nova — e ela precisa ser o
+ * ponteiro: a migration 9002 publica a versão nova — e ela precisa ser o
  * arquivo byte a byte, senão instalação nova e antiga falam de jeitos
  * diferentes.
  */
@@ -21,7 +21,7 @@ import { prospectingAgentPrompt } from "@/lib/prospecting/agent-setup";
 const ler = (...p: string[]) => readFileSync(path.join(process.cwd(), ...p), "utf8");
 const PLATFORM = ler("lib", "agent-engine", "playbooks", "platform.md");
 
-/** O conteúdo entre os delimitadores do bloco da 0502. */
+/** O conteúdo entre os delimitadores do bloco da 9002. */
 function conteudoDaMigration(sql: string): string {
   const abre = "$playbook_mz$";
   const i = sql.indexOf(abre);
@@ -51,15 +51,15 @@ describe("o modelo é mandado escrever em português de Moçambique", () => {
   });
 });
 
-describe("a migration 0502 publica o platform.md byte a byte", () => {
+describe("a migration 9002 publica o platform.md byte a byte", () => {
   it("na migration versionada", () => {
-    const sql = ler("supabase", "migrations", "20261001100000_0502_playbook_plataforma_em_pt_mz.sql");
+    const sql = ler("supabase", "migrations", "20261001100000_9002_playbook_plataforma_em_pt_mz.sql");
     expect(conteudoDaMigration(sql)).toBe(PLATFORM);
   });
 
   it("no apêndice da distribuição (o que o kit aplica)", () => {
     const sql = ler("supabase", "songhai.sql");
-    expect(sql).toContain("(migration 0502)");
+    expect(sql).toContain("(migration 9002)");
     expect(conteudoDaMigration(sql)).toBe(PLATFORM);
   });
 });

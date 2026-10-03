@@ -247,7 +247,7 @@ function FormularioDoAviso({ estado }: { estado: EstadoDoAviso }) {
           id="telefone"
           inputMode="tel"
           className="w-full sm:w-72"
-          placeholder="+5531999998888"
+          placeholder="+258841234567"
           value={rascunho.telefone}
           onChange={(e) =>
             setRascunho((r) => ({ ...r, telefone: normalizarTelefoneDeAviso(e.target.value) }))

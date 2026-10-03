@@ -1,6 +1,6 @@
 /**
  * Os pacotes do SonghaiCRM — os MESMOS slugs semeados em `public.plans`
- * (migration 0504). Fonte única para o formulário de nova organização e para o
+ * (migration 9004). Fonte única para o formulário de nova organização e para o
  * esquema que a valida: o CHECK de `plans.slug` é o par no banco.
  *
  * Preço e limites NÃO moram aqui: são do banco (o admin pode mudar o catálogo

@@ -1,5 +1,5 @@
 /**
- * O teto do plano (SonghaiCRM, migration 0504): números de WhatsApp e usuários.
+ * O teto do plano (SonghaiCRM, migration 9004): números de WhatsApp e usuários.
  *
  * Sem assinatura vigente, nada é bloqueado — é o estado de toda instalação nova.
  * Com assinatura, o teto conta só números de WhatsApp VIVOS (o que está

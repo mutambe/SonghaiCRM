@@ -117,7 +117,7 @@ function AccessForm({ channelId, initial, onClose, phoneTesting }: { channelId: 
         <Textarea id={id} rows={6} value={numbers} disabled={busy}
           onChange={e => { setNumbers(e.target.value); setError(null); }}
           aria-invalid={Boolean(error)} aria-describedby={`${id}-help`}
-          placeholder="+5511999998888" />
+          placeholder="+258841234567" />
         <p id={`${id}-help`} className="text-sm text-muted-foreground">
           {t("Um telefone com DDI por linha. Lista vazia no modo de teste bloqueia todas as respostas automáticas.")}
         </p>
