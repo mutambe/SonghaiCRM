@@ -65,6 +65,101 @@ pnpm typecheck && pnpm test:unit && pnpm test:db
 | 2026-10-01 | Decisões do dono, mantendo o upstream: canal novo nasce em "IA em modo de teste" (`pre_go_live`; libera-se em Conexões) e o warm-up do dia 0 fica em 20 mensagens/dia (o fork tinha 50) | — |
 | 2026-10-01 | Deploy em Docker Swarm (Portainer + Traefik): `docker-compose.swarm.yml` REFEITO a partir do compose de produção atual (o do fork listava variáveis à mão e já estava velho) — cada serviço lê o `.env` inteiro por `env_file` (`stack.env` do Portainer ou `.env` pelo script), imagens nossas obrigatórias e pinadas, sem caddy/voz/telefonia (o stack deploy ignora profiles), WAHA preso ao nó manager, app com atualização start-first e rollback. `hostgator-setup-kit/deploy-swarm.sh` (substitui o `deploy-swarm-latest.sh` do fork): backup → código na tag → banco (`reaplicar_baseline`, baseline + songhai.sql) → imagens da mesma versão → stack deploy → 307; `--so-banco` para quem troca imagens pelo Portainer. Teste próprio prende o arquivo ao compose de produção | — |
 
+## ⏸ PONTO DE RETOMA — próximo merge do upstream (levantado em 2026-10-03)
+
+> Quem retomar começa AQUI, não do zero. Nada abaixo foi aplicado ainda: é o
+> levantamento e o plano. Atualize esta seção a cada passo concluído.
+
+**Onde paramos.** Branch `songhai/base-upstream` (local; `git log origin/main..HEAD` lista o que falta publicar). O trabalho
+de 2026-10-03 está num ÚNICO commit (pedido do dono), ainda NÃO publicado no
+`origin/main` (`mutambe/SonghaiCRM`) — o dono pediu para ver o upstream antes:
+
+- WhatsApp: tiques azuis, reação com emoji e pino de localização;
+- marca: logotipo de 40 px na barra lateral (era 28 px);
+- admin: ecrã de administradores da plataforma em pt-MZ, sem o link partido do
+  «Ver runbook», legível no tema escuro (frases em `frases-pt-mz.ts`; três
+  ficheiros do upstream tocados de leve — `DBAOnlyNotice.tsx`,
+  `PlatformAdminsTable.tsx`, `platform-admins/page.tsx` — candidatos a PR para o upstream);
+- esta secção.
+
+Os cinco commits originais ficam na branch local `backup/antes-do-squash-20261003`
+(pode apagar-se depois da publicação).
+
+Publicação, quando o dono autorizar: branch + PR para `mutambe/SonghaiCRM`, com
+`git push origin HEAD:refs/heads/<branch>` explícito — a branch local rastreia
+`upstream/main`, e `git push` simples iria para o upstream.
+
+Logo (resolvido pela tela, sem código): o "logo para o tema escuro" gravado em
+Admin › Marca tinha fundo opaco pintado; foi trocado por um PNG transparente.
+
+**O que o upstream tem de novo.** `upstream/main` = `31e9278e3` (2026-10-03):
+**103 PRs / 706 commits** desde a nossa base `e8e291217` (v1.69.0), 856 arquivos,
++57,6 mil linhas. Para refazer a medição:
+
+```bash
+git fetch upstream                                    # demora (repo grande)
+git log --first-parent --format='%h %ad %s' --date=short HEAD..upstream/main
+git merge-tree --write-tree --name-only HEAD upstream/main   # conflitos, sem tocar na árvore
+```
+
+### 1. BLOQUEADOR — colisão de número de migration
+
+O upstream usou **0501, 0502, 0503 e 0504** — os mesmos números das nossas
+(`0501_mocambique_por_padrao`, `0502_playbook_plataforma_em_pt_mz`,
+`0503_pagamentos_paysuite`, `0504_licenca_por_organizacao`). Os timestamps não
+colidem; o `NNNN` sim, e `manifest-x-migrations` ("nenhum número de migration é
+usado duas vezes") reprova o merge.
+
+Plano: **antes do merge**, renumerar as quatro nossas para uma faixa reservada à
+distribuição que o upstream nunca alcance (proposta: `9001`–`9004`, mantendo os
+timestamps) — sem isso a colisão volta em todo merge futuro. Não há sequência
+obrigatória no teste, só unicidade. Tocar junto: os quatro nomes de arquivo, as
+linhas do `MANIFEST.md`, os rótulos `(migration 050N)` no `supabase/songhai.sql`
+e `tests/unit/playbook-plataforma-em-portugues-de-mocambique.test.ts`, que cita
+o arquivo 0502. A VPS aplica `baseline.sql` + `songhai.sql`, não os arquivos de
+`migrations/`, então renumerar não reaplica nada lá. Registrar a faixa nova em
+`songhai-diferencas-do-upstream.md`.
+
+### 2. Conflitos de texto medidos (24 arquivos)
+
+`merge-tree` em 2026-10-03: rotas de conversa/mensagem/contato/mídia,
+`cron/agenda-reminder`, `admin/dashboard/kpis`, `comandas/_pendentes.tsx`, os
+três formulários de fuso (`settings/profile`, `settings/tenant`,
+`onboarding/welcome`), `lib/audit/actions.ts`, `lib/conversoes/envio.handler.ts`,
+**`lib/legal/perfil-do-pais.ts`**, **`lib/lgpd/sla.ts`** e `sla-alarm.ts`, mais
+testes (`fuso-horario`, `janela-no-fuso-da-organizacao.rotas`,
+`inbox-media-renderer`, `require-role`, `clima-da-conversa-no-worker`,
+`aviso-de-retencao-diz-o-estado-de-agora`). Regra de resolução: bloco SONGHAICRM
+do `CLAUDE.md` + `songhai-diferencas-do-upstream.md`.
+
+### 3. Pontos de atenção contra o que já foi decidido para o SonghaiCRM
+
+| PR do upstream | O que traz | Decisão / cuidado |
+|---|---|---|
+| #2177 inglês (+ `zh-CN.json`) | idioma `en` no registro, nível `em_construcao` | Entra escondido, como o espanhol. Conferir depois do merge que só `pt-MZ` aparece no seletor |
+| #2084 perfil de Portugal (NIF, RGPD, feriados) | país `PT` no registro de países | Conflita com o nosso registro (que tirou o BR). **Decisão do dono**: Portugal não é Brasil, mas "tudo é Moçambique" — manter `MZ` padrão; aceitar `PT` só se o dono quiser |
+| #2187 fuso de Roma + lista única de fusos | mexe em `lib/tempo/fusos.ts` e nos 3 formulários | Manter `FUSO_PADRAO = Africa/Maputo`; nenhum literal de fuso como reserva |
+| #2101/#2198/#2100 prazo LGPD em dia civil | `lib/lgpd/sla.ts` reescrito | Manter feriados de Moçambique (`holidays-mz.ts`) e a Sexta-feira Santa; testes provam "nos três fusos" — conferir que Maputo é um deles ou acrescentar em teste nosso |
+| #2159/#2173 comandas na moeda da organização | moeda vem da org | Bom para nós (MZN); conferir que nenhum `"BRL"` voltou |
+| #2087/#2076/#2197 conversões da Meta | pixel por etapa, Page id/WABA | Neutro (não é Brasil); entra |
+| #2174 + migration 0504 do upstream `credencial_de_mapas` | provedor de prospecção por organização | Neutro; entra |
+| #2150 instalador single-server atrás de Traefik | `install.sh`/`_common.sh` | Kit nosso aponta para `mutambe`/`ghcr.io/mutambe` — preservar no conflito; o nosso caminho de produção é o `deploy-swarm.sh` |
+| #1987 suspensão cala IA/envios/API (261 arquivos) | migration 0501 do upstream `org_operante` | Toca `connectNuvemshop` (módulo desligado aqui — aceitar, não religar) e a nossa licença por organização (0504 nossa): conferir que suspensão e teto de pacote convivem |
+| #2163/#2167 MFA por papel / política exige prova | `lib/auth/politica-mfa.ts` | Neutro; entra |
+
+Desligados aqui e que podem ter recebido mudanças: Honorários, Nuvemshop, CRM
+B2B/BrasilAPI, RD Station/Respondi, espanhol. Aceitar as mudanças do upstream
+neles (merge limpo), **sem religar**.
+
+### 4. Ordem para retomar
+
+1. Dono decide: publicar os 3 commits acima antes ou junto com o merge; e `PT` sim/não.
+2. Renumerar as nossas migrations (item 1) — commit próprio.
+3. `git merge upstream/main` na `songhai/base-upstream`; resolver os 24 conflitos.
+4. Checklist de `songhai-diferencas-do-upstream.md` (Brasil, `-03:00`, BRL/CPF, espanhol).
+5. `pnpm typecheck` + `pnpm test:unit` (o Vitest voltou a rodar neste PC em 2026-10-03; o resto pelo CI) e `pnpm test:db`.
+6. Atualizar a tabela "Já aplicado nesta base" e apagar esta seção.
+
 ## A reaplicar do fork antigo (`integracao/2026-09-30`)
 
 Em ordem. Cada item cita os commits do fork que servem de referência.

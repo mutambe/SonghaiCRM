@@ -35,6 +35,25 @@ export const FRASES_PT_MZ: Readonly<Record<string, string>> = {
   "Oi {{nome}}! Passando pra lembrar: {{titulo}}, {{dia}} às {{hora}}.":
     "Olá {{nome}}! Só para lembrar: {{titulo}}, {{dia}} às {{hora}}.",
 
+  // ---- Admin › Administradores da plataforma ----
+  // A fonte mistura inglês ("Platform Admins", "read-only", "por design") e cita
+  // a spec interna; quem lê é o dono da instalação, não quem escreveu a spec.
+  "Platform Admins": "Administradores da plataforma",
+  "Gerenciamento de Platform Admins é restrito ao DBA":
+    "Os administradores da plataforma só se alteram na base de dados",
+  "Conforme Spec 01 §3.4 T-04: adição, remoção ou alteração de":
+    "Por segurança, acrescentar, retirar ou alterar um registo em",
+  "é feita exclusivamente via SQL pelo DBA, com nota explicativa em":
+    "faz-se só por SQL, por quem administra o servidor, que deixa uma nota em",
+  ". Esta página é informativa e read-only — nenhum botão de modificação está disponível por design.":
+    ". Este ecrã serve só para consulta e não tem botões de alteração, de propósito: assim, uma sessão roubada não consegue criar outro administrador.",
+  "Nenhum platform admin encontrado": "Nenhum administrador da plataforma encontrado",
+  "Platform admins são configurados exclusivamente via DBA.":
+    "Os administradores da plataforma são definidos só na base de dados, por quem administra o servidor.",
+  "Erro ao carregar platform admins. Tente recarregar.":
+    "Não foi possível carregar os administradores da plataforma. Tente recarregar a página.",
+  "Status": "Estado",
+
   // ---- Telas: frases que nenhuma regra da camada acerta ----
   // "a gente" pede o verbo na 1.ª do plural; não é troca de palavra.
   "Ex.: Agradeça o interesse citando o segmento que a pessoa informou, mostre em uma frase como a gente resolve a dificuldade que ela descreveu, e pergunte qual o melhor horário para conversar.":

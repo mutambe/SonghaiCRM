@@ -152,7 +152,7 @@ export function SidebarContent({
                 src={logo}
                 alt={nome}
                 className={cn(
-                  "h-7 w-auto max-w-[10rem] object-contain",
+                  "h-10 w-auto max-w-[12rem] object-contain",
                   logoEscuro && "dark:hidden",
                 )}
               />
@@ -164,7 +164,7 @@ export function SidebarContent({
               <img
                 src={logoEscuro}
                 alt={nome}
-                className="hidden h-7 w-auto max-w-[10rem] object-contain dark:block"
+                className="hidden h-10 w-auto max-w-[12rem] object-contain dark:block"
               />
             ) : null}
           </div>

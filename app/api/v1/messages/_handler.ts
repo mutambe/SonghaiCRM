@@ -48,6 +48,8 @@ import {
 import type { ListMessagesQuery, SendMessageInput } from "@/lib/schemas";
 import { sendTemplateForSession } from "@/lib/channels/meta/send-template-for-session";
 import { emitirFalhaDeEntrega } from "@/lib/messaging/falha-de-entrega";
+import type { Localizacao } from "@/lib/messaging/localizacao";
+import { normalizarLocalizacaoDeSaida } from "@/lib/messaging/localizacao-de-saida";
 import { nomeDoContato } from "@/lib/contacts/rotulo-do-contato";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Message } from "@/lib/types/messaging";
@@ -375,6 +377,22 @@ export async function sendMessageHandler(
   if (ctx.agentOperation) await assertAgentOperationSupabase(supabase, ctx.agentOperation);
   if (ctx.proactiveContext) await assertAgendaEffectSupabase(supabase, ctx.proactiveContext);
   await guardAgendaEffect();
+  // SonghaiCRM — o pino sai como pino: coordenadas validadas, corpo com o link.
+  let localizacaoDeSaida: Localizacao | null = null;
+  if (input.type === "location") {
+    const normalizada = normalizarLocalizacaoDeSaida(input);
+    if (!normalizada.ok) {
+      throw new ApiError(
+        422,
+        "validation_error",
+        undefined,
+        ctx.requestId,
+        traduzir("Localização inválida: informe latitude e longitude.", ctx.idioma ?? "pt-MZ"),
+      );
+    }
+    input = normalizada.input;
+    localizacaoDeSaida = normalizada.localizacao;
+  }
   ctx = { ...ctx, serviceBoundary: ctx.serviceBoundary ?? currentExecutionBoundary() };
   if (ctx.serviceBoundary) {
     if (
@@ -1035,6 +1053,7 @@ export async function sendMessageHandler(
           kind: input.type,
           body: input.body ?? "",
           replyToExternalId: citada?.external_id ?? null,
+          ...(localizacaoDeSaida ? { location: localizacaoDeSaida } : {}),
         }));
       }
 

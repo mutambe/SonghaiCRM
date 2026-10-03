@@ -12,6 +12,7 @@ import {
   MODOS_DE_ETIQUETA,
 } from "@/lib/inbox/marcador-da-conversa";
 import { PISO_DA_BUSCA, buscaValeConsulta } from "@/lib/inbox/termo-de-busca";
+import { lerLocalizacao } from "@/lib/messaging/localizacao";
 
 /**
  * O que a API aceita ESCREVER. Cinco valores, e a ausência de `pending`/`resolved`
@@ -124,6 +125,9 @@ export const sendMessageSchema = z
         }
         return false;
       }
+      // SonghaiCRM — o pino basta: o corpo (o link do mapa) é montado no
+      // handler a partir das coordenadas.
+      if (d.type === "location" && lerLocalizacao(d.metadata?.location)) return true;
       return !!d.body || !!d.media_url || !!d.media_storage_path;
     },
     {
