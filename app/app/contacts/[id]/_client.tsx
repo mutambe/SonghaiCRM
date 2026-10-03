@@ -145,7 +145,7 @@ export function ContactDetailClient({ contactId }: Props) {
         >
           <ShieldCheck size={18} weight="duotone" aria-hidden />
           <span>
-            {t("Contato anonimizado (LGPD)")}
+            {t("Contato anonimizado (proteção de dados)")}
             {contact.anonymized_at &&
               ` em ${format(new Date(contact.anonymized_at), "dd/MM/yyyy", { locale: localeDaData })}`}
             {t(" — edição bloqueada.")}
@@ -240,7 +240,7 @@ export function ContactDetailClient({ contactId }: Props) {
         <TabsList>
           <TabsTrigger value="overview">{t("Visão geral")}</TabsTrigger>
           <TabsTrigger value="timeline">Timeline</TabsTrigger>
-          {isAdmin && <TabsTrigger value="lgpd">LGPD</TabsTrigger>}
+          {isAdmin && <TabsTrigger value="lgpd">{t("Proteção de Dados")}</TabsTrigger>}
         </TabsList>
 
         <TabsContent value="overview" className="mt-4">

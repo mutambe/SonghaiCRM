@@ -49,7 +49,7 @@ export function TenantOverviewClient({ id }: TenantOverviewClientProps) {
 
       <div className="grid gap-6 lg:grid-cols-[1fr_280px]">
         <div className="space-y-6">
-          {/* SonghaiCRM — o pacote vigente e a troca (migration 0504). */}
+          {/* SonghaiCRM — o pacote vigente e a troca (migration 9004). */}
           <PlanoDaOrganizacao organizationId={organization.id} />
           <ResponsavelDaOrganizacao organizationId={organization.id} />
           <TenantOverview

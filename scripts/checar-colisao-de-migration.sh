@@ -378,8 +378,12 @@ while IFS= read -r nome; do
     continue
   fi
 
-  colisao_n="$(grep -E "^[0-9]{14}_${nnnn}_.+\.sql$" <<<"$base_arvore" || true)"
-  colisao_t="$(grep -E "^${ts}_[0-9]{4}_.+\.sql$" <<<"$base_arvore" || true)"
+  # Só colide o que CONTINUA a existir depois do PR: o arquivo da base que o próprio PR
+  # renumerou ou apagou libertou o número (o caso do SonghaiCRM em 2026-10-03, que levou
+  # as suas 0501–0504 para 9001–9004 no mesmo PR que trouxe as 0501–0504 do upstream).
+  base_que_fica="$(grep -Fx -f <(printf '%s\n' "$head_arvore") <<<"$base_arvore" || true)"
+  colisao_n="$(grep -E "^[0-9]{14}_${nnnn}_.+\.sql$" <<<"$base_que_fica" || true)"
+  colisao_t="$(grep -E "^${ts}_[0-9]{4}_.+\.sql$" <<<"$base_que_fica" || true)"
   if [ -n "$colisao_n" ]; then
     lista="$(tr '\n' ' ' <<<"$colisao_n" | sed 's/ *$//')"
     echo "::error file=$caminho::NNNN=$nnnn já existe em '$BASE': $lista"

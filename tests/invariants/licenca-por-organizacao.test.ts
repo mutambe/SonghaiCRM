@@ -1,5 +1,5 @@
 /**
- * Licença por organização (migration 0504, SonghaiCRM).
+ * Licença por organização (migration 9004, SonghaiCRM).
  *
  * `plans` é o catálogo: qualquer usuário logado lê, ninguém escreve pela sessão.
  * `organization_subscriptions` é a assinatura: cada organização vê só a sua, e

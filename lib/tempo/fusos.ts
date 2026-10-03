@@ -37,7 +37,36 @@ export const FUSOS_OFERECIDOS: { codigo: string; rotulo: string }[] = [
   { codigo: "Africa/Maputo", rotulo: "Maputo (Moçambique)" },
   { codigo: "Africa/Johannesburg", rotulo: "Joanesburgo (África do Sul)" },
   { codigo: "Europe/Lisbon", rotulo: "Lisboa (Portugal)" },
+  // Do upstream (#2187): Madrid e Roma, para quem atende de lá; os fusos do
+  // Brasil que vieram no mesmo PR (Cuiabá, Rio Branco) NÃO entram.
+  { codigo: "Europe/Madrid", rotulo: "Madrid (Espanha)" },
+  { codigo: "Europe/Rome", rotulo: "Roma (Itália)" },
+  { codigo: "America/New_York", rotulo: "Nova Iorque (EUA)" },
+  { codigo: "America/Los_Angeles", rotulo: "Los Angeles (EUA)" },
   { codigo: "UTC", rotulo: "UTC" },
+];
+
+/**
+ * Os fusos do primeiro acesso (`app/onboarding/welcome/_form.tsx`), escritos
+ * como a pessoa reconhece — a cidade e a região, não o identificador. Todo
+ * `id` aqui TEM de estar em `FUSOS_OFERECIDOS`: é o que as telas de
+ * configuração mostram depois, e um fuso que só existe no onboarding vira
+ * o padrão na primeira vez que alguém abre Configurações. Vigiado por
+ * `tests/unit/fusos-uma-lista-so.test.ts`.
+ *
+ * SonghaiCRM: Maputo primeiro e padrão (`FUSO_PADRAO`); a lista brasileira do
+ * upstream (São Paulo, Recife, Belém, Manaus, Cuiabá, Rio Branco) e Buenos
+ * Aires não entram.
+ */
+export const FUSOS_DO_ONBOARDING: { id: string; cidade: string }[] = [
+  { id: "Africa/Maputo", cidade: "Maputo, Beira, Nampula e todo Moçambique" },
+  { id: "Africa/Johannesburg", cidade: "Joanesburgo" },
+  { id: "Europe/Lisbon", cidade: "Lisboa" },
+  { id: "Europe/Madrid", cidade: "Madrid" },
+  { id: "Europe/Rome", cidade: "Roma" },
+  { id: "America/New_York", cidade: "Nova Iorque" },
+  { id: "America/Los_Angeles", cidade: "Los Angeles" },
+  { id: "UTC", cidade: "Outro (horário universal)" },
 ];
 
 /**

@@ -107,7 +107,22 @@ services:
         traefik.http.routers.deskcomm.rule: "Host(`${DOMAIN}`)"
         traefik.http.routers.deskcomm.entrypoints: "${TRAEFIK_ENTRYPOINT:-websecure}"
         traefik.http.routers.deskcomm.tls.certresolver: "${TRAEFIK_CERTRESOLVER:-letsencrypt}"
-        traefik.http.routers.deskcomm.middlewares: "deskcomm-compress"
+        # SonghaiCRM — limite por IP na entrada (pedidos por segundo com pico, e
+        # ligações abertas), DESLIGADO por padrão. Contam pelo IP que a Cloudflare
+        # envia em `CF-Connecting-IP`: atrás do Swarm com portas em modo
+        # "ingress", o Traefik vê o MESMO IP interno para todos os visitantes, e
+        # um limite pelo endereço da ligação viraria limite do site inteiro.
+        # Só ligue com a Cloudflare à frente E as portas 80/443 fechadas a quem
+        # não é ela (senão o cabeçalho pode ser forjado), pondo no .env:
+        #   TRAEFIK_MIDDLEWARES_DO_APP=deskcomm-limite,deskcomm-ligacoes,deskcomm-compress
+        # NÃO trava DDoS volumétrico — isso é a Cloudflare, na rede.
+        traefik.http.routers.deskcomm.middlewares: "${TRAEFIK_MIDDLEWARES_DO_APP:-deskcomm-compress}"
+        traefik.http.middlewares.deskcomm-limite.ratelimit.average: "${TRAEFIK_PEDIDOS_POR_SEGUNDO:-100}"
+        traefik.http.middlewares.deskcomm-limite.ratelimit.burst: "${TRAEFIK_PICO_DE_PEDIDOS:-200}"
+        traefik.http.middlewares.deskcomm-limite.ratelimit.period: "1s"
+        traefik.http.middlewares.deskcomm-limite.ratelimit.sourcecriterion.requestheadername: "CF-Connecting-IP"
+        traefik.http.middlewares.deskcomm-ligacoes.inflightreq.amount: "${TRAEFIK_LIGACOES_POR_IP:-60}"
+        traefik.http.middlewares.deskcomm-ligacoes.inflightreq.sourcecriterion.requestheadername: "CF-Connecting-IP"
         traefik.http.middlewares.deskcomm-compress.compress: "true"
 
         # O webhook GLOBAL do WAHA nunca é público (403), como no Caddyfile e no

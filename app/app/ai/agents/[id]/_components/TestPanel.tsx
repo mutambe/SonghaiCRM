@@ -253,7 +253,7 @@ export function TestPanel({ agent, draft, published, readOnly }: Props) {
               id="test-phone"
               value={contactPhone}
               onChange={(e) => setContactPhone(e.target.value)}
-              placeholder="+55..."
+              placeholder="+258..."
               disabled={pending || readOnly}
             />
           </div>

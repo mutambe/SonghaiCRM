@@ -100,7 +100,7 @@ const RECUSAS_DO_RPC = {
   aviso_de_caso_telefone_invalido: {
     code: "validation_failed",
     status: 422 as const,
-    frase: "Esse número não é válido. Use o código do país, por exemplo +55 31 99999-8888.",
+    frase: "Esse número não é válido. Use o código do país, por exemplo +258 84 123 4567.",
   },
   aviso_de_caso_canal_invalido: {
     code: "aviso_canal_invalido",

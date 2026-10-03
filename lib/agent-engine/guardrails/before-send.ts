@@ -335,7 +335,7 @@ export const lgpdGate: Gate = {
         pass: false,
         code: 'lgpd_anonymized',
         reason:
-          'este contato está anonimizado no CRM (LGPD) — é proibido enviar qualquer mensagem a ' +
+          'este contato está anonimizado no CRM (proteção de dados) — é proibido enviar qualquer mensagem a ' +
           'ele; encerre o turno sem tentar de novo.',
       };
     }
@@ -344,7 +344,7 @@ export const lgpdGate: Gate = {
         pass: false,
         code: 'lgpd_missing_legal_basis',
         reason:
-          'não há base legal válida (LGPD) para o 1º contato de prospecção com este lead ' +
+          'não há base legal válida (proteção de dados) para o 1º contato de prospecção com este lead ' +
           '(consentimento, ou legítimo interesse com LIA registrada); não é possível iniciar a ' +
           'abordagem — encerre o turno, o time comercial vai regularizar a base legal no CRM.',
       };

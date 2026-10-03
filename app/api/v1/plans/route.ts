@@ -1,6 +1,6 @@
 /**
  * GET /api/v1/plans — o catálogo público de pacotes do SonghaiCRM (migration
- * 0504), para a página de preços. Só o que está à venda e só o que um visitante
+ * 9004), para a página de preços. Só o que está à venda e só o que um visitante
  * pode ver: nome, preço, taxa de instalação, moeda e limites. Sem sessão; com
  * teto de 60 pedidos por minuto por IP.
  */

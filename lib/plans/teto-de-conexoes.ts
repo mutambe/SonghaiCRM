@@ -1,5 +1,5 @@
 /**
- * TETO DE NÚMEROS DE WHATSAPP DO PLANO (SonghaiCRM, migration 0504).
+ * TETO DE NÚMEROS DE WHATSAPP DO PLANO (SonghaiCRM, migration 9004).
  *
  * Uma função para TODAS as portas que ligam um número novo — o QR, o canal
  * oficial e os parceiros. No fork antigo o teto só existia no QR; aqui há mais

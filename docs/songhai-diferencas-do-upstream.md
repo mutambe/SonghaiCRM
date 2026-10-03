@@ -179,10 +179,19 @@ inteiro; na dúvida, o roteiro pergunta de novo.
 | Janela de cortesia | 6h–23h, domingo aberto | `PACING_DEFAULTS` |
 | Warm-up do número novo (dias 0–3) | 20 mensagens/dia (igual ao upstream; decidido manter) | `PACING_DEFAULTS.warmupDailyCaps` |
 | Canal novo | nasce em "IA em modo de teste" (igual ao upstream; decidido manter) | `lib/ai/elegibilidade/pre-go-live.ts` |
-| Licença por organização | pacotes em MZN; sem assinatura = sem bloqueio | migration 0504 |
+| Licença por organização | pacotes em MZN; sem assinatura = sem bloqueio | migration 9004 |
 
 ## 8. CI, versões e publicação
 
+- **Typecheck do CI com heap de 8 GB** (`NODE_OPTIONS` só no passo Typecheck do
+  `ci.yml`, desde 2026-10-03). Sem cache incremental o `tsc` usa ~4,2 GB, o
+  heap padrão do Node; o código da distribuição passou do limite e o job morreu
+  com «heap out of memory». Num merge que conflite aqui, mantenha o `env:`.
+- **Migrations da distribuição usam a faixa `9001+`** (desde 2026-10-03). O
+  upstream numera em sequência e já tomou 0501–0504, os números que as nossas
+  tinham; numa faixa própria, nenhum merge futuro colide. Migration nova do
+  SonghaiCRM = o próximo `9NNN`, com timestamp, linha no MANIFEST e bloco no
+  `songhai.sql`.
 - **Nunca empurre as tags `v*` do upstream para o repositório do SonghaiCRM.**
   Push de `v*` dispara a publicação de imagens: sairia o código brasileiro do
   upstream com o nome da Songhai, e o canal `stable` poderia mover.
@@ -191,8 +200,11 @@ inteiro; na dúvida, o roteiro pergunta de novo.
   `invariants` usa `CONFERENCIA_KIT_RELEASE: v1.69.0` **até o SonghaiCRM
   publicar a primeira release** — depois, tire essa linha do `ci.yml`.
 - O workflow `release` do upstream falha aqui por falta da GitHub App
-  (`RELEASE_APP_ID`/`RELEASE_APP_PRIVATE_KEY`). Não bloqueia a publicação de
-  imagens; resolve-se criando a App ou desligando o workflow.
+  (`RELEASE_APP_ID`/`RELEASE_APP_PRIVATE_KEY`). **Desligado no repositório
+  desde 2026-10-03** (`gh workflow disable release.yml --repo mutambe/SonghaiCRM`):
+  a definição do GitHub sobrevive a todo merge, e o arquivo do upstream fica
+  intocado. Versão publica-se com a tag `vX.Y.Z` feita à mão, como a v2.0.0.
+  Para religar (depois de criar a App): `gh workflow enable release.yml`.
 - Nome de provider (waha, zernio…) só dentro de `lib/channels/`
   (`pnpm lint:channels`) — inclusive em comentário.
 
@@ -202,6 +214,18 @@ inteiro; na dúvida, o roteiro pergunta de novo.
   `docker-compose.swarm.yml`, preso ao `docker-compose.prod.yml` por
   `tests/unit/swarm-acompanha-o-compose-de-producao.test.ts`. Deploy:
   `bash hostgator-setup-kit/deploy-swarm.sh` (banco ANTES das imagens).
+- **Limites contra abuso (2026-10-03).** No Traefik do Swarm existem dois
+  middlewares por IP — `deskcomm-limite` (`TRAEFIK_PEDIDOS_POR_SEGUNDO` 100, pico
+  `TRAEFIK_PICO_DE_PEDIDOS` 200) e `deskcomm-ligacoes` (`TRAEFIK_LIGACOES_POR_IP`
+  60) —, que contam pelo cabeçalho `CF-Connecting-IP` e nascem **desligados**:
+  com as portas do Swarm em modo "ingress" o Traefik vê o mesmo IP interno para
+  todos, e um limite pelo endereço da ligação viraria limite do site inteiro.
+  Liga-se com `TRAEFIK_MIDDLEWARES_DO_APP=deskcomm-limite,deskcomm-ligacoes,deskcomm-compress`
+  no `.env`, **só** com a Cloudflare à frente e as portas 80/443 da VPS fechadas a
+  quem não é ela (senão o cabeçalho pode ser forjado). No app, `/api/v1/health`
+  (público e caro, 4–5 s) tem 30/min por IP, ao lado de MCP/internal/cron
+  (`lib/auth/limite-das-superficies-internas.ts`). **Nada disto trava DDoS
+  volumétrico**: isso é a Cloudflare, na rede (guia entregue ao dono em 2026-10-03).
 - O `docker-compose.swarm.yml` antigo do fork (lista de variáveis à mão,
   imagens `melgarafael`, evento `message` duplicado) **não** deve ser usado.
 - **O `env_file` do Swarm não tira aspas** (o do `docker compose` tira). O

@@ -19,12 +19,14 @@ import { IDIOMAS_VISIVEIS } from "@/lib/i18n/registro";
 import { MOEDAS_SERVIDAS, rotuloDaMoeda, type MoedaServida } from "@/lib/money";
 import { PAIS_PADRAO, paisesOferecidos } from "@/lib/legal/perfil-do-pais";
 import { tenantSchema, type Locale, type TenantInput } from "@/lib/schemas/settings";
+import { FUSOS_OFERECIDOS } from "@/lib/tempo/fusos";
 
 interface Props {
   initial: TenantInput;
 }
 
-const TIMEZONES = ["Africa/Maputo", "Africa/Johannesburg", "Europe/Lisbon", "UTC"];
+// A mesma lista de toda tela de fuso — ver `lib/tempo/fusos.ts`.
+const TIMEZONES = FUSOS_OFERECIDOS.map((f) => f.codigo);
 
 export function TenantForm({ initial }: Props) {
   const t = useT();

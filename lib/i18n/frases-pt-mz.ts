@@ -53,6 +53,9 @@ export const FRASES_PT_MZ: Readonly<Record<string, string>> = {
   "Erro ao carregar platform admins. Tente recarregar.":
     "Não foi possível carregar os administradores da plataforma. Tente recarregar a página.",
   "Status": "Estado",
+  // Exemplo de telefone: o de Moçambique (+258), nunca o do Brasil.
+  "Use um telefone com DDI por linha, por exemplo +5511999998888.":
+    "Use um telefone com indicativo do país por linha, por exemplo +258841234567.",
 
   // ---- Telas: frases que nenhuma regra da camada acerta ----
   // "a gente" pede o verbo na 1.ª do plural; não é troca de palavra.

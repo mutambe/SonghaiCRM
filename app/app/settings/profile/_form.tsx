@@ -21,8 +21,10 @@ import {
   SEM_PREFERENCIA_DE_IDIOMA,
   type Locale,
 } from "@/lib/schemas/settings";
+import { FUSOS_OFERECIDOS } from "@/lib/tempo/fusos";
 
-const TIMEZONES = ["Africa/Maputo", "Africa/Johannesburg", "Europe/Lisbon", "UTC"];
+// A mesma lista de toda tela de fuso — ver `lib/tempo/fusos.ts`.
+const TIMEZONES = FUSOS_OFERECIDOS.map((f) => f.codigo);
 
 interface Props {
   email: string;

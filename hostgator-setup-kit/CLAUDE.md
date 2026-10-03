@@ -87,6 +87,7 @@ discordarem, vale o guia; quando o guia e `install.sh` discordarem, vale o insta
 | "Network unreachable" no banco | trocar a connection string pela **Session pooler** |
 | "esqueci minha senha" com link para `localhost:3000` | `export SUPABASE_ACCESS_TOKEN=sbp_... && bash hostgator-setup-kit/marca-emails.sh` |
 | esqueci a senha / perdi o autenticador | `bash hostgator-setup-kit/reset-password.sh <email>` / `bash hostgator-setup-kit/reset-mfa.sh <email>` |
+| dar/tirar acesso de administrador da plataforma | `bash hostgator-setup-kit/platform-admin.sh listar` · `adicionar <email> [total\|leitura]` · `retirar <email>` · `exigir-mfa <email> sim\|nao` |
 | está tudo no ar? | `bash hostgator-setup-kit/healthcheck.sh` |
 
 O catálogo inteiro (proxy da hospedagem, Cloudflare, WAHA 401, QR, "usuário já existe", `update.sh`

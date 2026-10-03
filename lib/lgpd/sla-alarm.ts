@@ -18,8 +18,9 @@ import { sendEmail } from "@/lib/email/roteador";
 import { audit } from "@/lib/audit";
 import { env } from "@/lib/env";
 import { valorDaInstalacao } from "@/lib/instalacao/config";
+import { diasAtePrazo, diasDeAtraso, prazoEmBr } from "./sla";
 import type { LgpdRequest } from "./types";
-import { FUSO_PADRAO } from "@/lib/tempo/fusos";
+import { citacaoDaLei, perfilDoPais } from "@/lib/legal/perfil-do-pais";
 
 export type AlarmThreshold = "data_request_d5" | "redact_d10";
 
@@ -69,20 +70,28 @@ export async function triggerSlaAlarm(
   }
 
   // ──────────────────────────────────────────────────────────────────────────
-  // 2. Compute days overdue (best-effort; MVP uses calendar days as approx)
+  // 2. Dias de atraso — contados em DIAS CIVIS, no eixo em que o prazo foi
+  //    contado. Ver `lib/lgpd/sla.ts`: `due_at` é a meia-noite UTC de um dia
+  //    útil, e o prazo vai até o FIM desse dia.
+  //
+  //    A versão anterior (`Math.round((now - due_at) / 86_400_000)`) errava por
+  //    dois motivos somados: media milissegundos — que a oeste de UTC já são o
+  //    dia seguinte — e arredondava meio dia para cima. Efeito medido em São
+  //    Paulo, prazo no dia 05/10: às 09h de 05/10 (12h UTC) o e-mail dizia
+  //    "1 dia(s) em atraso" ao lado de "o prazo vence em 04/10, 21:00" — dois
+  //    números que não podem estar certos ao mesmo tempo, e o primeiro é o que
+  //    o DPO lê.
   // ──────────────────────────────────────────────────────────────────────────
-  const dueAtMs = new Date(request.due_at).getTime();
-  const nowMs = Date.now();
-  const daysOverdue = Math.round((nowMs - dueAtMs) / 86_400_000);
+  const daysOverdue = diasDeAtraso(request.due_at, new Date());
 
-  const daysToDue = -daysOverdue; // negative = overdue
+  const daysToDue = diasAtePrazo(request.due_at, new Date()); // negativo = atrasado
 
   // ──────────────────────────────────────────────────────────────────────────
   // 3. Sentry warning — zero PII in payload
   // ──────────────────────────────────────────────────────────────────────────
   let sentryOk = false;
   try {
-    Sentry.captureMessage("LGPD SLA threshold reached", {
+    Sentry.captureMessage("Data protection deadline threshold reached", {
       level: "warning",
       tags: {
         request_id: request.id,
@@ -117,21 +126,23 @@ export async function triggerSlaAlarm(
       const shortId = request.id.slice(0, 8);
       const orgName = escapeHtml(organizationName || marca.nome);
       const appUrl = env.NEXT_PUBLIC_APP_URL;
-      const requestUrl = `${appUrl}/app/lgpd/requests/${request.id}`;
+      // Porta neutra, não `/app` nem o hub: a empresa pode ser suspensa ou
+      // reativada entre o envio e o clique, e quem decide é o clique
+      // (`app/lgpd/pedido/[id]/route.ts`).
+      const requestUrl = `${appUrl}/lgpd/pedido/${request.id}`;
 
-      const subject = `[LGPD] Solicitação ${shortId} próxima do vencimento`;
+      const subject = `[Proteção de Dados] Pedido ${shortId} próxima do vencimento`;
 
       const thresholdLabel =
         threshold === "data_request_d5"
           ? "D+5 (acesso a dados)"
           : "D+10 (anonimização/exclusão)";
 
-      const dueFmt = new Date(request.due_at).toLocaleString("pt-MZ", {
-        timeZone: FUSO_PADRAO,
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-      });
+      // A DATA vem do dia civil que a coluna guarda, não do instante com fuso:
+      // `toLocaleString` com o fuso da instalação podia devolver o dia
+      // errado para quem lê a oeste de UTC (a meia-noite UTC do dia 05 é o dia 04 lá).
+      // Ver `prazoEmBr` — e, junto, `diaDoPrazo`.
+      const dueFmt = prazoEmBr(request.due_at) ?? new Date(request.due_at).toISOString().slice(0, 10);
 
       // `#dc2626` FICA, e não vira o accent: é semântica de ALERTA, não marca.
       // Um atraso que aparece em verde-sálvia porque o revendedor escolheu
@@ -144,29 +155,29 @@ export async function triggerSlaAlarm(
       const html = `<!doctype html>
 <html lang="pt-MZ">
 <body style="font-family:-apple-system,Helvetica,Arial,sans-serif;color:${NEUTROS_DE_SAIDA.texto};line-height:1.5;max-width:560px;margin:0 auto;padding:24px;">
-  <h2 style="margin:0 0 12px;font-size:18px;">[LGPD] Alerta de SLA — Solicitação #${shortId}</h2>
+  <h2 style="margin:0 0 12px;font-size:18px;">[Proteção de Dados] Alerta de prazo — Pedido #${shortId}</h2>
   <p>Olá,</p>
-  <p>A solicitação LGPD <strong>#${shortId}</strong> de <strong>${orgName}</strong> atingiu o limiar <strong>${thresholdLabel}</strong>.</p>
+  <p>A pedido de Proteção de Dados <strong>#${shortId}</strong> de <strong>${orgName}</strong> atingiu o limiar <strong>${thresholdLabel}</strong>.</p>
   ${overdueNote}
   <p>Status atual: <code>${request.request_type}</code> / <code>${request.status}</code></p>
   <p style="margin:24px 0;">
     <a href="${requestUrl}" style="background:${marca.accent};color:${marca.accentFg};padding:10px 18px;border-radius:6px;text-decoration:none;display:inline-block;">Ver solicitação no painel</a>
   </p>
-  <p style="font-size:12px;color:${NEUTROS_DE_SAIDA.suave};">Base legal: LGPD Lei nº 13.709/2018, Art. 18. SLA obrigatório conforme regulamentação vigente.</p>
+  <p style="font-size:12px;color:${NEUTROS_DE_SAIDA.suave};">Base legal: ${escapeHtml(citacaoDaLei(perfilDoPais(null)) ?? "")}. O prazo é um compromisso operacional da organização.</p>
 </body>
 </html>`;
 
       // Texto puro não escapa: `&amp;` no corpo de um alarme é ruído.
-      const text = `[LGPD] Alerta de SLA — Solicitação #${shortId}
+      const text = `[Proteção de Dados] Alerta de prazo — Pedido #${shortId}
 
-A solicitação LGPD #${shortId} de ${organizationName || marca.nome} atingiu o limiar ${thresholdLabel}.
+A pedido de Proteção de Dados #${shortId} de ${organizationName || marca.nome} atingiu o limiar ${thresholdLabel}.
 ${daysOverdue > 0 ? `Esta solicitação está ${daysOverdue} dia(s) em atraso.` : `Prazo: ${dueFmt}.`}
 
 Status: ${request.request_type} / ${request.status}
 
 Acesse: ${requestUrl}
 
-Base legal: LGPD Lei nº 13.709/2018, Art. 18.`;
+Base legal: ${citacaoDaLei(perfilDoPais(null)) ?? ""}.`;
 
       const result = await sendEmail({
         to: recipientEmail,

@@ -216,7 +216,7 @@ export function LinksRastreaveis({
           <Input
             id="link-phone"
             required
-            placeholder="+5511999999999"
+            placeholder="+258841234567"
             pattern="\+[1-9][0-9]{7,14}"
             value={form.whatsapp_e164}
             onChange={(e) => setForm({ ...form, whatsapp_e164: e.target.value })}

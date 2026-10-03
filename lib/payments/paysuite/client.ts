@@ -27,7 +27,7 @@ export class PaySuiteApiError extends Error {
 
 export type PaySuiteMethod = "mpesa" | "emola" | "credit_card";
 
-/** `payment_credentials.status` (migration 0503 nesta base; 0162 no fork) — par registrado em tests/invariants/vocabulario-banco-x-typescript.test.ts. */
+/** `payment_credentials.status` (migration 9003 nesta base; 0162 no fork) — par registrado em tests/invariants/vocabulario-banco-x-typescript.test.ts. */
 export type PaymentCredentialStatus = "connecting" | "healthy" | "error";
 
 export interface PaymentCreateInput {

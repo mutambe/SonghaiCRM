@@ -12,7 +12,7 @@ export const tenantCreationFields = {
     .regex(/^[a-z0-9-]+$/, "Apenas letras minúsculas, números e hífens"),
   legal_name: z.string().max(255).optional(),
   cnpj: z.string().max(18).optional(),
-  // SonghaiCRM: o pacote do catálogo real (public.plans, migration 0504), não um rótulo.
+  // SonghaiCRM: o pacote do catálogo real (public.plans, migration 9004), não um rótulo.
   plan: z.enum(SLUGS_DE_PLANO),
   owner_interface_settings: interfaceSettingsSchema.optional(),
   owner_email: z.string().trim().email(),

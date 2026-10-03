@@ -54,6 +54,7 @@ import { getActiveVoiceAgent } from "@/lib/ai/agents";
 import { resolveOrCreateCallerContact } from "@/lib/voip/resolve-caller";
 import { garantirLeadDaConversa } from "@/lib/leads/nascimento-do-lead";
 import { buscarConhecimento, resolverAcervoDoAgente } from "@/lib/ai/knowledge/busca";
+import { ehOperante } from "@/lib/organizacao/operante";
 
 const supabaseAdmin = createAdminClient();
 
@@ -131,7 +132,7 @@ async function handleStasisStart(event: AriEvent) {
         contactId: callerContactId,
         conversationId: callRow.id,
         nomeDoContato: channel.caller?.name ?? null,
-        origem: { rotulo: "chamada", source: "voip", motivo: "primeira ligação recebida" },
+        origem: { rotulo: "telefone", source: "voip", motivo: "primeira ligação recebida" },
       });
       if (!nascimento.criado) {
         console.info(`[voice-agent] lead não criado para ${callerNumber}: ${nascimento.motivo}`);
@@ -236,6 +237,20 @@ async function handleAudioSocketConnection(socket: net.Socket, uuid: string, lef
 
   if (error || !callRow) {
     console.error(`[audiosocket] uuid ${uuid} não corresponde a nenhuma voice_calls — encerrando`);
+    socket.end();
+    return;
+  }
+
+  // Organização parada (suspensa, redigida, arquivada) não atende por voz: a
+  // sessão em tempo real é o gasto mais caro por minuto do produto. Falha de
+  // leitura também encerra — sem saber o status, não se abre a sessão paga.
+  const { data: org, error: orgErr } = await supabaseAdmin
+    .from("organizations")
+    .select("status")
+    .eq("id", callRow.organization_id)
+    .maybeSingle();
+  if (orgErr || !ehOperante(org?.status)) {
+    console.warn(`[audiosocket] voz_org_suspensa org ${callRow.organization_id} — encerrando`);
     socket.end();
     return;
   }

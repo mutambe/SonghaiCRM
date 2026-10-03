@@ -134,6 +134,9 @@ const TIPO_DO_NO: Record<FlowNode["type"], string> = {
   action: "Mensagem",
   // #1540 — não é "Mensagem": é o passo que NÃO fala com o cliente.
   internal_task: "Lembrete interno",
+  // #2065 — as duas ações que também não falam com o cliente.
+  move_lead: "Mover no funil",
+  edit_lead_tag: "Editar tag",
   end: "Fim",
 };
 
@@ -202,6 +205,15 @@ export function resumoDoNo(node: FlowNode): NoDoDossie {
       const prazo = node.config.vence_em_dias === 0 ? "hoje" : `em ${node.config.vence_em_dias} dia(s)`;
       return { ...base, resumo: `cria a tarefa "${node.config.titulo}" para ${prazo} — sem mensagem ao cliente` };
     }
+    case "move_lead":
+      return { ...base, resumo: "move o card para outra etapa do funil — sem mensagem ao cliente" };
+    case "edit_lead_tag":
+      return {
+        ...base,
+        resumo: node.config.tags.length
+          ? `grava a(s) tag(s) ${node.config.tags.join(", ")} no lead — sem mensagem ao cliente`
+          : "grava tag no lead, ainda sem destino escolhido — sem mensagem ao cliente",
+      };
     case "end":
       return { ...base, resumo: `encerra — ${DESFECHO[node.config.outcome] ?? node.config.outcome}` };
   }
@@ -416,6 +428,15 @@ export function descreveEvento(
         ...motor,
       };
     }
+    case "turn_discarded":
+      // A suspensão da conta tirou o turno da fila antes de ele rodar
+      // (migration 0501). Sem esta linha o dossiê mostrava um código cru logo
+      // antes de um segundo "Pediu ao agente para escrever a mensagem".
+      return {
+        titulo: "O envio deste passo foi descartado porque a conta foi suspensa",
+        detalhe: "sai num envio novo quando a conta for reativada",
+        ...motor,
+      };
     case "held_by_return": {
       // Como o adiamento pela janela: segurar NÃO é falhar. Sem esta linha o
       // operador veria o fluxo parado por dias sem saber que ele está esperando

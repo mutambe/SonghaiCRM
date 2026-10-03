@@ -139,7 +139,7 @@ export function FormularioDeCapturaDeUtm({
             list={`${plataforma}_captura_numeros_conectados`}
             value={numero}
             onChange={(e) => setNumero(e.target.value)}
-            placeholder="+5511999999999"
+            placeholder="+258841234567"
           />
           {/* Os números conectados entram como SUGESTÃO, não como lista fechada:
               o número da landing page não precisa ser um canal do CRM. */}

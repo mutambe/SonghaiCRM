@@ -2,7 +2,7 @@
  * OS PROVIDERS QUE SÃO UM NÚMERO DE WHATSAPP DE CONVERSA — SonghaiCRM.
  *
  * É o que o teto do pacote conta (`lib/plans/teto-de-conexoes.ts`, migration
- * 0504): quantos números a organização tem ligados. Mora aqui, e não no plano,
+ * 9004): quantos números a organização tem ligados. Mora aqui, e não no plano,
  * porque nomear provider fora de `lib/channels/` é proibido
  * (`docs/doctrine/restricao-de-canal.md`, invariante 1; `pnpm lint:channels`).
  *

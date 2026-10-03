@@ -75,7 +75,7 @@ interface Excecao {
  * linhas da OUTRA organização, não uma leitura como superusuário.
  */
 const PROVA_PROPRIA: readonly Excecao[] = [
-  // SonghaiCRM — tabelas da distribuição (migrations 0503 e 0504, supabase/songhai.sql).
+  // SonghaiCRM — tabelas da distribuição (migrations 9003 e 9004, supabase/songhai.sql).
   { tabela: "organization_subscriptions", razao: "tests/invariants/licenca-por-organizacao.test.ts — dois tenants por JWT: o usuário de A vê a assinatura de A e ZERO da de B; anon sem privilégio e authenticated não escreve (a troca só pela fn_trocar_plano_da_organizacao, revogada de anon/authenticated)." },
   { tabela: "payments", razao: "tests/invariants/pagamentos-paysuite.test.ts — dois tenants por JWT: o usuário de A vê o pagamento de A e ZERO o de B; authenticated barrado ao escrever (só o servidor grava)." },
   { tabela: "payment_credentials", razao: "tests/invariants/pagamentos-paysuite.test.ts — credencial exclusiva do servidor: anon e authenticated sem privilégio nenhum (permission denied, não zero linhas), RLS ligada sem policy." },
@@ -249,6 +249,14 @@ const PROVA_PROPRIA: readonly Excecao[] = [
       "orçamento, criativo e performance de quem anuncia.",
   },
   {
+    tabela: "map_provider_credentials",
+    razao:
+      "tests/invariants/credencial-de-mapas-e-server-side.test.ts — privilégio " +
+      "NENHUM para anon e authenticated, `permission denied` sob `set role`, RLS " +
+      "ligada, zero policies, `organization_id` NOT NULL com FK em cascata. Guarda " +
+      "a chave do Google da organização (0504), que só o servidor lê.",
+  },
+  {
     tabela: "ad_conversion_dispatches",
     razao:
       "tests/invariants/credencial-de-anuncios-e-server-side.test.ts — mesmo " +
@@ -282,6 +290,15 @@ const PROVA_PROPRIA: readonly Excecao[] = [
       "anon/authenticated. O servidor aplica organization_id às regras por etapa. " +
       "tests/invariants/google-regras-etapa-isoladas.test.ts também prova a FK " +
       "composta que recusa etapa de outra organização.",
+  },
+  {
+    tabela: "meta_ads_conversion_rules",
+    razao:
+      "tests/invariants/captura-de-clique-e-server-side.test.ts — RLS ligada, " +
+      "zero policies, privilégios revogados e permission denied sob set role " +
+      "anon/authenticated. O servidor aplica organization_id às regras por etapa " +
+      "da Meta (0524). tests/invariants/meta-regras-etapa-isoladas.test.ts prova a " +
+      "FK composta que recusa etapa de outra organização.",
   },
   {
     tabela: "ad_tracking_links",

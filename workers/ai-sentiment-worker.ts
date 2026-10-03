@@ -43,6 +43,7 @@ import { logInvocation, type LogInvocationInput } from "@/lib/ai/log-invocation"
 import { DEFAULT_SENTIMENT_THRESHOLD, SENTIMENT_SYSTEM_PROMPT } from "@/lib/ai/prompts/sentiment";
 import type { EventRow } from "@/lib/event-log/dispatcher";
 import { normalizarIdioma } from "@/lib/i18n/idiomas";
+import { MENSAGEM_REDIGIDA } from "@/lib/lgpd/cascata";
 import { aiDispatchModeSchema } from "@/lib/schemas/settings";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { aConversaAgora, perguntarOsPedidosDoCliente } from "@/workers/ai-sentiment-worker.pedidos";
@@ -507,7 +508,12 @@ export async function processSentiment(event: EventRow): Promise<SentimentResult
         .from("messages")
         .update({ metadata: updatedMetadata })
         .eq("id", messageId)
-        .eq("organization_id", event.organization_id);
+        .eq("organization_id", event.organization_id)
+        // Mesma guarda LGPD do media-derive-worker (#1991): `updatedMetadata`
+        // parte da foto lida antes da classificação, e a anonimização que rodar
+        // nesse meio tempo zera `metadata` — regravá-la devolveria o dado
+        // apagado, mais a nota derivada, a uma mensagem já redigida.
+        .filter("body", "isdistinct", MENSAGEM_REDIGIDA);
 
       if (updateErr) {
         console.warn("[ai-sentiment-worker] metadata update failed", {

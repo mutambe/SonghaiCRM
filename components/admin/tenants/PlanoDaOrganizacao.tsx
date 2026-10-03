@@ -46,7 +46,7 @@ function limitesLegiveis(plano: Plano, t: (s: string) => string): string {
 }
 
 /**
- * O PLANO DE UMA ORGANIZAÇÃO — SonghaiCRM, migration 0504.
+ * O PLANO DE UMA ORGANIZAÇÃO — SonghaiCRM, migration 9004.
  *
  * Mostra o pacote vigente com os limites que o produto aplica (convite de
  * equipa e ligação de número) e deixa o admin da plataforma mudar de pacote.

@@ -17,7 +17,7 @@ type Context = { params: Promise<{ id: string }> };
 /** Só administradores podem ler os telefones de teste ou mudar o alcance da IA. */
 export async function GET(_req: NextRequest, { params }: Context): Promise<Response> {
   const requestId = randomUUID();
-  const auth = await requireRole("admin", { requestId, resource: "channel_sessions", allowPlatformAdmin: true });
+  const auth = await requireRole("admin", { requestId, resource: "channel_sessions", allowPlatformAdmin: "leitura" });
   if (!auth.ok) return auth.response;
   const { id } = await params;
   if (!z.uuid().safeParse(id).success) return fail("validation_failed", "Canal inválido.", 422, { requestId });
@@ -38,7 +38,7 @@ export async function PATCH(req: NextRequest, { params }: Context): Promise<Resp
   const { id } = await params;
   if (!z.uuid().safeParse(id).success) return fail("validation_failed", "Canal inválido.", 422, { requestId });
   const parsed = aiAccessUpdateSchema.safeParse(await req.json().catch(() => null));
-  if (!parsed.success) return fail("validation_failed", "Use telefones com DDI, por exemplo +5511999998888.", 422, { requestId });
+  if (!parsed.success) return fail("validation_failed", "Use telefones com indicativo do país, por exemplo +258841234567.", 422, { requestId });
   const { mode, test_phone_numbers } = parsed.data;
   // RPC atômica: não sobrescreve as demais configurações de metadata.
   const { data, error } = await createAdminClient().rpc("fn_configurar_pre_go_live_canal", {
