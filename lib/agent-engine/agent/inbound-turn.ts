@@ -126,6 +126,7 @@ import {
   type CompactionKnobs,
 } from './compaction';
 import { pruneToolResults, type PruneToolResultsKnobs } from './prune-tool-results';
+import { semBlocosDePensamento } from './sem-pensamento';
 import {
   classifyStage,
   recordStageDivergenceCandidate,
@@ -4279,6 +4280,7 @@ async function executarTurnoDoAgente(
               llmOverride: {
                 provider: agentConfig.provider,
                 credentialId: agentConfig.credentialId,
+                effort: agentConfig.effort,
               },
             }
           : {}),
@@ -4430,6 +4432,7 @@ async function executarTurnoDoAgente(
                   llmOverride: {
                     provider: agentConfig.provider,
                     credentialId: agentConfig.credentialId,
+                    effort: agentConfig.effort,
                   },
                 }
               : {}),
@@ -4438,7 +4441,10 @@ async function executarTurnoDoAgente(
               // prune: o checkpoint reusa a abertura só como texto — a mídia nativa (cara) já
               // fez seu trabalho na 1ª chamada e não precisa ir de novo.
               ...openingTextOnly,
-              ...responseMessages,
+              // Sem blocos de pensamento: este pedido não leva as ferramentas do
+              // primeiro, e os modelos novos devolvem 400 a pensamento assinado
+              // reenviado depois de mudar o prefixo (`./sem-pensamento.ts`).
+              ...semBlocosDePensamento(responseMessages),
               { role: 'user', content: CHECKPOINT_INSTRUCTION },
               ...correcao,
             ],

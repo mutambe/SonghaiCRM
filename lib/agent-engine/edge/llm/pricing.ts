@@ -49,6 +49,15 @@ interface Preco {
 
 /** USD por MILHÃO de tokens, por id EXATO de modelo (o sufixo de data é tolerado). */
 const USD_PER_MTOK: Record<string, Preco> = {
+  // SonghaiCRM (migration 9005), conferidos em platform.claude.com em 08/10/2026.
+  // Leitura de cache: 2,5% da entrada no Fable 5.1, 5% no Opus 5.5 e no Sonnet
+  // 5.5, 10% nos demais; gravação 1.25× (5 min) / 2× (1 h) a entrada.
+  // Haiku 5.5: faixa de base (prompt até 100 mil tokens). Acima disso a
+  // Anthropic cobra 5× — fora da tabela, como a faixa longa da OpenAI abaixo.
+  'claude-fable-5-1': { input: 10, output: 50, cacheRead: 0.25, cacheWrite5m: 12.5, cacheWrite1h: 20 },
+  'claude-opus-5-5': { input: 4, output: 20, cacheRead: 0.2, cacheWrite5m: 5, cacheWrite1h: 8 },
+  'claude-sonnet-5-5': { input: 2, output: 10, cacheRead: 0.1, cacheWrite5m: 2.5, cacheWrite1h: 4 },
+  'claude-haiku-5-5': { input: 0.1, output: 0.5, cacheRead: 0.01, cacheWrite5m: 0.125, cacheWrite1h: 0.2 },
   'claude-sonnet-5': { input: 2, output: 10, cacheRead: 0.2, cacheWrite5m: 2.5, cacheWrite1h: 4 },
   'claude-sonnet-4-6': { input: 3, output: 15, cacheRead: 0.3, cacheWrite5m: 3.75, cacheWrite1h: 6 },
   'claude-sonnet-4-5': { input: 3, output: 15, cacheRead: 0.3, cacheWrite5m: 3.75, cacheWrite1h: 6 },

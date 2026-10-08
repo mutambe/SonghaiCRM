@@ -2,6 +2,7 @@ import { listSelectableChannels, type SelectableChannel } from "@/lib/channels/s
 import { createAdminClient } from "@/lib/supabase/admin";
 import { capacidadesPadraoDoOnboarding } from "./capacidades-padrao";
 import { escolherModeloDoProvedor } from "./escolher-modelo";
+import { padraoDoAgenteNovo } from "./padrao-do-agente-novo";
 import { chaveDePlataforma } from "@/lib/ai/runtime/agent";
 import { publishAgentVersion } from "./publish";
 interface AgenteDoOnboarding {
@@ -222,7 +223,16 @@ export async function publishFirstVersion(
   if (!escolha.escolhido) {
     return { published: false, reason: "no_model", provider, motivo: escolha.motivo };
   }
-  const modelId = selection?.model ?? escolha.modelId;
+  // SonghaiCRM (decisão do dono, 08/10/2026): o agente do onboarding nasce
+  // com o modelo e o esforço do agente novo (Haiku 5.5 / Médio) quando o
+  // provedor é a Anthropic e o catálogo o tem com ferramentas. Fora disso,
+  // vale a escolha de sempre.
+  const padraoNovo = selection ? null : padraoDoAgenteNovo(provider);
+  const usaPadraoNovo =
+    padraoNovo !== null &&
+    (modelos ?? []).some((m) => m.model_id === padraoNovo.model && m.supports_tools);
+  const modelId = selection?.model ?? (usaPadraoNovo ? padraoNovo.model : escolha.modelId);
+  const effort = usaPadraoNovo ? padraoNovo.effort : null;
   if (selection && !(modelos ?? []).some((m) => m.model_id === modelId && m.supports_tools))
     return { published: false, reason: "failed", message: "model_not_found" };
 
@@ -274,6 +284,7 @@ export async function publishFirstVersion(
       // endpoint não conhece.
       provider,
       model: modelId,
+      effort,
       // Sem capacidades o turno não monta ferramenta nenhuma: o agente
       // entregue conversa e não alcança contato, lead nem funil.
       credential_id: credentialId,

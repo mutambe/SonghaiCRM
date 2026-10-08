@@ -54,10 +54,17 @@ test.describe("Criar um agente pela tela", () => {
     const criar = page.getByRole("button", { name: /criar agent/i });
     await expect(criar).toBeDisabled();
 
+    // SonghaiCRM (decisão do dono, 08/10/2026): o agente NOVO nasce com o modelo e
+    // o esforço padrão — Claude Haiku 5.5, esforço Médio. O modelo, portanto, já
+    // não falta: a tela não o cobra, e mostra o que escolheu por ele.
+    await expect(page.locator("#model")).toContainText(/haiku 5\.5/i);
+    await expect(page.getByTestId("esforco-do-agente")).toContainText(/médio/i);
+    await expect(page.getByText(/escolha o modelo/i)).toHaveCount(0);
+
     // E ela diz o que falta — as exigências que o servidor também impõe.
     // Escritas como instrução, não como acusação — um formulário recém-aberto
     // que já diz "obrigatório" em vermelho trata o usuário como quem errou.
-    for (const exigencia of [/escolha o modelo/i, /escolha a chave de acesso/i]) {
+    for (const exigencia of [/escolha a chave de acesso/i]) {
       await expect(page.getByText(exigencia).first()).toBeVisible();
     }
 

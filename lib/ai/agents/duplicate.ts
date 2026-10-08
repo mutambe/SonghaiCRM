@@ -24,7 +24,7 @@ export const DUPLICATE_AGENT_COLUMNS =
  * basta, se o INSERT não a escreve a cópia nasce com o default do banco.
  */
 export const DUPLICATE_VERSION_COLUMNS =
-  "id, organization_id, agent_id, version_number, system_prompt, provider, model, credential_id, tool_ids, trigger_config, channel_session_id, max_steps, token_budget, cost_budget_cents, history_message_window, history_token_window, handoff_keywords, handoff_tool_enabled, proposal_ai_draft_enabled, cases_enabled, split_messages, split_max_chars, followup, operator_enabled, operator_model, operator_tool_ids, status, published_at, superseded_at, created_at, created_by,pipeline_ids,knowledge_source_ids,provisioning_origin,inbound_debounce_ms";
+  "id, organization_id, agent_id, version_number, system_prompt, provider, model, credential_id, tool_ids, trigger_config, channel_session_id, max_steps, token_budget, cost_budget_cents, history_message_window, history_token_window, handoff_keywords, handoff_tool_enabled, proposal_ai_draft_enabled, cases_enabled, split_messages, split_max_chars, followup, operator_enabled, operator_model, operator_tool_ids, status, published_at, superseded_at, created_at, created_by,pipeline_ids,knowledge_source_ids,provisioning_origin,inbound_debounce_ms,effort";
 
 export type DuplicateAgentError =
   | "not_found"
@@ -63,6 +63,8 @@ export function versionPayloadFrom(src: Record<string, unknown>) {
     system_prompt: src.system_prompt,
     provider: src.provider,
     model: src.model,
+    // SonghaiCRM (9007): a cópia leva o esforço do original.
+    effort: src.effort ?? null,
     credential_id: src.credential_id,
     tool_ids: src.tool_ids,
     trigger_config: src.trigger_config,

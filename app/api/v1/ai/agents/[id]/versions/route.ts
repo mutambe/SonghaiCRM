@@ -19,13 +19,14 @@ import { audit } from "@/lib/audit";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { mensagemDoEscopo, validarEscopoDaVersao } from "@/lib/ai/agents/escopo";
 import { versionCreateSchema } from "@/lib/ai/agents/validation";
+import { recusaDoEsforco } from "@/lib/ai/esforco";
 import { lerAmbiente } from "@/lib/instalacao/ambiente";
 import { traduzir } from "@/lib/i18n/dicionario";
 
 export const dynamic = "force-dynamic";
 
 const VERSION_COLUMNS =
-  "id, organization_id, agent_id, version_number, system_prompt, provider, model, credential_id, tool_ids, trigger_config, channel_session_id, max_steps, token_budget, cost_budget_cents, history_message_window, history_token_window, handoff_keywords, handoff_tool_enabled, proposal_ai_draft_enabled, cases_enabled, split_messages, split_max_chars, followup, operator_enabled, operator_model, operator_tool_ids, status, published_at, superseded_at, created_at, created_by,pipeline_ids,knowledge_source_ids,provisioning_origin,inbound_debounce_ms";
+  "id, organization_id, agent_id, version_number, system_prompt, provider, model, credential_id, tool_ids, trigger_config, channel_session_id, max_steps, token_budget, cost_budget_cents, history_message_window, history_token_window, handoff_keywords, handoff_tool_enabled, proposal_ai_draft_enabled, cases_enabled, split_messages, split_max_chars, followup, operator_enabled, operator_model, operator_tool_ids, status, published_at, superseded_at, created_at, created_by,pipeline_ids,knowledge_source_ids,provisioning_origin,inbound_debounce_ms,effort";
 
 const UUID_RX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -154,6 +155,10 @@ export async function POST(req: NextRequest, ctx: Ctx): Promise<Response> {
       return fail("validation_failed", mensagemDoEscopo(escopo), 422, { requestId });
     }
 
+    // O esforço precisa ser um que ESTE modelo aceita (SonghaiCRM, 9007).
+    const recusa = recusaDoEsforco(v.provider, v.model, v.effort);
+    if (recusa) return fail("esforco_nao_suportado", t(recusa), 422, { requestId });
+
     const nextNumber = (maxRow?.version_number ?? 0) + 1;
 
     const { data, error } = await admin
@@ -166,6 +171,7 @@ export async function POST(req: NextRequest, ctx: Ctx): Promise<Response> {
         provider: v.provider,
         model: v.model,
         credential_id: v.credential_id,
+        effort: v.effort,
         tool_ids: v.tool_ids,
         trigger_config: v.trigger_config ?? undefined,
         channel_session_id: v.channel_session_id,

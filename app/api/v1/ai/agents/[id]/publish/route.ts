@@ -22,6 +22,9 @@ import { publishSchema, PUBLISH_ERROR_CODES } from "@/lib/ai/agents/validation";
 import { VALID_TOOL_IDS } from "@/lib/mcp/tools";
 import { publishAgentVersion } from "@/lib/ai/agents/publish";
 import { traduzir } from "@/lib/i18n/dicionario";
+import { avisarTrocaNaPublicacao } from "@/lib/ai/aviso-de-troca-de-modelo";
+import { avisoDeAmostragemDaOrganizacao } from "@/lib/ai/avisos-do-modelo";
+import { ehEsforco, recusaDoEsforco } from "@/lib/ai/esforco";
 
 const VALID_TOOL_IDS_RUNTIME = new Set<string>(VALID_TOOL_IDS as readonly string[]);
 
@@ -67,7 +70,7 @@ export async function POST(req: NextRequest, ctx: Ctx): Promise<Response> {
   // (catálogo evolui — validar à hora do publish, fora da transação SQL.)
   const { data: targetV } = await admin
     .from("ai_agent_versions")
-    .select("id, agent_id, organization_id, tool_ids, status")
+    .select("id, agent_id, organization_id, tool_ids, status, provider, model, effort")
     .eq("id", parsed.data.version_id)
     .eq("organization_id", activeOrg.orgId)
     .maybeSingle();
@@ -84,6 +87,15 @@ export async function POST(req: NextRequest, ctx: Ctx): Promise<Response> {
       details: { invalid },
     });
   }
+
+  // O esforço precisa ser um que ESTE modelo aceita (SonghaiCRM, 9007). A
+  // edição do rascunho pode trocar só o modelo; é aqui que o par é conferido.
+  const recusa = recusaDoEsforco(
+    targetV.provider as string,
+    targetV.model as string,
+    ehEsforco(targetV.effort) ? targetV.effort : null,
+  );
+  if (recusa) return fail("esforco_nao_suportado", t(recusa), 422, { requestId });
 
   const result = await publishAgentVersion(admin, {
     orgId: activeOrg.orgId,
@@ -120,6 +132,20 @@ export async function POST(req: NextRequest, ctx: Ctx): Promise<Response> {
       if (error) console.error("[ai_agents/publish] event_log error", error.message);
     });
 
+  // SonghaiCRM: quem troca o modelo ou o esforço do agente deixa aviso na
+  // Central para quem administra. Primeira publicação não é troca.
+  await avisarTrocaNaPublicacao(admin, {
+    organizationId: activeOrg.orgId,
+    agentId: id,
+    previousVersionId: result.previous_version_id,
+    quem: authUser.full_name || authUser.email,
+    depois: {
+      provider: targetV.provider as string,
+      model: targetV.model as string,
+      effort: (targetV.effort as string | null) ?? null,
+    },
+  });
+
   void audit({
     action: "ai_agent.published",
     actorUserId: authUser.id,
@@ -133,12 +159,22 @@ export async function POST(req: NextRequest, ctx: Ctx): Promise<Response> {
     },
   });
 
+  // SonghaiCRM: a organização tem amostragem configurada e o modelo publicado a
+  // recusa? Avisa (sem bloquear): ela será retirada dos pedidos.
+  const avisoDeAmostragem = await avisoDeAmostragemDaOrganizacao(
+    admin,
+    activeOrg.orgId,
+    targetV.provider as string,
+    targetV.model as string,
+  );
+
   return ok(
     {
       agent_id: result.agent_id,
       version_id: result.version_id,
       previous_version_id: result.previous_version_id,
       published_at: result.published_at,
+      avisos: avisoDeAmostragem ? [t(avisoDeAmostragem)] : [],
     },
     { requestId },
   );

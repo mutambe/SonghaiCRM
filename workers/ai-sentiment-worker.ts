@@ -19,7 +19,7 @@
  * - `console.log` is forbidden — only `console.warn`/`console.error` with prefix.
  */
 
-import { generateObject, type LanguageModel } from "ai";
+import { generateObject } from "ai";
 import { z } from "zod";
 
 import { costCents } from "@/lib/agent-engine/edge/llm/pricing";
@@ -38,7 +38,11 @@ import { codigoDoErroDoJev } from "@/lib/ai/decisao/textos";
 import { decidirElegibilidadeDaConversaViaSupabase } from "@/lib/ai/elegibilidade/consulta-supabase";
 import { ttlDaAutorizacaoMs, type DecisaoDeElegibilidade } from "@/lib/ai/elegibilidade/gate";
 import { DEFAULT_CLASSIFIER_MODEL } from "@/lib/ai/gateway";
-import { resolverModeloDoPonto } from "@/lib/ai/gateway-binding";
+import { resolverModeloDoPonto, type ModeloResolvido } from "@/lib/ai/gateway-binding";
+import { abrirAvisoPorSupabase, avisoDeModeloARecusar, ehErroDeTamanho } from "@/lib/ai/avisos-do-modelo";
+import { opcoesDaClassificacao } from "@/lib/ai/classificacao-do-modelo";
+import { comEsforco, provedorDoModelo } from "@/lib/ai/esforco-no-modelo";
+import { PONTO_POR_ID } from "@/lib/ai/pontos/registro";
 import { logInvocation, type LogInvocationInput } from "@/lib/ai/log-invocation";
 import { DEFAULT_SENTIMENT_THRESHOLD, SENTIMENT_SYSTEM_PROMPT } from "@/lib/ai/prompts/sentiment";
 import type { EventRow } from "@/lib/event-log/dispatcher";
@@ -432,9 +436,24 @@ export async function processSentiment(event: EventRow): Promise<SentimentResult
         let medido: Awaited<ReturnType<typeof classificarComLlm>> | null = null;
         let erroDaIa: unknown = null;
         try {
-          medido = await classificarComLlm(resolvido.model, body);
+          medido = await classificarComLlm(resolvido, body);
         } catch (err) {
           erroDaIa = err;
+          // SonghaiCRM: 400 do provedor num modelo ESCOLHIDO no painel é o modelo
+          // a recusar o pedido — e este catch só fazia `console.warn`, então o
+          // clima ficava mudo sem ninguém saber. O aviso diz onde corrigir; o
+          // sistema não troca de modelo sozinho. Deduplicado pelo título.
+          if (resolvido.origem === "binding" && statusDoErro(err) === 400 && !ehErroDeTamanho(err)) {
+            await abrirAvisoPorSupabase(
+              admin,
+              event.organization_id,
+              avisoDeModeloARecusar({
+                rotuloDoPonto: PONTO_POR_ID.get("sentiment_classify")?.rotulo ?? "sentiment_classify",
+                modelId: resolvido.modelId,
+                origem: "binding",
+              }),
+            );
+          }
           // A FALHA também vira linha em `llm_calls`. A 0128 fez isso para o seam do
           // agent-engine, e este worker não passa por lá — então, até aqui, escolher
           // no painel um modelo que não existe fazia toda classificação falhar sem
@@ -586,10 +605,25 @@ export async function processSentiment(event: EventRow): Promise<SentimentResult
   }
 }
 
-async function classificarComLlm(
-  model: LanguageModel,
+function statusDoErro(err: unknown): number | null {
+  const e = err as { statusCode?: unknown; status?: unknown } | null;
+  const bruto = e?.statusCode ?? e?.status;
+  return typeof bruto === "number" ? bruto : null;
+}
+
+export async function classificarComLlm(
+  resolvido: Pick<ModeloResolvido, "model" | "modelId" | "esforcoEscolhido">,
   body: string,
 ): Promise<{ score: number; promptTokens: number; completionTokens: number }> {
+  // O que cada modelo aceita (sem `temperature` nos novos, saída estruturada
+  // nativa em vez de ferramenta forçada, esforço `low` quando o painel não
+  // escolheu um). A regra e o porquê vivem em `lib/ai/classificacao-do-modelo.ts`.
+  const opcoes = opcoesDaClassificacao({
+    provider: provedorDoModelo(resolvido.model, resolvido.modelId),
+    modelId: resolvido.modelId,
+    esforcoEscolhido: resolvido.esforcoEscolhido ?? null,
+  });
+  const model = comEsforco(resolvido.model, opcoes.esforcoPadrao);
   const abortController = new AbortController();
   const timeout = setTimeout(() => abortController.abort(), CLASSIFY_TIMEOUT_MS);
   try {
@@ -598,7 +632,8 @@ async function classificarComLlm(
       schema: sentimentSchema,
       system: SENTIMENT_SYSTEM_PROMPT,
       prompt: body,
-      temperature: 0,
+      ...(opcoes.temperature !== undefined ? { temperature: opcoes.temperature } : {}),
+      ...(opcoes.providerOptions ? { providerOptions: opcoes.providerOptions } : {}),
       // 80 era pequeno demais e nunca tinha sido exercitado (o worker morria
       // antes, na autenticação). `generateObject` com Anthropic usa modo
       // FERRAMENTA: o JSON vai dentro de um tool_use, que custa bem mais que
@@ -607,7 +642,7 @@ async function classificarComLlm(
       // daí o "No object generated: response did not match schema", que
       // parecia erro de esquema e era truncamento. Pico observado: 146 sem
       // as descrições, 84 com elas. 256 dá folga sem virar cheque em branco.
-      maxOutputTokens: 256,
+      maxOutputTokens: opcoes.maxOutputTokens,
       abortSignal: abortController.signal,
     });
     const usage = generated.usage as

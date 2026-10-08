@@ -36,6 +36,7 @@
  * unitário. O I/O fica em quem chama.
  */
 import type { DecisaoDeTranscricao } from "@/lib/messaging/media/escada-de-transcricao";
+import { esforcoEfetivo, type Esforco } from "@/lib/ai/esforco";
 import { PONTO_POR_ID, type PontoDeIa } from "./registro";
 
 /** De onde a escolha efetiva veio — vai para a tela e para o log. */
@@ -95,6 +96,8 @@ export interface LinhaDeBinding {
   model_id: string;
   base_url: string | null;
   is_enabled: boolean;
+  /** SonghaiCRM (9006): esforço escolhido no painel; nulo = padrão do modelo. */
+  effort?: string | null;
 }
 
 /** O que o agente publicado impõe aos pontos que são o próprio agente. */
@@ -147,6 +150,11 @@ export interface DecisaoDeBinding {
    * existir voltaria a ser uma falha muda.
    */
   avisos: string[];
+  /**
+   * SonghaiCRM (9006): o esforço que vai na chamada. Só a escolha do painel o
+   * traz — e só quando o modelo o aceita (`lib/ai/esforco.ts`).
+   */
+  esforco?: Esforco | null;
 }
 
 /**
@@ -305,6 +313,7 @@ export function decidirBinding(entrada: EntradaDaDecisao): DecisaoDeBinding {
       baseUrl: entrada.binding.base_url,
       origem: "binding",
       avisos,
+      esforco: esforcoEfetivo(entrada.binding.provider, entrada.binding.model_id, entrada.binding.effort),
     };
   }
 

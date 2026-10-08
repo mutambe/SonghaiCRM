@@ -26,6 +26,7 @@ import { mensagemDoEscopo, validarEscopoDaVersao } from "@/lib/ai/agents/escopo"
 import { agentCreateSchema } from "@/lib/ai/guardrails-schema";
 import { agentMcpCreateSchema } from "@/lib/ai/agents/validation";
 import { traduzir } from "@/lib/i18n/dicionario";
+import { recusaDoEsforco } from "@/lib/ai/esforco";
 
 export const dynamic = "force-dynamic";
 
@@ -49,7 +50,7 @@ const AGENT_COLUMNS_COM_VERSAO =
   ", versao_publicada:ai_agent_versions!ai_agents_published_version_id_fkey(provider, model)";
 
 const VERSION_COLUMNS =
-  "id, organization_id, agent_id, version_number, system_prompt, provider, model, credential_id, tool_ids, trigger_config, channel_session_id, max_steps, token_budget, cost_budget_cents, history_message_window, history_token_window, handoff_keywords, handoff_tool_enabled, proposal_ai_draft_enabled, cases_enabled, split_messages, split_max_chars, followup, operator_enabled, operator_model, operator_tool_ids, status, published_at, superseded_at, created_at, created_by,pipeline_ids,knowledge_source_ids,provisioning_origin,inbound_debounce_ms";
+  "id, organization_id, agent_id, version_number, system_prompt, provider, model, credential_id, tool_ids, trigger_config, channel_session_id, max_steps, token_budget, cost_budget_cents, history_message_window, history_token_window, handoff_keywords, handoff_tool_enabled, proposal_ai_draft_enabled, cases_enabled, split_messages, split_max_chars, followup, operator_enabled, operator_model, operator_tool_ids, status, published_at, superseded_at, created_at, created_by,pipeline_ids,knowledge_source_ids,provisioning_origin,inbound_debounce_ms,effort";
 
 // ---------------------------------------------------------------------------
 // GET — list
@@ -132,6 +133,10 @@ export async function POST(req: NextRequest): Promise<Response> {
       });
     }
     const input = parsed.data;
+
+    // O esforço precisa ser um que ESTE modelo aceita (SonghaiCRM, 9007).
+    const recusa = recusaDoEsforco(input.version.provider, input.version.model, input.version.effort);
+    if (recusa) return fail("esforco_nao_suportado", t(recusa), 422, { requestId });
 
     // Validate scope before the first write; a rejected form leaves no orphan.
     const escopo = await validarEscopoDaVersao(admin, organizationId, input.version);

@@ -21,6 +21,16 @@ import type pg from 'pg';
 import { z } from 'zod';
 
 import { PONTO_POR_ID } from '@/lib/ai/pontos/registro';
+import { amostragemDaChamada } from '@/lib/ai/amostragem';
+import {
+  abrirAvisoPorPg,
+  avisoDeAmostragemRetirada,
+  avisoDeModeloARecusar,
+  ehErroDeTamanho,
+} from '@/lib/ai/avisos-do-modelo';
+import { esforcoDaChamada } from '@/lib/ai/esforco';
+import { limiteDeSaidaDoSdkDesconhecido } from '@/lib/ai/limite-de-saida';
+import { comEsforco } from '@/lib/ai/esforco-no-modelo';
 import { scrubMessage } from '@/lib/sentry/scrub';
 
 import type { Logger } from '../../obs/logger';
@@ -602,7 +612,30 @@ export async function runModelCall(db: pg.Pool, cfg: LlmEdgeConfig, input: RunMo
   if (!parsedParams.success) {
     throw new Error('params inválidos em organizations.settings.llm.params — corrija a config da org');
   }
-  const { temperature, topP, topK, maxOutputTokens } = parsedParams.data;
+  const { maxOutputTokens } = parsedParams.data;
+  // SonghaiCRM: os modelos novos da Anthropic devolvem 400 a temperature/top_p/
+  // top_k. O que a organização configurou é retirado só para eles (regra única
+  // em `lib/ai/amostragem.ts`) — e quem administra é avisado na Central.
+  const amostragem = amostragemDaChamada(config.provider, model, {
+    ...(parsedParams.data.temperature !== undefined ? { temperature: parsedParams.data.temperature } : {}),
+    ...(parsedParams.data.topP !== undefined ? { topP: parsedParams.data.topP } : {}),
+    ...(parsedParams.data.topK !== undefined ? { topK: parsedParams.data.topK } : {}),
+  });
+  if (amostragem.retirados.length > 0) {
+    deps.log?.warn('llm: amostragem retirada — o modelo a recusa', {
+      organization_id: input.tenantId,
+      purpose,
+      provider: config.provider,
+      model,
+      retirados: amostragem.retirados,
+    });
+    await abrirAvisoPorPg(
+      db,
+      input.tenantId,
+      avisoDeAmostragemRetirada({ modelId: model, retirados: amostragem.retirados }),
+      deps.log,
+    );
+  }
 
   // ═══ A CHAVE DA INSTALAÇÃO NÃO VAI PARA O ENDEREÇO DA EMPRESA ═══
   //
@@ -693,7 +726,20 @@ export async function runModelCall(db: pg.Pool, cfg: LlmEdgeConfig, input: RunMo
       // `config.baseUrl` é o da PRÓPRIA credencial e só o provedor personalizado
       // (#1642) tem um: o endereço nasce junto da chave, então o agente
       // publicado nele alcança o mesmo gateway que a tela testou ao salvar.
-      model: factory(config.apiKey, model, decisao.baseUrl ?? config.baseUrl ?? undefined),
+      // SonghaiCRM: o esforço vem de quem escolheu o MODELO — o painel (9006)
+      // quando a decisão é do binding, a versão do agente (9007) quando o
+      // modelo é o do agente. Sempre reconferido contra o provider/modelo que
+      // de fato vão na chamada: nível que o modelo não aceita não sai.
+      model: comEsforco(
+        factory(config.apiKey, model, decisao.baseUrl ?? config.baseUrl ?? undefined),
+        esforcoDaChamada({
+          origem: decisao.origem,
+          doPainel: decisao.esforco,
+          doAgente: input.llmOverride?.effort,
+          provider: config.provider,
+          modelId: model,
+        }),
+      ),
       system: prefix.system,
       messages: input.messages,
       abortSignal: input.abortSignal,
@@ -704,12 +750,17 @@ export async function runModelCall(db: pg.Pool, cfg: LlmEdgeConfig, input: RunMo
           : input.pararQuando === undefined
             ? stepCountIs(input.maxSteps)
             : [stepCountIs(input.maxSteps), input.pararQuando],
-      temperature,
-      topP,
-      topK,
-      maxOutputTokens: input.maxOutputTokens === undefined
-        ? maxOutputTokens
-        : Math.min(maxOutputTokens ?? Infinity, input.maxOutputTokens),
+      temperature: amostragem.enviar.temperature,
+      topP: amostragem.enviar.topP,
+      topK: amostragem.enviar.topK,
+      // O que a chamada ou a organização definiu manda; sem nada definido, o piso
+      // explícito para os modelos que o AI SDK subestima (envia 4096 e o
+      // pensamento conta nesse limite — `lib/ai/limite-de-saida.ts`).
+      maxOutputTokens:
+        (input.maxOutputTokens === undefined
+          ? maxOutputTokens
+          : Math.min(maxOutputTokens ?? Infinity, input.maxOutputTokens)) ??
+        limiteDeSaidaDoSdkDesconhecido(config.provider, model),
       ...cacheDaCauda(config.provider, input.maxSteps),
     });
   } catch (err) {
@@ -737,6 +788,27 @@ export async function runModelCall(db: pg.Pool, cfg: LlmEdgeConfig, input: RunMo
       // O log da falha não pode causar uma segunda falha. Se o próprio INSERT
       // de erro falhar, o erro ORIGINAL é o que interessa a quem chamou.
     });
+    // SonghaiCRM: 400 de um modelo que ALGUÉM escolheu (painel ou agente) é
+    // quase sempre o modelo a recusar o pedido — e sem isto o agente só
+    // "fica calado". O aviso diz onde corrigir; o sistema não troca de modelo.
+    if (
+      normalizarErro(err).http_status === 400 &&
+      !ehErroDeTamanho(err) &&
+      (decisao.origem === 'binding' || decisao.origem === 'agente_publicado')
+    ) {
+      await abrirAvisoPorPg(
+        db,
+        input.tenantId,
+        avisoDeModeloARecusar({
+          rotuloDoPonto: PONTO_POR_ID.get(purpose)?.rotulo ?? purpose,
+          modelId: model,
+          origem: decisao.origem,
+        }),
+        deps.log,
+      ).catch(() => {
+        // Um aviso que não abre não pode esconder o erro original.
+      });
+    }
     deps.log?.error('llm: chamada falhou', {
       organization_id: input.tenantId,
       purpose,

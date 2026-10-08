@@ -33,6 +33,8 @@ import { logger } from "@/lib/logger";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 import { escolherModeloNoCatalogo } from "./agents/escolher-modelo";
+import { esforcoEfetivo, type Esforco } from "./esforco";
+import { comEsforco } from "./esforco-no-modelo";
 import { OPENROUTER_BASE_URL, resolveLanguageModel, type ModelId } from "./gateway";
 
 export interface ModeloResolvido {
@@ -40,6 +42,12 @@ export interface ModeloResolvido {
   /** Para o log: qual modelo e de onde veio a decisão. */
   modelId: string;
   origem: "binding" | "credencial_da_organizacao" | "padrao";
+  /**
+   * SonghaiCRM (9006): o esforço que o painel escolheu para o ponto, já
+   * embutido em `model`. O worker o consulta para não sobrepor a escolha de
+   * quem administra com o seu padrão.
+   */
+  esforcoEscolhido?: Esforco | null;
 }
 
 /**
@@ -121,7 +129,13 @@ export async function resolverModeloDoPonto(
     return model === null ? null : { model, modelId: String(padrao), origem: "padrao" };
   }
 
-  const model = instanciar(binding.provider, apiKey, binding.model_id, binding.base_url);
+  const instanciado = instanciar(binding.provider, apiKey, binding.model_id, binding.base_url);
+  // SonghaiCRM (9006): o esforço escolhido no painel vai junto do modelo, para
+  // qualquer chamada que o use; nível que o modelo não aceita não é enviado.
+  const model =
+    instanciado === null
+      ? null
+      : comEsforco(instanciado, esforcoEfetivo(binding.provider, binding.model_id, binding.effort));
   if (model === null) {
     logger.warn("[gateway-binding] provider do binding é desconhecido — usando o padrão", {
       organization_id: organizationId,
@@ -132,7 +146,12 @@ export async function resolverModeloDoPonto(
     return fallback === null ? null : { model: fallback, modelId: String(padrao), origem: "padrao" };
   }
 
-  return { model, modelId: binding.model_id, origem: "binding" };
+  return {
+    model,
+    modelId: binding.model_id,
+    origem: "binding",
+    esforcoEscolhido: esforcoEfetivo(binding.provider, binding.model_id, binding.effort),
+  };
 }
 
 interface LinhaBinding {
@@ -140,6 +159,7 @@ interface LinhaBinding {
   credential_id: string | null;
   model_id: string;
   base_url: string | null;
+  effort?: string | null;
 }
 
 async function lerBinding(
@@ -152,7 +172,7 @@ async function lerBinding(
     // obrigatório (CLAUDE.md, anti-pattern 10).
     const { data } = await admin
       .from("ai_purpose_bindings")
-      .select("provider, credential_id, model_id, base_url")
+      .select("provider, credential_id, model_id, base_url, effort")
       .eq("organization_id", organizationId)
       .eq("purpose", purpose)
       .eq("is_enabled", true)

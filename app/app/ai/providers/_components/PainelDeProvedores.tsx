@@ -41,6 +41,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useT } from "@/hooks/i18n/useT";
+import { ROTULO_DO_ESFORCO, type Esforco } from "@/lib/ai/esforco";
 
 import { CartaoDeMapas } from "./CartaoDeMapas";
 import { CartaoDoJev, jevNoPonto, useDadosDoJev, type DadosDoJev } from "./CartaoDoJev";
@@ -61,9 +62,14 @@ interface Ponto {
     baseUrl: string | null;
     origem: string;
     porQue: string;
+    /** SonghaiCRM (9006): esforço em vigor; nulo = padrão do modelo. */
+    esforco: Esforco | null;
   };
   avisos: string[];
 }
+
+/** Valor do seletor de esforço para "padrão do modelo" (o Select não aceita string vazia). */
+const PADRAO_DO_MODELO = "padrao" as const;
 
 interface Modelo {
   provider: string;
@@ -72,6 +78,8 @@ interface Modelo {
   supports_tools: boolean;
   supports_vision: boolean;
   input_price_per_million_cents: number | null;
+  /** SonghaiCRM (9006): vazio = o modelo não tem esforço escolhível. */
+  niveis_de_esforco: Esforco[];
 }
 
 interface Credencial {
@@ -449,9 +457,16 @@ function CartaoDoPonto({
   const [modelId, setModelId] = useState(ponto.efetivo.modelId ?? "");
   const [credentialId, setCredentialId] = useState(ponto.efetivo.credentialId ?? "");
   const [baseUrl, setBaseUrl] = useState(ponto.efetivo.baseUrl ?? "");
+  const [esforco, setEsforco] = useState<Esforco | typeof PADRAO_DO_MODELO>(
+    ponto.efetivo.esforco ?? PADRAO_DO_MODELO,
+  );
   const [salvando, setSalvando] = useState(false);
 
   const modelosDoProvider = dados.modelos.filter((m) => m.provider === provider);
+  // Os níveis que o modelo escolhido aceita. Trocar para um modelo que não
+  // aceita o nível escolhido volta ao padrão — a rota recusaria o par.
+  const niveisDoModelo = modelosDoProvider.find((m) => m.model_id === modelId)?.niveis_de_esforco ?? [];
+  const esforcoValido = esforco !== PADRAO_DO_MODELO && niveisDoModelo.includes(esforco) ? esforco : null;
   const credsDoProvider = dados.credenciais.filter((c) => c.provider === provider);
   // Endpoint próprio só faz sentido em provedor compatível com a API da OpenAI
   // — é a mesma condição que `lib/ai/pontos/provedores.ts` declara e que o
@@ -478,6 +493,7 @@ function CartaoDoPonto({
           // local) só conseguia pela API. Configuração sem superfície é
           // capacidade que ninguém alcança.
           base_url: aceitaEndpointProprio && baseUrl.trim() !== "" ? baseUrl.trim() : null,
+          effort: esforcoValido,
         }),
       });
       const json = await res.json();
@@ -646,6 +662,31 @@ function CartaoDoPonto({
               </SelectContent>
             </Select>
           </div>
+
+          {niveisDoModelo.length > 0 && (
+            <div>
+              <Label className="text-xs">{t("Esforço")}</Label>
+              <Select
+                value={esforcoValido ?? PADRAO_DO_MODELO}
+                onValueChange={(v) => setEsforco(v as Esforco | typeof PADRAO_DO_MODELO)}
+              >
+                <SelectTrigger data-testid={`esforco-${ponto.id}`}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={PADRAO_DO_MODELO}>{t("Padrão do modelo")}</SelectItem>
+                  {niveisDoModelo.map((n) => (
+                    <SelectItem key={n} value={n}>
+                      {t(ROTULO_DO_ESFORCO[n])}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {t("Mais esforço pensa mais antes de responder: melhor nas tarefas difíceis, mais lento e mais caro.")}
+              </p>
+            </div>
+          )}
 
           {aceitaEndpointProprio && (
             <div className="sm:col-span-3">

@@ -30,6 +30,9 @@ import {
 import { PAPEIS, PONTOS_DE_IA, PONTO_POR_ID } from "@/lib/ai/pontos/registro";
 import { PROVEDORES, ehProvedorSuportado } from "@/lib/ai/pontos/provedores";
 import { validarBinding } from "@/lib/ai/pontos/validar-binding";
+import { ESFORCOS, niveisDeEsforco } from "@/lib/ai/esforco";
+import { avisarTrocaDeModelo } from "@/lib/ai/aviso-de-troca-de-modelo";
+import { avisoDaAmostragemNaEscolha } from "@/lib/ai/amostragem";
 import { lerAmbiente } from "@/lib/instalacao/ambiente";
 import { decidirTranscricao } from "@/lib/messaging/media/escada-de-transcricao";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -60,7 +63,7 @@ export async function GET(): Promise<Response> {
   const [bindingsRes, credsRes, modelosRes, orgRes, agenteRes] = await Promise.all([
     db
       .from("ai_purpose_bindings")
-      .select("purpose, provider, credential_id, model_id, base_url, is_enabled")
+      .select("purpose, provider, credential_id, model_id, base_url, is_enabled, effort")
       .eq("organization_id", org.orgId),
     db
       .from("ai_provider_credentials")
@@ -116,6 +119,9 @@ export async function GET(): Promise<Response> {
       modelId: m.model_id,
       doCatalogo: m.supports_vision,
     }),
+    // SonghaiCRM (9006): os níveis de esforço que este modelo aceita — a tela
+    // só oferece o seletor quando a lista não é vazia.
+    niveis_de_esforco: niveisDeEsforco(m.provider, m.model_id),
   }));
   const capacidadePorModelo = new Map(modelos.map((m) => [`${m.provider}|${m.model_id}`, m]));
 
@@ -219,6 +225,8 @@ export async function GET(): Promise<Response> {
         // degrau escolhido): "por que este áudio vai para aquele lugar", que a
         // frase genérica da origem não sabe dizer.
         porQue: decisao.motivo ?? EXPLICACAO_DA_ORIGEM[decisao.origem],
+        // SonghaiCRM (9006): o esforço que vai na chamada (nulo = padrão do modelo).
+        esforco: decisao.esforco ?? null,
       },
       avisos: [
         ...decisao.avisos,
@@ -274,6 +282,8 @@ const corpoDoPut = z.object({
   credential_id: z.string().uuid().nullable().optional(),
   base_url: z.string().url().nullable().optional(),
   is_enabled: z.boolean().optional(),
+  // SonghaiCRM (9006). Nulo/ausente = padrão do modelo.
+  effort: z.enum(ESFORCOS).nullable().optional(),
 });
 
 export async function PUT(req: NextRequest): Promise<Response> {
@@ -326,6 +336,20 @@ export async function PUT(req: NextRequest): Promise<Response> {
     return fail(validacao.codigo, validacao.mensagem, 422);
   }
 
+  // O nível de esforço precisa ser um que ESTE modelo aceita — senão o
+  // provedor devolveria 400 em cada chamada do ponto.
+  const effort = corpo.effort ?? null;
+  if (effort !== null && !niveisDeEsforco(corpo.provider, corpo.model_id).includes(effort)) {
+    const aceitos = niveisDeEsforco(corpo.provider, corpo.model_id);
+    return fail(
+      "esforco_nao_suportado",
+      aceitos.length === 0
+        ? t("Este modelo não permite escolher o esforço — deixe no padrão do modelo.")
+        : `${t("Este modelo não aceita o esforço")} "${effort}". ${t("Níveis aceites:")} ${aceitos.join(", ")}.`,
+      422,
+    );
+  }
+
   // A credencial precisa ser DESTA organização. O client de sessão já aplica
   // RLS, mas a checagem explícita devolve mensagem em vez de um silencioso
   // "0 linhas" que a tela leria como sucesso.
@@ -347,6 +371,15 @@ export async function PUT(req: NextRequest): Promise<Response> {
     }
   }
 
+  // O que valia antes, para o aviso de troca (SonghaiCRM). Sem binding, o
+  // ponto seguia o padrão — e a primeira escolha também é troca de modelo.
+  const { data: anterior } = await db
+    .from("ai_purpose_bindings")
+    .select("provider, model_id, effort")
+    .eq("organization_id", org.orgId)
+    .eq("purpose", corpo.purpose)
+    .maybeSingle();
+
   const { data: gravado, error } = await db
     .from("ai_purpose_bindings")
     .upsert(
@@ -358,10 +391,11 @@ export async function PUT(req: NextRequest): Promise<Response> {
         credential_id: corpo.credential_id ?? null,
         base_url: corpo.base_url ?? null,
         is_enabled: corpo.is_enabled ?? true,
+        effort,
       },
       { onConflict: "organization_id,purpose" },
     )
-    .select("id, purpose, provider, model_id, credential_id, base_url, is_enabled")
+    .select("id, purpose, provider, model_id, credential_id, base_url, is_enabled, effort")
     .maybeSingle();
 
   if (error) return fail("save_failed", error.message, 500);
@@ -369,6 +403,23 @@ export async function PUT(req: NextRequest): Promise<Response> {
     // Upsert que casa zero linhas devolve sucesso no PostgREST — a tela diria
     // "salvo" sem nada ter sido gravado.
     return fail("save_failed", t("nada foi gravado — verifique as permissões da organização"), 500);
+  }
+
+  // SonghaiCRM: quem troca o modelo ou o esforço de um ponto deixa aviso na
+  // Central. O ponto sem binding anterior seguia o padrão da organização.
+  const llmDaOrg = await llmDaOrganizacaoAtual(org.orgId);
+  {
+    const llm = llmDaOrg.padrao;
+    await avisarTrocaDeModelo(createAdminClient(), {
+      organizationId: org.orgId,
+      onde: `o ponto «${t(ponto.rotulo)}»`,
+      quem: user.full_name || user.email,
+      antes: anterior
+        ? { provider: anterior.provider, model: anterior.model_id, effort: anterior.effort ?? null }
+        : llm,
+      depois: { provider: corpo.provider, model: corpo.model_id, effort },
+      ref: null,
+    });
   }
 
   void audit({
@@ -391,11 +442,19 @@ export async function PUT(req: NextRequest): Promise<Response> {
       purpose: corpo.purpose,
       provider: corpo.provider,
       model_id: corpo.model_id,
+      effort,
       tem_endpoint_proprio: Boolean(corpo.base_url),
     },
   });
 
-  return ok({ binding: gravado, avisos: validacao.avisos });
+  // SonghaiCRM: a organização tem temperature/top_p/top_k e o modelo escolhido
+  // os recusa? Não bloqueia (a escolha é de quem administra): avisa que serão
+  // retirados dos pedidos.
+  const avisoDeAmostragem = avisoDaAmostragemNaEscolha(corpo.provider, corpo.model_id, llmDaOrg.params);
+  return ok({
+    binding: gravado,
+    avisos: [...validacao.avisos, ...(avisoDeAmostragem ? [t(avisoDeAmostragem)] : [])],
+  });
 }
 
 
@@ -549,4 +608,26 @@ export async function PATCH(req: NextRequest): Promise<Response> {
 function instalacaoTemChaveDeIa(): boolean {
   const ambiente = lerAmbiente();
   return ambiente.gateway || Object.values(ambiente.chavesDeProvedor).some(Boolean);
+}
+
+/**
+ * O `settings.llm` da organização: o padrão (que um ponto sem binding usa) e a
+ * amostragem configurada (`params`).
+ */
+async function llmDaOrganizacaoAtual(orgId: string) {
+  const { data } = await createAdminClient()
+    .from("organizations")
+    .select("settings")
+    .eq("id", orgId)
+    .maybeSingle();
+  const llm = ((data?.settings as { llm?: Record<string, unknown> } | null)?.llm ?? {}) as {
+    provider?: unknown;
+    default_model?: unknown;
+    params?: unknown;
+  };
+  const padrao =
+    typeof llm.provider === "string" && typeof llm.default_model === "string"
+      ? { provider: llm.provider, model: llm.default_model, effort: null }
+      : null;
+  return { padrao, params: llm.params };
 }
