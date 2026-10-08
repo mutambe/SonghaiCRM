@@ -34,11 +34,14 @@ import {
 import { publishAgentVersion } from "@/lib/ai/agents/publish";
 import { escolherVersoesDaTela } from "@/lib/ai/agents/versoes-da-tela";
 import { VALID_TOOL_IDS } from "@/lib/mcp/tools";
+import { avisarTrocaNaPublicacao } from "@/lib/ai/aviso-de-troca-de-modelo";
+import { avisoDeAmostragemDaOrganizacao } from "@/lib/ai/avisos-do-modelo";
+import { ehEsforco, recusaDoEsforco } from "@/lib/ai/esforco";
 
 const UUID_RX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const VERSION_COLUMNS =
-  "id, organization_id, agent_id, version_number, system_prompt, provider, model, credential_id, tool_ids, trigger_config, channel_session_id, max_steps, token_budget, cost_budget_cents, history_message_window, history_token_window, handoff_keywords, handoff_tool_enabled, proposal_ai_draft_enabled, cases_enabled, split_messages, split_max_chars, followup, operator_enabled, operator_model, operator_tool_ids, status, published_at, superseded_at, created_at, created_by,pipeline_ids,knowledge_source_ids,provisioning_origin,inbound_debounce_ms";
+  "id, organization_id, agent_id, version_number, system_prompt, provider, model, credential_id, tool_ids, trigger_config, channel_session_id, max_steps, token_budget, cost_budget_cents, history_message_window, history_token_window, handoff_keywords, handoff_tool_enabled, proposal_ai_draft_enabled, cases_enabled, split_messages, split_max_chars, followup, operator_enabled, operator_model, operator_tool_ids, status, published_at, superseded_at, created_at, created_by,pipeline_ids,knowledge_source_ids,provisioning_origin,inbound_debounce_ms,effort";
 
 type ActionResult<T = void> =
   | { ok: true; data?: T }
@@ -132,6 +135,11 @@ export async function saveAgentDraftAction(
       error: "validation_failed",
       details: parsed.error.flatten(),
     };
+  }
+  // O esforço precisa ser um que ESTE modelo aceita (SonghaiCRM, 9007).
+  const recusaDoEsforcoSalvo = recusaDoEsforco(parsed.data.provider, parsed.data.model, parsed.data.effort);
+  if (recusaDoEsforcoSalvo) {
+    return { ok: false, error: "esforco_nao_suportado", message: recusaDoEsforcoSalvo };
   }
   // Validado ANTES de qualquer escrita, junto do resto. Se o cadastro fosse
   // conferido depois, uma ordem inválida devolveria erro com a versão já
@@ -300,6 +308,7 @@ export async function saveAgentDraftAction(
         system_prompt: v.system_prompt,
         provider: v.provider,
         model: v.model,
+        effort: v.effort,
         credential_id: v.credential_id,
         tool_ids: v.tool_ids,
         trigger_config: v.trigger_config ?? undefined,
@@ -374,7 +383,9 @@ export async function saveAgentDraftAction(
 export async function publishAgentAction(
   agentId: string,
   versionId: string,
-): Promise<ActionResult<{ version_id: string; previous_version_id: string | null }>> {
+): Promise<
+  ActionResult<{ version_id: string; previous_version_id: string | null; avisos: string[] }>
+> {
   if (!UUID_RX.test(agentId) || !UUID_RX.test(versionId)) {
     return { ok: false, error: "invalid_request" };
   }
@@ -389,7 +400,7 @@ export async function publishAgentAction(
   const valid = new Set<string>(VALID_TOOL_IDS as readonly string[]);
   const { data: targetV } = await admin
     .from("ai_agent_versions")
-    .select("id, agent_id, tool_ids")
+    .select("id, agent_id, tool_ids, provider, model, effort")
     .eq("id", versionId)
     .eq("organization_id", activeOrg.orgId)
     .maybeSingle();
@@ -400,6 +411,17 @@ export async function publishAgentAction(
   const invalid = tools.filter((t) => !valid.has(t));
   if (invalid.length > 0) {
     return { ok: false, error: "tool_id_invalid", details: { invalid } };
+  }
+
+  // O esforço do rascunho precisa ser aceito pelo modelo dele (a edição pode
+  // ter trocado só o modelo): conferido aqui, onde o par fica definitivo.
+  const recusaNaPublicacao = recusaDoEsforco(
+    targetV.provider as string,
+    targetV.model as string,
+    ehEsforco(targetV.effort) ? targetV.effort : null,
+  );
+  if (recusaNaPublicacao) {
+    return { ok: false, error: "esforco_nao_suportado", message: recusaNaPublicacao };
   }
 
   const result = await publishAgentVersion(admin, {
@@ -414,6 +436,20 @@ export async function publishAgentAction(
     }
     return { ok: false, error: "internal_error" };
   }
+
+  // SonghaiCRM: quem troca o modelo ou o esforço do agente deixa aviso na
+  // Central. É este o caminho da tela; a rota /publish faz o mesmo.
+  await avisarTrocaNaPublicacao(admin, {
+    organizationId: activeOrg.orgId,
+    agentId,
+    previousVersionId: result.previous_version_id,
+    quem: authUser.full_name || authUser.email,
+    depois: {
+      provider: targetV.provider as string,
+      model: targetV.model as string,
+      effort: (targetV.effort as string | null) ?? null,
+    },
+  });
 
   void admin
     .from("event_log")
@@ -448,11 +484,24 @@ export async function publishAgentAction(
     metadata: { version_id: result.version_id, previous_version_id: result.previous_version_id },
   });
 
+  // SonghaiCRM: a organização tem amostragem configurada e o modelo publicado a
+  // recusa? Avisa (sem bloquear): ela será retirada dos pedidos. A tela traduz.
+  const avisoDeAmostragem = await avisoDeAmostragemDaOrganizacao(
+    admin,
+    activeOrg.orgId,
+    targetV.provider as string,
+    targetV.model as string,
+  );
+
   revalidatePath(`/app/ai/agents/${agentId}`);
   revalidatePath("/app/ai/agents");
   return {
     ok: true,
-    data: { version_id: result.version_id, previous_version_id: result.previous_version_id },
+    data: {
+      version_id: result.version_id,
+      previous_version_id: result.previous_version_id,
+      avisos: avisoDeAmostragem ? [avisoDeAmostragem] : [],
+    },
   };
 }
 
@@ -516,6 +565,7 @@ export async function revertToVersionAction(
     system_prompt: string;
     provider: string;
     model: string;
+    effort?: string | null;
     credential_id: string;
     tool_ids: string[];
     trigger_config: Record<string, unknown> | null;
@@ -565,6 +615,7 @@ export async function revertToVersionAction(
         system_prompt: src.system_prompt,
         provider: src.provider,
         model: src.model,
+        effort: src.effort ?? null,
         credential_id: src.credential_id,
         tool_ids: src.tool_ids,
         trigger_config: src.trigger_config ?? undefined,
@@ -629,6 +680,15 @@ export async function revertToVersionAction(
     }
     return { ok: false, error: "internal_error" };
   }
+
+  // Reverter também troca o modelo em vigor: mesmo aviso da publicação.
+  await avisarTrocaNaPublicacao(admin, {
+    organizationId: activeOrg.orgId,
+    agentId,
+    previousVersionId: result.previous_version_id,
+    quem: authUser.full_name || authUser.email,
+    depois: { provider: src.provider, model: src.model, effort: src.effort ?? null },
+  });
 
   void admin
     .from("event_log")
@@ -696,6 +756,16 @@ export async function createMcpAgentAction(
     return { ok: false, error: "validation_failed", details: parsed.error.flatten() };
   }
 
+  // O esforço precisa ser um que ESTE modelo aceita (SonghaiCRM, 9007).
+  const recusaDaCriacao = recusaDoEsforco(
+    parsed.data.version.provider,
+    parsed.data.version.model,
+    parsed.data.version.effort,
+  );
+  if (recusaDaCriacao) {
+    return { ok: false, error: "esforco_nao_suportado", message: recusaDaCriacao };
+  }
+
   const requestId = randomUUID();
   const admin = createAdminClient();
 
@@ -729,6 +799,7 @@ export async function createMcpAgentAction(
     system_prompt: v.system_prompt,
     provider: v.provider,
     model: v.model,
+    effort: v.effort,
     credential_id: v.credential_id,
     tool_ids: v.tool_ids,
     trigger_config: v.trigger_config ?? undefined,

@@ -305,6 +305,74 @@ $$;
 revoke execute on function public.fn_trocar_plano_da_organizacao(uuid, uuid, uuid, text) from public, anon, authenticated;
 grant execute on function public.fn_trocar_plano_da_organizacao(uuid, uuid, uuid, text) to service_role;
 
+-- ---- Modelos Claude 5.5 no catálogo: Fable 5.1, Opus 5.5, Sonnet 5.5, Haiku 5.5 (migration 9005) ----
+--
+-- O seletor do provedor Anthropic lê `ai_models`, curado por migration (o cron
+-- `sync-model-catalog` só atualiza linhas da OpenRouter). Mesma lista em
+-- `ai_pricing`, senão o gasto sai NULL e não conta no teto. Padrão do provedor
+-- inalterado. Preços em centavos de USD por milhão de tokens.
+
+insert into public.ai_models
+  (provider, model_id, display_name, description, context_window,
+   input_price_per_million_cents, output_price_per_million_cents, supports_tools)
+values
+  ('anthropic', 'claude-fable-5-1',  'Claude Fable 5.1',
+   'O mais capaz da Anthropic, para raciocínio e trabalho agêntico exigentes. Custo acima do Opus; respostas podem demorar.',
+   1000000, 1000, 5000, true),
+  ('anthropic', 'claude-opus-5-5',   'Claude Opus 5.5',
+   'O Opus atual: muito capaz para agentes, mais barato que o Opus 5.',
+   1000000, 400, 2000, true),
+  ('anthropic', 'claude-sonnet-5-5', 'Claude Sonnet 5.5',
+   'O Sonnet atual: rapidez e capacidade para atendimento e agentes.',
+   1000000, 200, 1000, true),
+  ('anthropic', 'claude-haiku-5-5',  'Claude Haiku 5.5',
+   'O mais rápido e barato: classificação, extração e encaminhamento. Acima de 100 mil tokens de entrada o preço sobe para $0,50/$2,50 por milhão.',
+   1000000, 10, 50, true)
+on conflict (provider, model_id) do update set
+  display_name = excluded.display_name,
+  description = excluded.description,
+  context_window = excluded.context_window,
+  input_price_per_million_cents = excluded.input_price_per_million_cents,
+  output_price_per_million_cents = excluded.output_price_per_million_cents,
+  supports_tools = excluded.supports_tools,
+  deprecated_at = null;
+
+insert into public.ai_pricing
+  (model, prompt_cents_per_million_tokens, completion_cents_per_million_tokens, notes)
+values
+  ('claude-fable-5-1',  1000, 5000, 'catálogo 9005'),
+  ('claude-opus-5-5',    400, 2000, 'catálogo 9005'),
+  ('claude-sonnet-5-5',  200, 1000, 'catálogo 9005'),
+  ('claude-haiku-5-5',    10,   50, 'catálogo 9005 — até 100 mil tokens de entrada; acima, 50/250')
+on conflict (model) do update set
+  prompt_cents_per_million_tokens = excluded.prompt_cents_per_million_tokens,
+  completion_cents_per_million_tokens = excluded.completion_cents_per_million_tokens,
+  notes = excluded.notes,
+  superseded_at = null;
+
+-- ---- Esforço do modelo por ponto de IA: ai_purpose_bindings.effort (migration 9006) ----
+--
+-- Nulo = padrão do modelo. Quais níveis cada modelo aceita: lib/ai/esforco.ts.
+
+alter table public.ai_purpose_bindings
+  add column if not exists effort text
+  check (effort is null or effort in ('low', 'medium', 'high', 'xhigh', 'max'));
+
+comment on column public.ai_purpose_bindings.effort is
+  'Esforço do modelo neste ponto (output_config.effort da Anthropic). Nulo = padrão do modelo. Níveis por modelo: lib/ai/esforco.ts.';
+
+-- ---- Esforço do modelo por agente: ai_agent_versions.effort (migration 9007) ----
+--
+-- Nulo = padrão do modelo; agentes existentes ficam nulos. Agente novo nasce
+-- com Haiku 5.5 / medium pelo código (lib/ai/agents/padrao-do-agente-novo.ts).
+
+alter table public.ai_agent_versions
+  add column if not exists effort text
+  check (effort is null or effort in ('low', 'medium', 'high', 'xhigh', 'max'));
+
+comment on column public.ai_agent_versions.effort is
+  'Esforço do modelo deste agente (output_config.effort da Anthropic). Nulo = padrão do modelo. Níveis por modelo: lib/ai/esforco.ts.';
+
 -- ---- VARREDURA anon do apêndice da distribuição (repete a migration 0116 do upstream) ----
 --
 -- ⚠️ ÚLTIMO BLOCO DESTE ARQUIVO, DE PROPÓSITO. O `ALTER DEFAULT PRIVILEGES ...

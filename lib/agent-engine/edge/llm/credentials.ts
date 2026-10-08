@@ -282,6 +282,11 @@ function causaDoBanco(err: unknown): string {
 export interface LlmResolveOverride {
   provider?: string;
   credentialId?: string | null;
+  /**
+   * SonghaiCRM (9007): o esforço da versão publicada do agente. Só o
+   * `runModelCall` o lê, e só quando o modelo veio do agente.
+   */
+  effort?: string | null;
 }
 
 export async function resolveOrgLlmConfig(

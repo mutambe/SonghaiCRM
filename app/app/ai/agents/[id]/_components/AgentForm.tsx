@@ -37,6 +37,11 @@ import Link from "next/link";
 
 import { TETO_TOOLS_POR_AGENTE } from "@/lib/mcp/tools/selecao-por-pacote";
 import { PROVEDORES } from "@/lib/ai/pontos/provedores";
+import { ROTULO_DO_ESFORCO, ehEsforco, niveisDeEsforco, type Esforco } from "@/lib/ai/esforco";
+import { padraoDoAgenteNovo } from "@/lib/ai/agents/padrao-do-agente-novo";
+
+/** Valor do seletor de esforço para "padrão do modelo" (o Select não aceita string vazia). */
+const PADRAO_DO_MODELO = "padrao" as const;
 
 import { ModelPicker, useModelMeta } from "./ModelPicker";
 import { CHAVE_DA_INSTALACAO, CredentialPicker, STATUS_LABEL, findCredential } from "./CredentialPicker";
@@ -168,6 +173,8 @@ interface FormState {
   priority: number;
   provider: Provider;
   model: string;
+  /** SonghaiCRM (9007): esforço do modelo; `null` = padrão do modelo. */
+  effort: Esforco | null;
   credential_id: string;
   channel_session_id: string;
   system_prompt: string;
@@ -258,7 +265,14 @@ export function buildState(args: {
     description: agent?.description ?? "",
     priority: agent?.priority ?? 0,
     provider: (version?.provider as Provider) ?? provedorInicial(provedorPadrao),
-    model: version?.model ?? "",
+    // Agente NOVO na Anthropic nasce com Haiku 5.5 / Médio (SonghaiCRM, decisão
+    // do dono). Agente que já tem versão mostra o que tem.
+    model: version
+      ? version.model
+      : (padraoDoAgenteNovo(provedorInicial(provedorPadrao))?.model ?? ""),
+    effort: version
+      ? ehEsforco(version.effort) ? version.effort : null
+      : (padraoDoAgenteNovo(provedorInicial(provedorPadrao))?.effort ?? null),
     // `null` gravado = a versão usa a chave da instalação. Sem esta tradução,
     // reabrir o agente mostraria o campo em branco e pediria para escolher de novo.
     credential_id: version ? (version.credential_id ?? CHAVE_DA_INSTALACAO) : "",
@@ -331,6 +345,8 @@ function toVersionPayload(s: FormState) {
     system_prompt: s.system_prompt,
     provider: s.provider,
     model: s.model,
+    // Nível que o modelo não aceita vira "padrão do modelo" — a rota recusaria.
+    effort: s.effort !== null && niveisDeEsforco(s.provider, s.model).includes(s.effort) ? s.effort : null,
     // O token é da TELA; o contrato da versão é `null` = chave da instalação.
     credential_id: s.credential_id === CHAVE_DA_INSTALACAO ? null : s.credential_id,
     // "" na tela é "ainda não escolhi o número", e no contrato da versão isso é
@@ -412,7 +428,7 @@ export function AgentForm(props: Props) {
 
   // Quando provider muda, limpa credential e modelo (eles dependem do provider).
   function changeProvider(p: Provider) {
-    patch({ provider: p, credential_id: "", model: "" });
+    patch({ provider: p, credential_id: "", model: "", effort: null });
   }
 
   const cred = findCredential(props.credentials, form.credential_id);
@@ -599,10 +615,12 @@ export function AgentForm(props: Props) {
     try {
       const res = await publishAgentAction(props.agent.id, props.draft.id);
       if (!res.ok) {
-        toast.error(`${t("Falha ao publicar:")} ${res.error}`);
+        toast.error(`${t("Falha ao publicar:")} ${res.message ? t(res.message) : res.error}`);
         return;
       }
       toast.success(`v${props.draft.version_number} ${t("publicada e ativa.")}`);
+      // Avisos que não bloqueiam (ex.: a amostragem da organização será retirada).
+      (res.data?.avisos ?? []).forEach((a) => toast.warning(t(a)));
       setConfirmOpen(false);
       router.refresh();
     } finally {
@@ -895,6 +913,36 @@ export function AgentForm(props: Props) {
             />
             {validation.model ? (
               <p className="text-xs text-destructive">{validation.model}</p>
+            ) : null}
+
+            {niveisDeEsforco(form.provider, form.model).length > 0 ? (
+              <div className="space-y-1">
+                <Label htmlFor="effort">{t("Esforço")}</Label>
+                <Select
+                  value={
+                    form.effort !== null && niveisDeEsforco(form.provider, form.model).includes(form.effort)
+                      ? form.effort
+                      : PADRAO_DO_MODELO
+                  }
+                  onValueChange={(v) => patch({ effort: v === PADRAO_DO_MODELO ? null : (v as Esforco) })}
+                  disabled={disabled}
+                >
+                  <SelectTrigger id="effort" data-testid="esforco-do-agente">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={PADRAO_DO_MODELO}>{t("Padrão do modelo")}</SelectItem>
+                    {niveisDeEsforco(form.provider, form.model).map((n) => (
+                      <SelectItem key={n} value={n}>
+                        {t(ROTULO_DO_ESFORCO[n])}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  {t("Mais esforço pensa mais antes de responder ao cliente: melhor nas conversas difíceis, mais lento e mais caro.")}
+                </p>
+              </div>
             ) : null}
 
             <CredentialPicker

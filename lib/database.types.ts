@@ -1816,6 +1816,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           credential_id: string | null
+          effort: string | null
           followup: Json
           handoff_keywords: string[]
           handoff_tool_enabled: boolean
@@ -1855,6 +1856,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           credential_id?: string | null
+          effort?: string | null
           followup?: Json
           handoff_keywords?: string[]
           handoff_tool_enabled?: boolean
@@ -1894,6 +1896,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           credential_id?: string | null
+          effort?: string | null
           followup?: Json
           handoff_keywords?: string[]
           handoff_tool_enabled?: boolean
@@ -2643,6 +2646,7 @@ export type Database = {
           base_url: string | null
           created_at: string
           credential_id: string | null
+          effort: string | null
           id: string
           is_enabled: boolean
           model_id: string
@@ -2655,6 +2659,7 @@ export type Database = {
           base_url?: string | null
           created_at?: string
           credential_id?: string | null
+          effort?: string | null
           id?: string
           is_enabled?: boolean
           model_id: string
@@ -2667,6 +2672,7 @@ export type Database = {
           base_url?: string | null
           created_at?: string
           credential_id?: string | null
+          effort?: string | null
           id?: string
           is_enabled?: boolean
           model_id?: string

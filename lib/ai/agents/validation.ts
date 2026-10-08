@@ -8,6 +8,8 @@
  * Postgres function (defense in depth).
  */
 import { z } from "zod";
+
+import { ESFORCOS } from "@/lib/ai/esforco";
 import { VALID_TOOL_IDS } from "@/lib/mcp/tools/catalog";
 import { TETO_TOOLS_POR_AGENTE } from "@/lib/mcp/tools/selecao-por-pacote";
 import { IDS_DE_PROVEDOR } from "@/lib/ai/pontos/provedores";
@@ -126,6 +128,8 @@ const versionShapeSchema = z
      * mora na rota de versões, que é quem conhece o `process.env` do servidor.
      */
     credential_id: UUID.nullable(),
+    /** SonghaiCRM (9007): esforço do modelo; nulo = padrão do modelo. Quais níveis o modelo aceita, a rota confere. */
+    effort: z.enum(ESFORCOS).nullable().default(null),
     tool_ids: z
       .array(z.string().min(1).max(80))
       // O mesmo teto que a tela mostra ("13 de 20") é o que o servidor recusa —
@@ -251,6 +255,7 @@ export const versionPatchSchema = versionShapeSchema
     followup: followupPatchSchema,
     operator_enabled: versionShapeSchema.shape.operator_enabled.removeDefault(),
     operator_model: versionShapeSchema.shape.operator_model.removeDefault(),
+    effort: versionShapeSchema.shape.effort.removeDefault(),
     operator_tool_ids: versionShapeSchema.shape.operator_tool_ids.removeDefault(),
     pipeline_ids: versionShapeSchema.shape.pipeline_ids.removeDefault(),
     knowledge_source_ids: versionShapeSchema.shape.knowledge_source_ids.removeDefault(),

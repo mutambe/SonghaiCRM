@@ -10,6 +10,11 @@ import { FUSO_PADRAO } from "@/lib/tempo/fusos";
 // ---------------------------------------------------------------------------
 
 export const AGENT_MODELS = [
+  // SonghaiCRM (migration 9005): os modelos atuais da Anthropic.
+  "anthropic/claude-sonnet-5-5",
+  "anthropic/claude-opus-5-5",
+  "anthropic/claude-fable-5-1",
+  "anthropic/claude-haiku-5-5",
   "anthropic/claude-sonnet-4-6",
   "anthropic/claude-haiku-4-5",
   "anthropic/claude-opus-4-7",

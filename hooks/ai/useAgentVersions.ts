@@ -13,6 +13,8 @@ export interface AgentVersionRow {
   provider: Provider;
   model: string;
   credential_id: string;
+  /** SonghaiCRM (9007): nulo = padrão do modelo. */
+  effort?: string | null;
   tool_ids: string[];
   trigger_config: Record<string, unknown> | null;
   channel_session_id: string;

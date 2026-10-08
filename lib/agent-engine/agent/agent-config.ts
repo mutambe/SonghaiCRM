@@ -28,6 +28,8 @@ export interface PublishedAgentConfig {
   provider: string;
   model: string;
   credentialId: string | null;
+  /** SonghaiCRM (9007): esforço escolhido na versão; nulo/ausente = padrão do modelo. */
+  effort?: string | null;
   maxSteps: number;
   historyMessageWindow: number;
   historyTokenWindow: number;
@@ -106,6 +108,7 @@ interface Row {
   provider: string;
   model: string;
   credential_id: string | null;
+  effort: string | null;
   max_steps: number;
   history_message_window: number;
   history_token_window: number;
@@ -138,6 +141,7 @@ const SELECT_AGENT_CONFIG_COLUMNS = `a.operation_mode,a.paused_at,a.operation_re
             v.provider,
             v.model,
             v.credential_id,
+            v.effort,
             v.max_steps,
             v.history_message_window,
             v.history_token_window,
@@ -194,6 +198,7 @@ function mapAgentConfigRow(r: Row): PublishedAgentConfig {
     provider: r.provider,
     model: r.model,
     credentialId: r.credential_id,
+    effort: r.effort ?? null,
     maxSteps: r.max_steps,
     historyMessageWindow: r.history_message_window,
     historyTokenWindow: r.history_token_window,
