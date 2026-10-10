@@ -3,6 +3,7 @@
  * configurado, quanto cobra cada pacote, quem deve, quem foi suspenso por dívida.
  * Só leitura; filtra por `organization_id` onde a pergunta é de uma organização.
  */
+import { STATUS_OPERANTE } from "@/lib/organizacao/operante";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { dataEmMaputo, somarDias } from "@/lib/billing/calculo";
@@ -89,7 +90,7 @@ export async function resumoDaFaturacao(db: SupabaseClient, agora: Date = new Da
         .select("id, organization_id, period_start, due_date, amount_cents, currency, status, checkout_url, organizations(display_name)")
         .order("issued_at", { ascending: false })
         .limit(50),
-      db.from("organizations").select("id").eq("status", "suspended").eq("suspended_kind", "cobranca"),
+      db.from("organizations").select("id").neq("status", STATUS_OPERANTE).eq("suspended_kind", "cobranca"),
     ]);
 
   const porPlano = new Map<string, { clientes: number; semAcordo: number }>();
