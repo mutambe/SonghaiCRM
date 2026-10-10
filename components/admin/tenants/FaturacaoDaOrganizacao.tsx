@@ -236,7 +236,7 @@ export function FaturacaoDaOrganizacao({ organizationId }: { organizationId: str
               )}
             </p>
             {tokens.quota !== null && (
-              <div className="h-2 w-full max-w-sm overflow-hidden rounded bg-muted" aria-hidden>
+              <div className="h-2 w-full max-w-sm overflow-hidden rounded-md bg-muted" aria-hidden>
                 <div
                   className={tokens.nivel === 100 ? "h-full bg-error-fg" : "h-full bg-foreground"}
                   style={{ width: `${Math.min(100, tokens.percentagem ?? 0)}%` }}

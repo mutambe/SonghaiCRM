@@ -133,7 +133,7 @@ export default async function BillingPage() {
           <p className="text-sm">
             <strong>{tokensLegiveis(tokens.consumidos)}</strong> / {tokensLegiveis(tokens.quota)} {t("tokens")} ({tokens.percentagem}%)
           </p>
-          <div className="h-2 w-full overflow-hidden rounded bg-muted" aria-hidden>
+          <div className="h-2 w-full overflow-hidden rounded-md bg-muted" aria-hidden>
             <div
               className={tokens.nivel === 100 ? "h-full bg-destructive" : "h-full bg-foreground"}
               style={{ width: `${Math.min(100, tokens.percentagem ?? 0)}%` }}
