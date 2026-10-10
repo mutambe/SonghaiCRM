@@ -179,6 +179,7 @@ export const NAV_CATALOG = [
     // aponta para `/app/team?aba=atendimento`.
     href: "/app/agenda",
     label: "Agenda",
+    capacidade: "agenda",
     description: "O que está marcado, com quem, e quem atende — seu e da equipe.",
     icon: "CalendarBlank",
     group: "atendimento",
@@ -210,6 +211,7 @@ export const NAV_CATALOG = [
     // sistema; "funil de vendas" é palavra de quem vende.
     href: "/app/kanban",
     label: "Funis",
+    capacidade: "crm",
     description: "Seus funis de venda — clique em um para abrir o quadro de clientes.",
     icon: "Kanban",
     group: "crm",
@@ -242,6 +244,7 @@ export const NAV_CATALOG = [
   {
     href: "/app/companies",
     label: "Empresas",
+    capacidade: "crm",
     description: "Cadastro B2B — razão social, CNPJ e decisores.",
     icon: "Buildings",
     group: "crm",
@@ -255,6 +258,7 @@ export const NAV_CATALOG = [
   {
     href: "/app/people",
     label: "Pessoas",
+    capacidade: "crm",
     description: "Decisores e contatos ligados a empresas, com vários telefones.",
     icon: "UserCircle",
     group: "crm",
@@ -271,6 +275,7 @@ export const NAV_CATALOG = [
     // pela rota, com `requireRole("agent")`.
     href: "/app/tasks",
     label: "Tarefas",
+    capacidade: "crm",
     description: "O que ficou combinado, com prazo — e o que já venceu sem ninguém fazer.",
     icon: "ListChecks",
     group: "crm",
@@ -369,6 +374,7 @@ export const NAV_CATALOG = [
     // eles para sempre.
     href: "/app/settings/tenant/agenda",
     label: "Tipos de agendamento",
+    capacidade: "agenda",
     description: "O que se pode marcar, quanto dura, onde acontece e quem atende.",
     icon: "CalendarBlank",
     group: "organizacao",
@@ -458,6 +464,7 @@ export const NAV_CATALOG = [
     // admin, porque a tela recebe o token de API da conta de pagamento.
     href: "/app/integrations/paysuite",
     label: "Pagamentos (PaySuite)",
+    capacidade: "mpesa",
     description: "Cobre por M-Pesa, e-Mola ou cartão com um link a partir do negócio.",
     icon: "Receipt",
     group: "organizacao",
@@ -475,6 +482,7 @@ export const NAV_CATALOG = [
     // que ele significa.
     href: "/app/settings/tenant/pipelines",
     label: "Etapas do funil",
+    capacidade: "crm",
     description: "As colunas de cada funil, o vocabulário do negócio e os motivos de perda.",
     icon: "Funnel",
     group: "crm",
@@ -722,6 +730,7 @@ export const NAV_CATALOG = [
   {
     href: "/app/webhooks",
     label: "Webhooks",
+    capacidade: "integracoes",
     description: "Avise outros sistemas quando algo acontecer aqui dentro.",
     icon: "WebhooksLogo",
     group: "canais",
@@ -782,6 +791,7 @@ export const NAV_CATALOG = [
   {
     href: "/app/metrics",
     label: "Desempenho",
+    capacidade: "analytics",
     description: "Funil e performance por atendente nos últimos 30 dias.",
     icon: "ChartBar",
     group: "analise",
@@ -812,6 +822,7 @@ export const NAV_CATALOG = [
     // opostas — só esta tela distingue as duas.
     href: "/app/activities",
     label: "Atividades",
+    capacidade: "relatorios",
     description:
       "Relatório do que a equipe e os agentes fizeram no período: quanto, quem e de que tipo.",
     icon: "ClockCounterClockwise",
@@ -1001,6 +1012,7 @@ export const NAV_CATALOG = [
   {
     href: "/app/settings/api-tokens",
     label: "API Tokens",
+    capacidade: "integracoes",
     description: "Chaves para outro sistema conversar com o seu CRM.",
     icon: "Lock",
     group: "organizacao",
@@ -1019,6 +1031,7 @@ export const NAV_CATALOG = [
   {
     href: "/app/extensions",
     label: "Extensões",
+    capacidade: "integracoes",
     description:
       "Guias instalados para orientar o trabalho no CRM, com permissões e estado visíveis.",
     icon: "PuzzlePiece",
@@ -1034,6 +1047,7 @@ export const NAV_CATALOG = [
     // atendente exatamente a fonte que responde o que o cliente pergunta.
     href: "/app/integracao-dados",
     label: "Dados externos",
+    capacidade: "integracoes",
     description:
       "Conecte um banco de dados de outro sistema para o agente consultar em tempo real.",
     icon: "PlugsConnected",

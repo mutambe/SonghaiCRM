@@ -23,6 +23,9 @@ import type { NextRequest } from "next/server";
 
 import { fail, ok } from "@/lib/api/wrappers";
 import { audit } from "@/lib/audit";
+import { lerConfigDaFaturacao } from "@/lib/billing/config";
+import { dependenciasReais } from "@/lib/billing/dependencias";
+import { COLUNAS_DA_FATURA, registrarPagamentoDeFatura, type FaturaAberta } from "@/lib/billing/executar";
 import { emitLeadActivity } from "@/lib/leads/activity-emitter";
 import { logger } from "@/lib/logger";
 import { formatCents } from "@/lib/money";
@@ -78,6 +81,33 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ token: str
   if (!providerPaymentId) return ok({ status: "ignored", reason: "sem_id_de_pagamento" }, { requestId });
 
   const novoStatus = body.event === "payment.success" ? "paid" : "failed";
+
+  // SonghaiCRM (9010): o pagamento pode ser de uma FACTURA de pacote, e não de um
+  // negócio. Só vale se o webhook é da organização que recebe — o token da URL
+  // resolveu as credenciais dela, e nenhuma outra organização pode fechar factura.
+  // `payment.failed` não mexe: a reconciliação renova o link na rodada seguinte.
+  const cfgDaFaturacao = await lerConfigDaFaturacao(admin);
+  if (cfgDaFaturacao && cfgDaFaturacao.organizationId === organizationId) {
+    const { data: fatura } = await admin
+      .from("billing_invoices")
+      .select(COLUNAS_DA_FATURA)
+      .eq("provider_payment_id", providerPaymentId)
+      .maybeSingle();
+    if (fatura) {
+      if (novoStatus === "paid") {
+        try {
+          await registrarPagamentoDeFatura(await dependenciasReais(admin, cfgDaFaturacao), fatura as unknown as FaturaAberta);
+        } catch (erro) {
+          logger.error("[webhooks.paysuite] falha ao dar a factura como paga", {
+            organizationId,
+            detalhe: erro instanceof Error ? erro.message : String(erro),
+          });
+          return fail("internal_error", "falha ao gravar confirmação", 500, { requestId });
+        }
+      }
+      return ok({ status: "processed", alvo: "factura" }, { requestId });
+    }
+  }
 
   // Só muda o que ainda não está no estado novo: a reentrega não acha linha.
   const { data: atualizado, error: updateErr } = await admin

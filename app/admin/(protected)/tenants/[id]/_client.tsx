@@ -3,6 +3,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useTenantDetail } from "@/hooks/useTenantDetail";
 import { TenantOverview } from "@/components/admin/tenants/TenantOverview";
 import { TenantActions } from "@/components/admin/tenants/TenantActions";
+import { AgenteModeloDoCliente } from "@/components/admin/tenants/AgenteModeloDoCliente";
+import { FaturacaoDaOrganizacao } from "@/components/admin/tenants/FaturacaoDaOrganizacao";
 import { PlanoDaOrganizacao } from "@/components/admin/tenants/PlanoDaOrganizacao";
 import { GestaoDaOrganizacao } from "@/components/admin/tenants/GestaoDaOrganizacao";
 import { ResponsavelDaOrganizacao } from "@/components/admin/tenants/ResponsavelDaOrganizacao";
@@ -51,7 +53,11 @@ export function TenantOverviewClient({ id }: TenantOverviewClientProps) {
         <div className="space-y-6">
           {/* SonghaiCRM — o pacote vigente e a troca (migration 9004). */}
           <PlanoDaOrganizacao organizationId={organization.id} />
+          {/* SonghaiCRM — preço acordado, piloto, extras e facturas deste cliente (migration 9010). */}
+          <FaturacaoDaOrganizacao organizationId={organization.id} />
           <ResponsavelDaOrganizacao organizationId={organization.id} />
+          {/* SonghaiCRM — aplicar um agente-modelo a este cliente (migration 9009). */}
+          <AgenteModeloDoCliente organizationId={organization.id} />
           <TenantOverview
             organization={organization}
             counts={counts}

@@ -22,6 +22,7 @@ import {
   Lock,
   PuzzlePiece,
   Stack,
+  Receipt,
 } from "@/lib/ui/icons";
 import type { Icon as PhosphorIcon } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
@@ -44,6 +45,9 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/admin/lgpd", label: "LGPD", icon: Scales },
   { href: "/admin/incidents", label: "Incidents", icon: Warning },
   { href: "/admin/usage", label: "Usage", icon: ChartBar },
+  // A faturação dos pacotes (SonghaiCRM, 9010): preços globais, extras e quem deve.
+  // É da INSTALAÇÃO — quem a opera é o dono — e /admin tem navegação própria.
+  { href: "/admin/faturacao", label: "Faturação", icon: Receipt },
   { href: "/admin/users", label: "Users", icon: Users },
   { href: "/admin/platform-admins", label: "Platform Admins", icon: ShieldCheck },
   // A porta da tela de marca. Ela NÃO entra em `lib/navigation/registry.ts`:

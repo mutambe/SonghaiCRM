@@ -167,6 +167,7 @@ export const TOOLS_AGENDAMENTO = declararTools([
     // tipo de atendimento, e nenhuma capacidade do catálogo dizia quais existem:
     // o agente chutava o nome e ouvia "não existe atendimento chamado assim".
     name: "crm_list_event_types",
+    capacidade: "agenda",
     category: "read",
     rotulo: "Ver o que a empresa atende",
     explicacao:
@@ -177,6 +178,7 @@ export const TOOLS_AGENDAMENTO = declararTools([
   },
   {
     name: "crm_find_free_slots",
+    capacidade: "agenda",
     category: "read",
     rotulo: "Ver horários livres na agenda",
     explicacao:
@@ -187,6 +189,7 @@ export const TOOLS_AGENDAMENTO = declararTools([
   },
   {
     name: "crm_list_appointments",
+    capacidade: "agenda",
     category: "read",
     rotulo: "Ver os compromissos marcados",
     explicacao:
@@ -197,6 +200,7 @@ export const TOOLS_AGENDAMENTO = declararTools([
   },
   {
     name: "crm_find_and_book_appointment",
+    capacidade: "agenda",
     category: "write",
     rotulo: "Ver se o horário está livre e já marcar",
     explicacao:
@@ -209,6 +213,7 @@ export const TOOLS_AGENDAMENTO = declararTools([
   },
   {
     name: "crm_book_appointment",
+    capacidade: "agenda",
     category: "write",
     rotulo: "Marcar consulta ou sessão",
     explicacao:
@@ -220,6 +225,7 @@ export const TOOLS_AGENDAMENTO = declararTools([
   },
   {
     name: "crm_reschedule_appointment",
+    capacidade: "agenda",
     category: "write",
     rotulo: "Remarcar um compromisso",
     explicacao:
@@ -230,6 +236,7 @@ export const TOOLS_AGENDAMENTO = declararTools([
   },
   {
     name: "crm_confirm_appointment",
+    capacidade: "agenda",
     category: "write",
     rotulo: "Confirmar um horário combinado",
     explicacao:
@@ -241,6 +248,7 @@ export const TOOLS_AGENDAMENTO = declararTools([
   },
   {
     name: "crm_set_appointment_outcome",
+    capacidade: "agenda",
     category: "write",
     rotulo: "Registrar se a pessoa veio ou faltou",
     explicacao:
@@ -253,6 +261,7 @@ export const TOOLS_AGENDAMENTO = declararTools([
   },
   {
     name: "crm_cancel_appointment",
+    capacidade: "agenda",
     category: "write",
     rotulo: "Desmarcar um compromisso",
     explicacao:

@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/auth/AuthProvider";
 import { useT } from "@/hooks/i18n/useT";
 import { MagnifyingGlass } from "@/lib/ui/icons";
 import { NAV_GROUPS, searchable, type NavDestination, type NavGroupId } from "@/lib/navigation/registry";
+import { FUNCIONALIDADES_DO_PLANO } from "@/lib/plans/funcionalidades";
 import { cn } from "@/lib/utils";
 
 /**
@@ -63,7 +64,7 @@ function Resultados({ aoEscolher }: { aoEscolher: () => void }) {
         activeOrg?.role ?? null,
         activeOrg?.interface_settings,
         activeOrg?.modulos_ligados ?? [],
-        activeOrg?.capacidades_ligadas ?? [],
+        activeOrg?.capacidades_ligadas ?? FUNCIONALIDADES_DO_PLANO,
       ),
     [
       user.is_platform_admin,

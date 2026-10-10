@@ -30,6 +30,7 @@ import { ROLE_RANK } from "@/lib/auth/types";
 import { traduzir } from "@/lib/i18n/dicionario";
 
 import { AvisoNoWhatsApp } from "./_components/AvisoNoWhatsApp";
+import { AvisoPorEmail } from "./_components/AvisoPorEmail";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Aviso no WhatsApp" };
@@ -60,6 +61,8 @@ export default async function AvisoDeCasoPage() {
         </p>
       </header>
       <AvisoNoWhatsApp />
+      {/* SonghaiCRM (9012): o mesmo aviso por e-mail, canal adicional e independente. */}
+      <AvisoPorEmail />
     </div>
   );
 }

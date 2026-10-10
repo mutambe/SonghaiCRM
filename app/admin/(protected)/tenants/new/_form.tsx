@@ -16,6 +16,8 @@ import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
+import { parseReaisToCents } from "@/lib/money";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -78,6 +80,12 @@ export function NewTenantForm() {
   const [ownerInterface, setOwnerInterface] = useState(INTERFACE_COMPLETA);
   const [slugLocked, setSlugLocked] = useState(false);
   const [created, setCreated] = useState<CreateTenantResponse["data"] | null>(null);
+  // Termos comerciais (SonghaiCRM, 9010): fora do formulário validado porque a
+  // edição da organização não os conhece. Vazio = vale o preço do pacote.
+  const [piloto, setPiloto] = useState(false);
+  const [precoAcordado, setPrecoAcordado] = useState("");
+  const precoAcordadoCents = precoAcordado.trim() === "" ? null : parseReaisToCents(precoAcordado);
+  const precoAcordadoInvalido = precoAcordado.trim() !== "" && precoAcordadoCents === null;
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -117,6 +125,10 @@ export function NewTenantForm() {
   };
 
   const onSubmit = handleSubmit(async (values) => {
+    if (precoAcordadoInvalido) {
+      toast.error(t("O preço acordado não é um valor válido."));
+      return;
+    }
     try {
       const result = await createTenant.mutateAsync({
         display_name: values.display_name,
@@ -126,6 +138,8 @@ export function NewTenantForm() {
         plan: values.plan,
         owner_email: values.owner_email,
         owner_interface_settings: ownerInterface,
+        ...(piloto ? { is_pilot: true } : {}),
+        ...(precoAcordadoCents !== null ? { agreed_price_cents: precoAcordadoCents } : {}),
       });
 
       toast.success(t("Tenant criado com sucesso!"));
@@ -300,6 +314,31 @@ export function NewTenantForm() {
               {errors.plan && (
                 <p className="text-xs text-error-fg">{t(errors.plan.message ?? "")}</p>
               )}
+            </div>
+
+            {/* termos comerciais: piloto e preço acordado (SonghaiCRM, 9010) */}
+            <div className="space-y-3 rounded-md border p-3">
+              <div className="flex items-start justify-between gap-4">
+                <div className="space-y-0.5">
+                  <Label htmlFor="is_pilot">{t("Piloto")}</Label>
+                  <p className="text-xs text-text-muted">
+                    {t("Setup grátis e 50% de desconto na primeira mensalidade. O sistema aplica sozinho na primeira factura.")}
+                  </p>
+                </div>
+                <Switch id="is_pilot" checked={piloto} onCheckedChange={setPiloto} aria-label={t("Piloto")} />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="agreed_price">{t("Mensalidade acordada (MTn, opcional)")}</Label>
+                <Input
+                  id="agreed_price"
+                  inputMode="decimal"
+                  placeholder={t("Vazio = preço do pacote")}
+                  value={precoAcordado}
+                  onChange={(e) => setPrecoAcordado(e.target.value)}
+                  aria-invalid={precoAcordadoInvalido}
+                />
+                {precoAcordadoInvalido && <p className="text-xs text-error-fg">{t("Valor inválido.")}</p>}
+              </div>
             </div>
 
             {/* owner_email */}
