@@ -1022,6 +1022,29 @@ export const AUDIT_ACTIONS = [
   "payment.status_changed",
   // SonghaiCRM — licença por organização (migration 9004).
   "tenant.subscription_changed",
+  // SonghaiCRM — agente-modelo aplicado a um cliente (migration 9009).
+  "ai_agent.model_applied",
+  // SonghaiCRM — faturação dos pacotes (migration 9010).
+  "billing.invoice_issued",
+  "billing.invoice_paid",
+  "billing.reminder_sent",
+  "billing.warning_sent",
+  "billing.org_suspended",
+  "billing.org_reactivated",
+  "billing.plan_price_changed",
+  "billing.plan_content_changed",
+  "billing.agreement_changed",
+  "billing.item_added",
+  "billing.item_ended",
+  "billing.settings_changed",
+  // SonghaiCRM — aviso de caso por e-mail (migration 9012).
+  "ai.case_email_alert_sent",
+  "ai.case_email_alert_config_changed",
+  "billing.tokens_alert",
+  "billing.provider_emails_changed",
+  "billing.transfer_instructions_changed",
+  "billing.invoice_extended",
+  "billing.invoice_voided",
   // SonghaiCRM — administração da organização pelo painel da plataforma.
   "tenant.updated_by_platform_admin",
   "tenant.deleted_by_platform_admin",

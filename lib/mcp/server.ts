@@ -14,6 +14,7 @@ import type { z } from "zod";
 
 import type { ModuloOpcional } from "@/lib/instalacao/modulos";
 import type { CapacidadeDaOrganizacao } from "@/lib/organizacao/capacidades";
+import { FUNCIONALIDADES_DO_PLANO } from "@/lib/plans/funcionalidades";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { auditMcpToolCall } from "./audit";
 import { McpAuthError, ensureRole, ensureScope, type McpAuthResult } from "./auth";
@@ -45,7 +46,7 @@ export function createMcpServer(
   auth: McpAuthResult,
   requestId: string,
   modulosLigados: readonly ModuloOpcional[] = [],
-  capacidadesLigadas: readonly CapacidadeDaOrganizacao[] = [],
+  capacidadesLigadas: readonly CapacidadeDaOrganizacao[] = FUNCIONALIDADES_DO_PLANO,
   idempotencyKey?: string,
 ): McpServer {
   const server = new McpServer({

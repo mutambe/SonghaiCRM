@@ -15,9 +15,21 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { modulosLigados, type ModuloOpcional } from "@/lib/instalacao/modulos";
 import { logger } from "@/lib/logger";
+import {
+  funcionalidadesDaOrganizacao,
+  type FuncionalidadeDoPlano,
+} from "@/lib/plans/funcionalidades";
 
 export const CAPACIDADES_DA_ORGANIZACAO = ["propostas"] as const;
-export type CapacidadeDaOrganizacao = (typeof CAPACIDADES_DA_ORGANIZACAO)[number];
+/** As que a EMPRESA liga para si (`organizations.settings`). */
+export type CapacidadeLigadaPelaEmpresa = (typeof CAPACIDADES_DA_ORGANIZACAO)[number];
+/**
+ * Capacidade = o que a empresa ligou + o que o PACOTE dela inclui
+ * (`lib/plans/funcionalidades.ts`). Os dois chegam pelo mesmo canal — menu, ⌘K,
+ * catálogo MCP, ferramentas do agente — e é por isso que o plano que não inclui
+ * a agenda a tira de todos eles de uma vez.
+ */
+export type CapacidadeDaOrganizacao = CapacidadeLigadaPelaEmpresa | FuncionalidadeDoPlano;
 
 /**
  * O módulo da INSTALAÇÃO que cada capacidade exige (doc 79). A empresa liga a
@@ -25,7 +37,7 @@ export type CapacidadeDaOrganizacao = (typeof CAPACIDADES_DA_ORGANIZACAO)[number
  * e é aqui, e não em cada consumidor, que as duas se somam: tela, menu, rota,
  * ferramenta do agente e cron leem a mesma resposta.
  */
-const MODULO_DA_CAPACIDADE: Record<CapacidadeDaOrganizacao, ModuloOpcional> = {
+const MODULO_DA_CAPACIDADE: Record<CapacidadeLigadaPelaEmpresa, ModuloOpcional> = {
   propostas: "propostas",
 };
 
@@ -40,17 +52,26 @@ function objeto(v: unknown): Record<string, unknown> | null {
 export function capacidadesLigadas(
   settings: unknown,
   modulos: readonly ModuloOpcional[],
+  /**
+   * O que o pacote inclui. Omitido = nenhuma: esta função continua a responder
+   * só "o que a empresa ligou". Quem precisa do plano (o layout, a leitura
+   * assíncrona abaixo) passa-o — e o que é omitido some do menu, nunca aparece.
+   */
+  funcionalidades: readonly FuncionalidadeDoPlano[] = [],
 ): CapacidadeDaOrganizacao[] {
   const propostas = objeto(objeto(settings)?.proposals);
-  const daEmpresa: CapacidadeDaOrganizacao[] = propostas?.enabled === true ? ["propostas"] : [];
-  return daEmpresa.filter((c) => modulos.includes(MODULO_DA_CAPACIDADE[c]));
+  const daEmpresa: CapacidadeLigadaPelaEmpresa[] = propostas?.enabled === true ? ["propostas"] : [];
+  return [...daEmpresa.filter((c) => modulos.includes(MODULO_DA_CAPACIDADE[c])), ...funcionalidades];
 }
 
-/** Lê a linha da organização. Nunca lança: erro = nenhuma capacidade. */
+/** Lê a linha da organização. Nunca lança: erro = nenhuma capacidade DA EMPRESA (as do pacote seguem o plano). */
 export async function capacidadesDaOrganizacao(
   db: SupabaseClient,
   organizationId: string,
 ): Promise<CapacidadeDaOrganizacao[]> {
+  // O plano é lido à parte e nunca lança: se a leitura da empresa falhar, o
+  // atendimento do pacote não cai junto (as funcionalidades falham ABERTAS).
+  const funcionalidades = await funcionalidadesDaOrganizacao(db, organizationId);
   try {
     const [{ data, error }, modulos] = await Promise.all([
       db.from("organizations").select("settings").eq("id", organizationId).maybeSingle(),
@@ -61,14 +82,14 @@ export async function capacidadesDaOrganizacao(
         organization_id: organizationId,
         detalhe: (error as { message?: string }).message,
       });
-      return [];
+      return [...funcionalidades];
     }
-    return capacidadesLigadas((data as { settings?: unknown } | null)?.settings, modulos);
+    return capacidadesLigadas((data as { settings?: unknown } | null)?.settings, modulos, funcionalidades);
   } catch (erro) {
     logger.warn("capacidades da organização: leitura falhou — tratando todas como desligadas", {
       organization_id: organizationId,
       detalhe: erro instanceof Error ? erro.message : String(erro),
     });
-    return [];
+    return [...funcionalidades];
   }
 }

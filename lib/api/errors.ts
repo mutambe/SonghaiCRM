@@ -36,6 +36,8 @@ export const ApiErrorCodes = {
   // Conta da empresa suspensa (spec da cobrança §4): sessão, token `dsk_` e MCP.
   // Só LGPD e cobrança passam, por `requireRole({ permiteOrgSuspensa: true })`.
   org_suspended: "org_suspended",
+  // SonghaiCRM: a funcionalidade não está no pacote da organização (lib/plans/funcionalidades.ts).
+  plan_feature_required: "plan_feature_required",
   // Platform admin `support_readonly` tentando ESCREVER (`requirePlatformAdminEscrita`).
   forbidden_scope: "forbidden_scope",
   lgpd_anonymization_irreversible: "lgpd_anonymization_irreversible",

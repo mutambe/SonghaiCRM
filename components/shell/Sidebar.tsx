@@ -15,6 +15,7 @@ import { LogotipoDoProduto, SimboloDoProduto } from "@/components/branding/Marca
 import { marcaEhADoProduto } from "@/lib/branding";
 import { useMarcaDaInstalacao } from "@/lib/branding/contexto";
 import { GRUPO_NO_RODAPE, sidebarGroups } from "@/lib/navigation/registry";
+import { FUNCIONALIDADES_DO_PLANO } from "@/lib/plans/funcionalidades";
 
 const CHAVE_GRUPOS_FECHADOS = "sidebar-grupos-fechados";
 
@@ -48,7 +49,7 @@ export function SidebarContent({
     activeOrg?.role ?? null,
     activeOrg?.interface_settings,
     activeOrg?.modulos_ligados ?? [],
-    activeOrg?.capacidades_ligadas ?? [],
+    activeOrg?.capacidades_ligadas ?? FUNCIONALIDADES_DO_PLANO,
   );
   // Configurações sai da área que rola e vai para o rodapé fixo: medido em
   // 1280x768, ele caía fora da dobra mesmo em telas de 1080px.

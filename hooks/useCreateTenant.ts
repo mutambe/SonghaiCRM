@@ -19,6 +19,10 @@ export interface CreateTenantPayload {
   plan?: SlugDePlano;
   owner_email: string;
   owner_interface_settings?: InterfaceSettings;
+  /** Piloto e preço acordado nascem com o cliente (SonghaiCRM, 9010). */
+  is_pilot?: boolean;
+  agreed_price_cents?: number;
+  agreed_setup_cents?: number;
 }
 
 export interface CreateTenantResponse {
