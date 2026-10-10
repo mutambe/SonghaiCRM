@@ -65,6 +65,7 @@ function criarBanco(m: Mundo) {
       select: () => b,
       update: (v: Linha) => ((modo = "update"), (valores = v), b),
       eq: (c: string, v: unknown) => (filtros.push((l) => l[c] === v), b),
+      neq: (c: string, v: unknown) => (filtros.push((l) => l[c] !== v), b),
       is: (c: string, v: unknown) => (filtros.push((l) => (l[c] ?? null) === v), b),
       in: (c: string, v: unknown[]) => (filtros.push((l) => v.includes(l[c])), b),
       lt: (c: string, v: string) => (filtros.push((l) => String(l[c]) < v), b),

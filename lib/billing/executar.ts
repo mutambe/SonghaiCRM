@@ -34,6 +34,7 @@ import { LIMIARES_DE_TOKENS, estadoDosTokens } from "@/lib/billing/tokens";
 import { montarEmail, type DadosDoEmail, type Mensagem, type TipoDeEmail } from "@/lib/billing/emails";
 import type { AuditAction } from "@/lib/audit/actions";
 import { logger } from "@/lib/logger";
+import { STATUS_OPERANTE, ehOperante } from "@/lib/organizacao/operante";
 
 export interface Gateway {
   criar(entrada: { amountCents: number; reference: string; description: string }): Promise<{ id: string; checkoutUrl: string }>;
@@ -455,7 +456,7 @@ export async function reativarSePago(
   const hoje = dataEmMaputo(d.agora);
   const { data: org } = await d.db.from("organizations").select("status, suspended_kind").eq("id", organizationId).maybeSingle();
   const o = org as { status: string; suspended_kind: string | null } | null;
-  if (!o || o.status !== "suspended" || o.suspended_kind !== "cobranca") return;
+  if (!o || ehOperante(o.status) || o.suspended_kind !== "cobranca") return;
 
   const { data: devidas } = await d.db
     .from("billing_invoices")
@@ -484,7 +485,7 @@ export async function reativarSePago(
 }
 
 async function reativarQuemPagou(d: DependenciasDaRodada, resumo: ResumoDaRodada): Promise<void> {
-  const { data } = await d.db.from("organizations").select("id").eq("status", "suspended").eq("suspended_kind", "cobranca");
+  const { data } = await d.db.from("organizations").select("id").neq("status", STATUS_OPERANTE).eq("suspended_kind", "cobranca");
   for (const o of (data ?? []) as Array<{ id: string }>) await reativarSePago(d, o.id, resumo);
 }
 
