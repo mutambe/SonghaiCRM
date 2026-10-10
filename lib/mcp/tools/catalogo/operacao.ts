@@ -57,6 +57,7 @@ export const TOOLS_OPERACAO = declararTools([
   // ---- funil e etapas ----
   {
     name: "crm_list_stages",
+    capacidade: "crm",
     category: "read",
     rotulo: "Ver as etapas de um funil",
     explicacao:
@@ -67,6 +68,7 @@ export const TOOLS_OPERACAO = declararTools([
   },
   {
     name: "crm_create_stage",
+    capacidade: "crm",
     category: "write",
     rotulo: "Criar etapa no funil",
     explicacao:
@@ -78,6 +80,7 @@ export const TOOLS_OPERACAO = declararTools([
   },
   {
     name: "crm_update_stage",
+    capacidade: "crm",
     category: "write",
     rotulo: "Renomear ou reordenar uma etapa",
     explicacao:
@@ -89,6 +92,7 @@ export const TOOLS_OPERACAO = declararTools([
   },
   {
     name: "crm_archive_stage",
+    capacidade: "crm",
     category: "write",
     rotulo: "Arquivar uma etapa do funil",
     explicacao:
@@ -136,6 +140,7 @@ export const TOOLS_OPERACAO = declararTools([
   // ---- entradas automáticas de contatos ----
   {
     name: "crm_list_webhook_sources",
+    capacidade: "integracoes",
     category: "read",
     rotulo: "Ver as entradas automáticas de contatos",
     explicacao:
@@ -146,6 +151,7 @@ export const TOOLS_OPERACAO = declararTools([
   },
   {
     name: "crm_list_webhook_source_events",
+    capacidade: "integracoes",
     category: "read",
     rotulo: "Ver o que chegou por uma entrada",
     explicacao:
@@ -156,6 +162,7 @@ export const TOOLS_OPERACAO = declararTools([
   },
   {
     name: "crm_create_webhook_source",
+    capacidade: "integracoes",
     category: "write",
     rotulo: "Criar uma entrada automática de contatos",
     explicacao:
@@ -167,6 +174,7 @@ export const TOOLS_OPERACAO = declararTools([
   },
   {
     name: "crm_set_webhook_source_active",
+    capacidade: "integracoes",
     category: "write",
     rotulo: "Ligar ou desligar uma entrada de contatos",
     explicacao:

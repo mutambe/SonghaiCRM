@@ -178,6 +178,7 @@ export const NAV_CATALOG = [
     // tela, quando o que faltava era o CAMINHO até ela. O aviso da Agenda agora
     // aponta para `/app/team?aba=atendimento`.
     href: "/app/agenda",
+    capacidade: "agenda",
     label: "Agenda",
     description: "O que está marcado, com quem, e quem atende — seu e da equipe.",
     icon: "CalendarBlank",
@@ -209,6 +210,7 @@ export const NAV_CATALOG = [
     // abre o quadro de cada um. "Pipeline" é palavra de quem construiu o
     // sistema; "funil de vendas" é palavra de quem vende.
     href: "/app/kanban",
+    capacidade: "crm",
     label: "Funis",
     description: "Seus funis de venda — clique em um para abrir o quadro de clientes.",
     icon: "Kanban",
@@ -241,6 +243,7 @@ export const NAV_CATALOG = [
   },
   {
     href: "/app/companies",
+    capacidade: "crm",
     label: "Empresas",
     description: "Cadastro B2B — razão social, CNPJ e decisores.",
     icon: "Buildings",
@@ -254,6 +257,7 @@ export const NAV_CATALOG = [
   },
   {
     href: "/app/people",
+    capacidade: "crm",
     label: "Pessoas",
     description: "Decisores e contatos ligados a empresas, com vários telefones.",
     icon: "UserCircle",
@@ -270,6 +274,7 @@ export const NAV_CATALOG = [
     // o que o time combinou (é informação de operação), e a criação é cobrada
     // pela rota, com `requireRole("agent")`.
     href: "/app/tasks",
+    capacidade: "crm",
     label: "Tarefas",
     description: "O que ficou combinado, com prazo — e o que já venceu sem ninguém fazer.",
     icon: "ListChecks",
@@ -368,6 +373,7 @@ export const NAV_CATALOG = [
     // um tipo por lugar nenhum: a organização recebia três semeados e ficava com
     // eles para sempre.
     href: "/app/settings/tenant/agenda",
+    capacidade: "agenda",
     label: "Tipos de agendamento",
     description: "O que se pode marcar, quanto dura, onde acontece e quem atende.",
     icon: "CalendarBlank",
@@ -457,6 +463,7 @@ export const NAV_CATALOG = [
     // Ao lado do Financeiro: é a mesma pergunta ("como o dinheiro entra"). Só
     // admin, porque a tela recebe o token de API da conta de pagamento.
     href: "/app/integrations/paysuite",
+    capacidade: "mpesa",
     label: "Pagamentos (PaySuite)",
     description: "Cobre por M-Pesa, e-Mola ou cartão com um link a partir do negócio.",
     icon: "Receipt",
@@ -474,6 +481,7 @@ export const NAV_CATALOG = [
     // e é ela que o nome carrega agora: lá se ABRE o funil, aqui se CONFIGURA o
     // que ele significa.
     href: "/app/settings/tenant/pipelines",
+    capacidade: "crm",
     label: "Etapas do funil",
     description: "As colunas de cada funil, o vocabulário do negócio e os motivos de perda.",
     icon: "Funnel",
@@ -721,6 +729,7 @@ export const NAV_CATALOG = [
   },
   {
     href: "/app/webhooks",
+    capacidade: "integracoes",
     label: "Webhooks",
     description: "Avise outros sistemas quando algo acontecer aqui dentro.",
     icon: "WebhooksLogo",
@@ -781,6 +790,7 @@ export const NAV_CATALOG = [
   },
   {
     href: "/app/metrics",
+    capacidade: "analytics",
     label: "Desempenho",
     description: "Funil e performance por atendente nos últimos 30 dias.",
     icon: "ChartBar",
@@ -811,6 +821,7 @@ export const NAV_CATALOG = [
     // mês inteiro atendido pela equipe têm o mesmo desfecho e histórias
     // opostas — só esta tela distingue as duas.
     href: "/app/activities",
+    capacidade: "relatorios",
     label: "Atividades",
     description:
       "Relatório do que a equipe e os agentes fizeram no período: quanto, quem e de que tipo.",
@@ -1000,6 +1011,7 @@ export const NAV_CATALOG = [
   },
   {
     href: "/app/settings/api-tokens",
+    capacidade: "integracoes",
     label: "API Tokens",
     description: "Chaves para outro sistema conversar com o seu CRM.",
     icon: "Lock",
@@ -1018,6 +1030,7 @@ export const NAV_CATALOG = [
   },
   {
     href: "/app/extensions",
+    capacidade: "integracoes",
     label: "Extensões",
     description:
       "Guias instalados para orientar o trabalho no CRM, com permissões e estado visíveis.",
@@ -1033,6 +1046,7 @@ export const NAV_CATALOG = [
     // editar conexão é `admin`. Gatear a leitura em `manager` esconderia do
     // atendente exatamente a fonte que responde o que o cliente pergunta.
     href: "/app/integracao-dados",
+    capacidade: "integracoes",
     label: "Dados externos",
     description:
       "Conecte um banco de dados de outro sistema para o agente consultar em tempo real.",

@@ -127,6 +127,11 @@ CRONS="
 # pagar, e a diferença entre nascer às 5h ou às 17h não muda nada para quem paga.
 # Barato: uma consulta por instalação, e quem não tem molde nenhum sai na hora.
 50 5 * * *|60|api/v1/cron/recurring-entries
+# A FATURAÇÃO DOS PACOTES (SonghaiCRM, 9010). De hora a hora: emite, confere o
+# PaySuite, lembra, avisa, suspende e reactiva. Cada passo é idempotente, e a hora
+# é o que faz o pagamento por M-Pesa libertar a conta em minutos, não em dias.
+# Sem organização que recebe configurada a rota sai na hora, sem custo.
+17 * * * *|120|api/v1/cron/billing
 "
 
 # CRONTAB_PATH é ponto de injeção do teste (tests/shell/scheduler-entrypoint.test.sh).

@@ -16,6 +16,7 @@ import { declararTools } from "./tipos";
 export const TOOLS_FUNIL = declararTools([
   {
     name: "crm_list_leads",
+    capacidade: "crm",
     category: "read",
     rotulo: "Listar oportunidades do funil",
     explicacao:
@@ -26,6 +27,7 @@ export const TOOLS_FUNIL = declararTools([
   },
   {
     name: "crm_get_lead",
+    capacidade: "crm",
     category: "read",
     rotulo: "Ver uma oportunidade",
     explicacao:
@@ -36,6 +38,7 @@ export const TOOLS_FUNIL = declararTools([
   },
   {
     name: "crm_list_pipelines",
+    capacidade: "crm",
     category: "read",
     rotulo: "Listar funis",
     explicacao:
@@ -46,6 +49,7 @@ export const TOOLS_FUNIL = declararTools([
   },
   {
     name: "crm_get_pipeline_forecast",
+    capacidade: "crm",
     category: "read",
     rotulo: "Ver a previsão do funil",
     explicacao:
@@ -60,6 +64,7 @@ export const TOOLS_FUNIL = declararTools([
   },
   {
     name: "crm_create_lead",
+    capacidade: "qualificacao_leads",
     category: "write",
     rotulo: "Criar oportunidade no funil",
     explicacao:
@@ -70,6 +75,7 @@ export const TOOLS_FUNIL = declararTools([
   },
   {
     name: "crm_update_lead",
+    capacidade: "qualificacao_leads",
     category: "write",
     rotulo: "Atualizar uma oportunidade",
     explicacao:
@@ -80,6 +86,7 @@ export const TOOLS_FUNIL = declararTools([
   },
   {
     name: "crm_move_lead_stage",
+    capacidade: "qualificacao_leads",
     category: "write",
     rotulo: "Mover oportunidade de etapa",
     explicacao:
@@ -90,6 +97,7 @@ export const TOOLS_FUNIL = declararTools([
   },
   {
     name: "crm_retomar_lead",
+    capacidade: "qualificacao_leads",
     category: "write",
     rotulo: "Retomar negócio encerrado como novo",
     explicacao:

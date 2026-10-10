@@ -1,11 +1,12 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
+import { FUNCIONALIDADES_DO_PLANO } from "@/lib/plans/funcionalidades";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: vi.fn() }));
 
 const ORG_ID = "22222222-2222-4222-8222-222222222222";
 
-function stubWithPlan(plan: { slug: string; display_name: string; limits: Record<string, number> } | null) {
+function stubWithPlan(plan: { slug: string; display_name: string; limits: Record<string, unknown> } | null) {
   return {
     from: () => ({
       select: () => ({
@@ -47,6 +48,7 @@ describe("limitesDoTenant", () => {
       planDisplayName: "Agente Simples",
       maxUsers: 20,
       maxWhatsappConnections: 1,
+      funcionalidades: FUNCIONALIDADES_DO_PLANO,
     });
   });
 

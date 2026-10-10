@@ -7,6 +7,7 @@ import { DICIONARIO } from "@/lib/i18n/dicionario";
 import { MODULOS_OPCIONAIS } from "@/lib/instalacao/modulos";
 import { NAV_CATALOG, type NavMetadata } from "@/lib/navigation/catalogo";
 import { CAPACIDADES_DA_ORGANIZACAO } from "@/lib/organizacao/capacidades";
+import { ehFuncionalidadeDoPlano } from "@/lib/plans/funcionalidades";
 import {
   RECURSOS_OPCIONAIS,
   ROTULO_DE_QUEM_DECIDE,
@@ -48,7 +49,7 @@ describe("o catálogo de recursos opcionais não deixa recurso de fora", () => {
     const fora = PORTAS.filter(
       (d) =>
         (d.modulo && !MODULOS_NO_CATALOGO.has(d.modulo)) ||
-        (d.capacidade && !CAPACIDADES_NO_CATALOGO.has(d.capacidade)),
+        (d.capacidade && !ehFuncionalidadeDoPlano(d.capacidade) && !CAPACIDADES_NO_CATALOGO.has(d.capacidade)),
     ).map((d) => `${d.href} (${d.modulo ?? d.capacidade})`);
     expect(
       fora,

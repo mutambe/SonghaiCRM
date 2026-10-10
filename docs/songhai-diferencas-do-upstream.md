@@ -180,6 +180,29 @@ inteiro; na dúvida, o roteiro pergunta de novo.
 | Warm-up do número novo (dias 0–3) | 20 mensagens/dia (igual ao upstream; decidido manter) | `PACING_DEFAULTS.warmupDailyCaps` |
 | Canal novo | nasce em "IA em modo de teste" (igual ao upstream; decidido manter) | `lib/ai/elegibilidade/pre-go-live.ts` |
 | Licença por organização | pacotes em MZN; sem assinatura = sem bloqueio | migration 9004 |
+| Funcionalidades por pacote | `plans.limits.features` (ausente = todas); recusa em `requireRole`, `orgAtivaDaApi`, `resolveAuthDual`, menu, ferramentas do agente e `PortaDoPlano`; falha ABERTA | migration 9008, `lib/plans/funcionalidades.ts` |
+| Agente-modelo por cliente | `POST /api/v1/admin/tenants/[id]/package`; origem em `ai_agents.source_*` | migration 9009, `lib/ai/agents/aplicar-modelo.ts` |
+| Faturação dos pacotes | automática, PaySuite, de hora a hora; extras e preço acordado por cliente | migration 9010, `lib/billing/`, `docs/songhai-faturacao.md` |
+| Aviso de caso por e-mail | canal adicional ao do WhatsApp, em lista (até 10); o aviso no WhatsApp continua com um só número e não se mexeu no corte da ingestão | migration 9012, `lib/escalacao/aviso-por-email.ts`; registado em `lib/event-log/register-handlers.ts` e classificado em `tests/unit/dispatcher-org-parada.test.ts` |
+
+### 7.1 Faturação × ADR-0004 do upstream — o risco do próximo merge
+
+O upstream aceitou a ADR-0004 (cobrança do revendedor: planos, assinaturas, régua, Stripe e
+Asaas) e desenhou-a em 7 PRs, ainda por entregar quando isto foi escrito. A distribuição
+construiu a sua versão enxuta, com PaySuite, e **os nomes divergem de propósito**:
+
+| Conceito | Upstream (desenho) | SonghaiCRM |
+|---|---|---|
+| Planos | `cobranca_planos` | `plans` |
+| Assinaturas | `cobranca_assinaturas` | `organization_subscriptions` |
+| Facturas | (sem tabela; o provedor guarda) | `billing_invoices`, `billing_invoice_lines` |
+| Suspensão por dívida | `fn_suspender_organizacao(…, 'cobranca', …)` | **a mesma função** — é o ponto de encontro |
+| Chave de ligar | `MODULO_COBRANCA` em `platform_config` | `BILLING_ORGANIZATION_ID` em `platform_config` |
+
+Quando o upstream entregar a cobrança, **não há colisão de nomes**, mas há dois sistemas a
+decidir a mesma coisa (quem está em dívida). Antes de qualquer `git merge` que traga
+`cobranca_*`: decidir qual vence, e migrar as assinaturas (não os nomes). A suspensão
+(`suspended_kind = 'cobranca'`) e a reactivação são partilhadas e não precisam de migração.
 
 ## 8. CI, versões e publicação
 

@@ -2,6 +2,14 @@ import { describe, expect, it, vi } from "vitest";
 
 import { capacidadesDaOrganizacao, capacidadesLigadas } from "./capacidades";
 
+// Estes casos medem o eixo "o que a EMPRESA ligou". O pacote (SonghaiCRM,
+// lib/plans/funcionalidades.ts) é outro eixo, coberto em
+// tests/unit/plano-funcionalidades.test.ts: aqui ele vem vazio.
+vi.mock("@/lib/plans/funcionalidades", async (original) => ({
+  ...(await original<typeof import("@/lib/plans/funcionalidades")>()),
+  funcionalidadesDaOrganizacao: async () => [],
+}));
+
 describe("capacidadesLigadas — só o booleano true liga", () => {
   it("proposals.enabled === true liga propostas, com o módulo da instalação ligado", () => {
     expect(capacidadesLigadas({ proposals: { enabled: true } }, ["propostas"])).toEqual(["propostas"]);

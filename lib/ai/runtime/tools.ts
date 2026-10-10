@@ -22,6 +22,7 @@ import { logger } from "@/lib/logger";
 import { allTools, getToolByName } from "@/lib/mcp/tools";
 import { catalogEntry, deCapacidadeDesligada, deModuloDesligado } from "@/lib/mcp/tools/catalog";
 import type { CapacidadeDaOrganizacao } from "@/lib/organizacao/capacidades";
+import { FUNCIONALIDADES_DO_PLANO } from "@/lib/plans/funcionalidades";
 import type { ModuloOpcional } from "@/lib/instalacao/modulos";
 import { higienizarUuidsDeAterro } from "@/lib/mcp/uuid-de-aterro";
 import { recusaDeCapacidadeParaOModelo } from "@/lib/mcp/recusa-para-o-modelo";
@@ -58,7 +59,8 @@ export interface PickToolsInput {
   modulosLigados?: readonly ModuloOpcional[];
   /**
    * Capacidades que a ORGANIZAÇÃO ligou (`capacidadesDaOrganizacao()`). Ausente
-   * vale como nenhuma, pela mesma razão de `modulosLigados`.
+   * vale como nenhuma capacidade DA EMPRESA, pela mesma razão de `modulosLigados` —
+   * mas as funcionalidades do PACOTE valem todas (o plano nunca bloqueia por omissão).
    */
   capacidadesLigadas?: readonly CapacidadeDaOrganizacao[];
   /** Mutable signal — runtime checks after each step. */
@@ -490,7 +492,7 @@ export function pickToolsFromMcp(input: PickToolsInput): Record<string, Tool> {
 
     // Capacidade que a ORGANIZAÇÃO desligou: a ferramenta não é oferecida ao
     // modelo, mesmo marcada na versão do agente.
-    if (deCapacidadeDesligada(def.name, input.capacidadesLigadas ?? [])) continue;
+    if (deCapacidadeDesligada(def.name, input.capacidadesLigadas ?? FUNCIONALIDADES_DO_PLANO)) continue;
 
     // A chave da VERSÃO DO AGENTE manda nos dois sentidos: antes ela só
     // impedia o acréscimo automático, e a ferramenta vinda do pacote `vender`
@@ -519,7 +521,7 @@ export function pickToolsFromMcp(input: PickToolsInput): Record<string, Tool> {
   // tem como saber o que perguntar antes de rascunhar.
   if (input.proposalAiDraftEnabled) {
     for (const nome of [DRAFT_PROPOSAL_TOOL_NAME, PREPARAR_PROPOSTA_TOOL_NAME]) {
-      if (deCapacidadeDesligada(nome, input.capacidadesLigadas ?? []) || result[nome]) continue;
+      if (deCapacidadeDesligada(nome, input.capacidadesLigadas ?? FUNCIONALIDADES_DO_PLANO) || result[nome]) continue;
       const tool = allTools.find((t) => t.name === nome);
       if (tool) {
         result[nome] = wrapMcpTool(tool, input);

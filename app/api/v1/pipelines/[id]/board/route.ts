@@ -16,6 +16,7 @@ import { randomUUID } from "node:crypto";
 import { type NextRequest } from "next/server";
 
 import { fail, ok } from "@/lib/api/wrappers";
+import { orgAtivaDaApi } from "@/lib/auth/require-role";
 import { loadAuthUser } from "@/lib/auth/server";
 import { traduzir } from "@/lib/i18n/dicionario";
 import {
@@ -451,6 +452,9 @@ export async function GET(_req: NextRequest, ctx: RouteCtx): Promise<Response> {
   }
   const authUser = await loadAuthUser();
   const t = (texto: string) => traduzir(texto, authUser?.idioma ?? "pt-MZ");
+  // O pacote da organização (e a suspensão) valem aqui como em toda rota de CRM.
+  const doPlano = await orgAtivaDaApi(authUser, requestId);
+  if (!doPlano.ok) return doPlano.response;
 
   const [
     { data: pipeline, error: pipelineErr },

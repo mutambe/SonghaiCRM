@@ -13,6 +13,7 @@ import { declararTools } from "./tipos";
 export const TOOLS_DADOS_EXTERNOS = declararTools([
   {
     name: "crm_describe_external_data",
+    capacidade: "integracoes",
     category: "read",
     rotulo: "Ver as tabelas do banco conectado",
     explicacao:
@@ -29,6 +30,7 @@ export const TOOLS_DADOS_EXTERNOS = declararTools([
   },
   {
     name: "crm_query_external_data",
+    capacidade: "integracoes",
     category: "read",
     rotulo: "Buscar dados no banco conectado",
     explicacao:
