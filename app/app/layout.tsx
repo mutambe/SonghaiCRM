@@ -18,11 +18,18 @@ import { env } from "@/lib/env";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { modulosLigados } from "@/lib/instalacao/modulos";
 import { capacidadesLigadas } from "@/lib/organizacao/capacidades";
+import { funcionalidadesDaOrganizacao } from "@/lib/plans/funcionalidades";
 import { ehOperante } from "@/lib/organizacao/operante";
 import {
   ImpersonateBanner,
 } from "@/components/app/ImpersonateBanner";
 import { ConexaoCaidaBanner } from "@/components/app/ConexaoCaidaBanner";
+import { FaturaEmAbertoBanner } from "@/components/app/FaturaEmAbertoBanner";
+import { dataLegivel } from "@/lib/billing/emails";
+import { faturaMaisUrgente } from "@/lib/billing/fatura-em-aberto";
+import { avisoDeTokensAtual, tokensLegiveis } from "@/lib/billing/tokens";
+import { formatCents } from "@/lib/money";
+import { traduzir } from "@/lib/i18n/dicionario";
 import { IdiomaProvider } from "@/lib/i18n/IdiomaProvider";
 import { listarConexoesCaidas, type ConexaoCaida } from "@/lib/channels/health";
 import { VoiceCallProvider } from "@/components/voice/VoiceCallContext";
@@ -66,6 +73,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   // EPIC-02: gate /app/* on completed onboarding.
   // EPIC-11: gate /app/* on org not being suspended (S-11.08).
   let conexoesCaidas: ConexaoCaida[] = [];
+  // SonghaiCRM (9010): o aviso da factura, só para quem administra a empresa.
+  let avisoDaFatura: { texto: string; acao: string; urgente: boolean } | null = null;
+  // Os tokens de IA a 80% ou no limite (9011), pelo aviso que a rodada já registou.
+  let avisoDeTokens: { texto: string; acao: string; urgente: boolean } | null = null;
   let enrolled = false;
   let needsMfaGate = false;
 
@@ -138,8 +149,45 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       cliente_pela_agenda: clientePelaAgendaLigado(orgRow?.settings),
       modulos_ligados: modulos,
       // Mesma linha de `settings` já lida acima — nenhuma consulta a mais.
-      capacidades_ligadas: capacidadesLigadas(orgRow?.settings, modulos),
+      // O pacote da organização entra no mesmo canal: o menu, o hub e o ⌘K
+      // deixam de oferecer o que o plano não inclui.
+      capacidades_ligadas: capacidadesLigadas(
+        orgRow?.settings,
+        modulos,
+        await funcionalidadesDaOrganizacao(admin, activeOrg.orgId),
+      ),
     };
+
+    // A factura mais urgente, lida UMA vez por render e só para admin: o resto da
+    // equipa não paga nem decide, e o aviso a ela seria ruído. Nunca lança.
+    if (roleAtLeast(activeOrg.role, "admin")) {
+      const tokens = await avisoDeTokensAtual(admin, activeOrg.orgId);
+      if (tokens) {
+        const t = (texto: string) => traduzir(texto, user.idioma);
+        const pct = Math.floor((tokens.consumidos * 100) / tokens.quota);
+        avisoDeTokens = {
+          urgente: tokens.nivel === 100,
+          acao: t("Ver consumo"),
+          texto:
+            tokens.nivel === 100
+              ? `${t("Atingiu o limite de tokens de IA deste período")} (${tokensLegiveis(tokens.quota)}). ${t("Renova a")} ${dataLegivel(tokens.renovaA)}.`
+              : `${t("Consumo de IA a")} ${pct}% ${t("do limite deste período")} (${tokensLegiveis(tokens.consumidos)} / ${tokensLegiveis(tokens.quota)}). ${t("Renova a")} ${dataLegivel(tokens.renovaA)}.`,
+        };
+      }
+      const fatura = await faturaMaisUrgente(admin, activeOrg.orgId);
+      if (fatura) {
+        const t = (texto: string) => traduzir(texto, user.idioma);
+        const valor = formatCents(fatura.amountCents, fatura.currency);
+        avisoDaFatura = {
+          urgente: fatura.atrasoDias >= 0,
+          acao: t("Ver factura"),
+          texto:
+            fatura.atrasoDias < 0
+              ? `${t("A sua factura de")} ${valor} ${t("vence a")} ${dataLegivel(fatura.dueDate)}.`
+              : `${t("Factura de")} ${valor} ${t("em atraso desde")} ${dataLegivel(fatura.dueDate)}. ${t("A conta será suspensa a")} ${dataLegivel(fatura.suspensaoPrevista ?? fatura.dueDate)}.`,
+        };
+      }
+    }
 
     // `marcaDaInstalacao()` é memoizada por TTL no PROCESSO (`lib/branding/
     // instalacao.ts`), e a derivação da cor é cacheada por régua+semente em
@@ -298,6 +346,23 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         <EstiloDoTemaDaExtensao css={cssDoTemaDaExtensao} />
         <ImpersonateBanner impersonating={impersonating} />
         <ConexaoCaidaBanner caidas={conexoesCaidas} />
+        {avisoDeTokens && (
+          <FaturaEmAbertoBanner
+            texto={avisoDeTokens.texto}
+            acao={avisoDeTokens.acao}
+            href="/app/settings/billing"
+            urgente={avisoDeTokens.urgente}
+            testId="tokens-de-ia"
+          />
+        )}
+        {avisoDaFatura && (
+          <FaturaEmAbertoBanner
+            texto={avisoDaFatura.texto}
+            acao={avisoDaFatura.acao}
+            href="/app/settings/billing"
+            urgente={avisoDaFatura.urgente}
+          />
+        )}
         {needsMfaGate ? (
           // Gate always mounted for MFA-required roles; it latches the blocking
           // decision client-side so the enroll Server Action's revalidation

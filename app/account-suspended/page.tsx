@@ -9,7 +9,11 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { orgAtivaSemPortao, requireAuth } from "@/lib/auth/server";
 import { ROLE_RANK } from "@/lib/auth/types";
+import { dataLegivel } from "@/lib/billing/emails";
+import { instrucoesDeTransferencia } from "@/lib/billing/config";
+import { faturaMaisUrgente } from "@/lib/billing/fatura-em-aberto";
 import { emailDeSuporte } from "@/lib/branding/saida";
+import { formatCents } from "@/lib/money";
 import { IdiomaProvider } from "@/lib/i18n/IdiomaProvider";
 import { traduzir } from "@/lib/i18n/dicionario";
 import { ehOperante } from "@/lib/organizacao/operante";
@@ -36,9 +40,10 @@ const PEDIDO = z.uuid();
  * (o do operador) e, quando ninguém configurou, o parágrafo do contato NÃO
  * renderiza.
  *
- * ponytail: nesta entrega ninguém produz a suspensão de kind `cobranca`, e se
- * ela aparecer recebe o mesmo texto administrativo. Por isso a página não lê
- * `suspended_kind`. O painel de pagamento entra com a régua (PR 3a).
+ * SonghaiCRM (9010): a régua de cobrança (`lib/billing/executar.ts`) produz a
+ * suspensão de kind `cobranca`. Quando é essa, a página diz o que se deve, até
+ * quando e dá o link de pagamento — em vez do texto administrativo, que manda
+ * escrever a alguém. Quando o pagamento entra, a conta volta sozinha.
  */
 export default async function AccountSuspendedPage({
   searchParams,
@@ -55,7 +60,7 @@ export default async function AccountSuspendedPage({
   const ids = [...new Set([ativa.orgId, ...user.organizations.map((o) => o.organization_id)])];
   const { data: orgs, error } = await createAdminClient()
     .from("organizations")
-    .select("id, status")
+    .select("id, status, suspended_kind")
     .in("id", ids);
   // Leitura que não aconteceu não vira resposta: redirecionar por palpite
   // prenderia a pessoa num laço com o layout de `/app`.
@@ -85,6 +90,11 @@ export default async function AccountSuspendedPage({
     .filter((o) => o.organization_id !== ativa.orgId && ehOperante(statusDe.get(o.organization_id)))
     .map((o) => ({ id: o.organization_id, nome: o.organization_name }));
   const pedidoAberto = administra ? pedidoValido : undefined;
+  // SonghaiCRM (9010): suspensa POR FALTA DE PAGAMENTO é outra conversa — diz o que
+  // se deve, até quando, e dá o caminho (pagar) em vez de mandar escrever a alguém.
+  const porCobranca = (orgs ?? []).find((o) => o.id === ativa.orgId)?.suspended_kind === "cobranca";
+  const fatura = porCobranca ? await faturaMaisUrgente(createAdminClient(), ativa.orgId) : null;
+  const dadosDoBanco = porCobranca ? await instrucoesDeTransferencia(createAdminClient()) : null;
 
   return (
     <IdiomaProvider locale={idioma}>
@@ -93,7 +103,50 @@ export default async function AccountSuspendedPage({
           <h1 className="text-2xl font-semibold">{t("Conta suspensa")}</h1>
           {/* Quem participa de várias empresas precisa saber QUAL parou. Dado, não interface: sem t(). */}
           <p className="text-base font-medium">{ativa.name}</p>
-          {!administra ? (
+          {porCobranca && !administra ? (
+            <p className="text-sm text-muted-foreground">
+              {t("A conta está suspensa por falta de pagamento. Avise o administrador da sua empresa.")}
+            </p>
+          ) : porCobranca ? (
+            <div className="space-y-3" data-testid="suspensa-por-cobranca">
+              <p className="text-sm text-muted-foreground">
+                {t("A conta está suspensa por falta de pagamento. Os seus dados estão guardados e tudo volta sozinho assim que o pagamento entrar.")}
+              </p>
+              {fatura ? (
+                <>
+                  <p className="text-sm">
+                    {t("Factura de")} <strong>{formatCents(fatura.amountCents, fatura.currency)}</strong>,{" "}
+                    {t("vencida a")} {dataLegivel(fatura.dueDate)}.
+                  </p>
+                  {fatura.checkoutUrl && (
+                    <a
+                      href={fatura.checkoutUrl}
+                      className="inline-block rounded-md bg-primary px-4 py-2 text-primary-foreground"
+                      data-testid="pagar-fatura"
+                    >
+                      {t("Pagar agora (M-Pesa, e-Mola ou cartão)")}
+                    </a>
+                  )}
+                </>
+              ) : null}
+              {fatura && dadosDoBanco && (
+                <div className="rounded-md bg-muted p-3 text-left text-sm text-muted-foreground" data-testid="dados-da-transferencia">
+                  <p className="font-medium text-foreground">{t("Ou pague directamente (transferência bancária ou números de recepção)")}</p>
+                  <p className="whitespace-pre-line">{dadosDoBanco}</p>
+                  <p>{t("Depois de transferir, envie o comprovativo: a conta é actualizada assim que a equipa confirmar.")}</p>
+                </div>
+              )}
+              {suporte && (
+                <p className="text-sm text-muted-foreground">
+                  {t("Dúvidas:")}{" "}
+                  <a href={`mailto:${suporte}`} className="underline underline-offset-4">
+                    {suporte}
+                  </a>
+                  .
+                </p>
+              )}
+            </div>
+          ) : !administra ? (
             <p className="text-sm text-muted-foreground">
               {t("Sua conta está suspensa. Avise o administrador da sua empresa.")}
             </p>

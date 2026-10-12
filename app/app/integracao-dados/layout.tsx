@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 
+import { PortaDoPlano } from "@/components/plano/PortaDoPlano";
 import { moduloLigado } from "@/lib/instalacao/modulos";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -11,5 +12,5 @@ import { createAdminClient } from "@/lib/supabase/admin";
  */
 export default async function Layout({ children }: { children: React.ReactNode }) {
   if (!(await moduloLigado(createAdminClient(), "banco_externo"))) notFound();
-  return children;
+  return <PortaDoPlano funcionalidade="integracoes">{children}</PortaDoPlano>;
 }

@@ -68,7 +68,7 @@
  * Por isso a comparação vale para o que os DOIS lados nomeiam, e a presença é
  * cobrada num sentido só: da cadeia para o baseline.
  */
-import { readFileSync, readdirSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
@@ -224,6 +224,8 @@ const naCadeia = (() => {
 const noBaseline = (() => {
   const acc = new Map<string, Definicao>();
   aplicar(acc, readFileSync(join(RAIZ, "baseline.sql"), "utf8"), "baseline.sql");
+  // SonghaiCRM: o apêndice da distribuição é aplicado logo depois do baseline, na mesma chamada.
+  if (existsSync(join(RAIZ, "songhai.sql"))) aplicar(acc, readFileSync(join(RAIZ, "songhai.sql"), "utf8"), "songhai.sql");
   return acc;
 })();
 

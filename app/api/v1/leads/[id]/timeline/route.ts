@@ -35,6 +35,7 @@ import { randomUUID } from "node:crypto";
 import { type NextRequest } from "next/server";
 
 import { ok, fail } from "@/lib/api/wrappers";
+import { orgAtivaDaApi } from "@/lib/auth/require-role";
 import { loadAuthUser } from "@/lib/auth/server";
 import { traduzir } from "@/lib/i18n/dicionario";
 import { createClient } from "@/lib/supabase/server";
@@ -67,6 +68,9 @@ export async function GET(req: NextRequest, ctx: RouteCtx): Promise<Response> {
   }
   const authUser = await loadAuthUser();
   const t = (texto: string) => traduzir(texto, authUser?.idioma ?? "pt-MZ");
+  // O pacote da organização (e a suspensão) valem aqui como em toda rota de CRM.
+  const doPlano = await orgAtivaDaApi(authUser, requestId);
+  if (!doPlano.ok) return doPlano.response;
 
   const url = new URL(req.url);
   const types = url.searchParams.getAll("type").filter(Boolean);

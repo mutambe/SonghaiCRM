@@ -7,6 +7,7 @@ import { falhaDaEscritaDePlatformAdmin, requirePlatformAdmin, requirePlatformAdm
 import { createAdminClient } from "@/lib/supabase/admin";
 import { ok, fail } from "@/lib/api/wrappers";
 import { audit } from "@/lib/audit";
+import { alterarTermosDoCliente } from "@/lib/billing/admin";
 import { logger } from "@/lib/logger";
 import { createHash, randomUUID } from "node:crypto";
 
@@ -208,6 +209,18 @@ export async function POST(req: NextRequest) {
       : { error: { message: `plano ${request.plan} não está no catálogo` } };
     if (erroDoPlano) {
       logger.error("[admin.tenants] organização criada sem assinatura", { organizationId: org.id, plan: request.plan, error: erroDoPlano.message });
+    } else if (request.is_pilot || request.agreed_price_cents !== undefined || request.agreed_setup_cents !== undefined) {
+      // SonghaiCRM (9010): piloto e preço acordado nascem com o cliente, para o
+      // operador não ter de voltar atrás a preencher nada. A primeira factura
+      // ainda não existe, por isso o piloto é aceite.
+      const termos = await alterarTermosDoCliente(admin, org.id, {
+        ...(request.is_pilot ? { is_pilot: true } : {}),
+        ...(request.agreed_price_cents !== undefined ? { agreed_price_cents: request.agreed_price_cents } : {}),
+        ...(request.agreed_setup_cents !== undefined ? { agreed_setup_cents: request.agreed_setup_cents } : {}),
+      });
+      if (!termos.ok) {
+        logger.error("[admin.tenants] organização criada sem os termos comerciais", { organizationId: org.id, erro: termos.erro });
+      }
     }
     await audit({
       action: "tenant.created_by_platform_admin",

@@ -157,6 +157,12 @@ describe("a sétima cópia não nasce", () => {
    * último caso), para não sobrar autorização em nome de código que sumiu.
    */
   const LEITURAS_LEGITIMAS: ReadonlyArray<{ arquivo: string; trecho: string; motivo: string }> = [
+    // ── SonghaiCRM: facturação ───────────────────────────────────────────────
+    {
+      arquivo: "lib/billing/executar.ts",
+      trecho: 'return (data as { display_name?: string } | null)?.display_name ?? "a sua empresa";',
+      motivo: "nome da ORGANIZAÇÃO (organizations.display_name) no e-mail de cobrança, não de contato",
+    },
     // ── prospecção (PR #963): nenhuma destas é nome de CONTATO ──────────────
     {
       arquivo: "app/app/prospecting/_client.tsx",

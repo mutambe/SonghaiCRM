@@ -31,6 +31,7 @@ import { loadAuthUser, mfaEmDivida, orgAtivaSemPortao } from "@/lib/auth/server"
 import { ROLE_RANK, type ActiveOrg, type AuthUser, type Role } from "@/lib/auth/types";
 import { traduzir } from "@/lib/i18n/dicionario";
 import { STATUS_OPERANTE, ehOperante } from "@/lib/organizacao/operante";
+import { recusaDoPlanoDaRota } from "@/lib/plans/guarda-da-rota";
 import { createClient } from "@/lib/supabase/server";
 
 export type RoleCheck =
@@ -90,6 +91,10 @@ export async function orgAtivaDaApi(user: AuthUser | null, requestId?: string): 
   const org = user ? await orgAtivaSemPortao(user) : null;
   if (user && org && !ehOperante(org.org_status)) {
     return { ok: false, response: orgSuspensa(user, requestId) };
+  }
+  if (org) {
+    const recusaDoPlano = await recusaDoPlanoDaRota(org.orgId, requestId);
+    if (recusaDoPlano) return { ok: false, response: recusaDoPlano };
   }
   return { ok: true, org };
 }
@@ -156,6 +161,11 @@ export async function requireRole(min: Role, opts: RequireRoleOpts = {}): Promis
   if (!permiteOrgSuspensa && !ehOperante(org.org_status)) {
     return { ok: false, response: orgSuspensa(user, requestId) };
   }
+
+  // O pacote vale para todos, o dono da instalação inclusive: a rota é parte do
+  // produto da organização, e o plano é o contrato dela.
+  const recusaDoPlano = await recusaDoPlanoDaRota(org.orgId, requestId);
+  if (recusaDoPlano) return { ok: false, response: recusaDoPlano };
 
   if (user.is_platform_admin && !user.support && allowPlatformAdmin !== false) {
     if (allowPlatformAdmin === "leitura") return { ok: true, user, org };

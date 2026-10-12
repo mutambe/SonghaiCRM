@@ -343,6 +343,31 @@ const PROVA_PROPRIA: readonly Excecao[] = [
       "UPDATE, DELETE nem TRUNCATE para anon, authenticated ou PUBLIC. O " +
       "isolamento é medido num sentido só (org de teste → outra). Migration 0482.",
   },
+  {
+    tabela: "subscription_items",
+    razao:
+      "tests/invariants/faturacao-rls.test.ts — SonghaiCRM (migrations 9010/9011/9012), `describe.each` sobre as cinco tabelas: o admin de A lê as linhas dele e 0 de B, e o de B lê 0 de A (as DUAS direcções, com linhas reais nas duas); manager, agent e viewer da própria organização leem 0 (só o administrador lê: dinheiro não é assunto de quem atende); o catálogo não dá INSERT, UPDATE, DELETE nem TRUNCATE a authenticated nem a anon, e anon nem SELECT; update e delete como admin são recusados e a linha fica intacta. Fora de TABLES porque o utilizador semeado ali é `agent`.",
+  },
+  {
+    tabela: "billing_invoices",
+    razao:
+      "tests/invariants/faturacao-rls.test.ts — SonghaiCRM (migrations 9010/9011/9012), `describe.each` sobre as cinco tabelas: o admin de A lê as linhas dele e 0 de B, e o de B lê 0 de A (as DUAS direcções, com linhas reais nas duas); manager, agent e viewer da própria organização leem 0 (só o administrador lê: dinheiro não é assunto de quem atende); o catálogo não dá INSERT, UPDATE, DELETE nem TRUNCATE a authenticated nem a anon, e anon nem SELECT; update e delete como admin são recusados e a linha fica intacta. Fora de TABLES porque o utilizador semeado ali é `agent`.",
+  },
+  {
+    tabela: "billing_invoice_lines",
+    razao:
+      "tests/invariants/faturacao-rls.test.ts — SonghaiCRM (migrations 9010/9011/9012), `describe.each` sobre as cinco tabelas: o admin de A lê as linhas dele e 0 de B, e o de B lê 0 de A (as DUAS direcções, com linhas reais nas duas); manager, agent e viewer da própria organização leem 0 (só o administrador lê: dinheiro não é assunto de quem atende); o catálogo não dá INSERT, UPDATE, DELETE nem TRUNCATE a authenticated nem a anon, e anon nem SELECT; update e delete como admin são recusados e a linha fica intacta. Fora de TABLES porque o utilizador semeado ali é `agent`.",
+  },
+  {
+    tabela: "ai_token_alerts",
+    razao:
+      "tests/invariants/faturacao-rls.test.ts — SonghaiCRM (migrations 9010/9011/9012), `describe.each` sobre as cinco tabelas: o admin de A lê as linhas dele e 0 de B, e o de B lê 0 de A (as DUAS direcções, com linhas reais nas duas); manager, agent e viewer da própria organização leem 0 (só o administrador lê: dinheiro não é assunto de quem atende); o catálogo não dá INSERT, UPDATE, DELETE nem TRUNCATE a authenticated nem a anon, e anon nem SELECT; update e delete como admin são recusados e a linha fica intacta. Fora de TABLES porque o utilizador semeado ali é `agent`.",
+  },
+  {
+    tabela: "config_aviso_de_caso_email",
+    razao:
+      "tests/invariants/faturacao-rls.test.ts — SonghaiCRM (migrations 9010/9011/9012), `describe.each` sobre as cinco tabelas: o admin de A lê as linhas dele e 0 de B, e o de B lê 0 de A (as DUAS direcções, com linhas reais nas duas); manager, agent e viewer da própria organização leem 0 (só o administrador lê: dinheiro não é assunto de quem atende); o catálogo não dá INSERT, UPDATE, DELETE nem TRUNCATE a authenticated nem a anon, e anon nem SELECT; update e delete como admin são recusados e a linha fica intacta. Fora de TABLES porque o utilizador semeado ali é `agent`.",
+  },
 ];
 
 /**

@@ -31,6 +31,7 @@ import { checkRateLimit } from "@/lib/ai/dispatcher/rate-limit";
 import type { Actor } from "@/lib/api/handlers/types";
 import { fail } from "@/lib/api/wrappers";
 import { requireRole } from "@/lib/auth/require-role";
+import { recusaDoPlanoDaRota } from "@/lib/plans/guarda-da-rota";
 import type { Role } from "@/lib/auth/types";
 import type { Idioma } from "@/lib/i18n/idiomas";
 import {
@@ -126,6 +127,10 @@ export async function resolveAuthDual(
       }
       throw err;
     }
+
+    // O pacote também vale para quem chama por token: o plano é da organização.
+    const recusaDoPlano = await recusaDoPlanoDaRota(auth.organizationId, requestId);
+    if (recusaDoPlano) return { ok: false, response: recusaDoPlano };
 
     // organization_id vem do TOKEN (fonte confiável), nunca do cliente.
     return {
