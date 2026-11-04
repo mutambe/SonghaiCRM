@@ -325,7 +325,7 @@ describe("o degrau do prazo", () => {
     expect(corpo).toContain(prazoLegivel());
     expect(corpo).toContain("A chamada SEGUIU desta vez");
     // Quem lê o alerta três semanas depois precisa saber o DIA.
-    expect(corpo, "contagem relativa envelhece na tela").not.toMatch(/em \d+ dias/);
+    expect(corpo, "contagem relativa envelhece no ecrã").not.toMatch(/em \d+ dias/);
   });
 
   it("ANTES da data: NÃO grava falha em llm_calls — a chamada não falhou", async () => {

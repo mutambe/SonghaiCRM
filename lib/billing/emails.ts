@@ -1,11 +1,11 @@
 /**
  * As MENSAGENS da faturação — texto puro, sem envio (SonghaiCRM, 9010).
  *
- * Seis momentos, nesta ordem de vida de uma factura. Cada uma diz o que é, quanto,
+ * Seis momentos, nesta ordem de vida de uma fatura. Cada uma diz o que é, quanto,
  * até quando e o que fazer — e a que dá medo (o aviso final) diz a DATA exacta em
  * que a conta será suspensa e que os dados ficam guardados.
  *
- * Português de Moçambique: «factura», «a pagar», sem gerúndio. O envio passa pelo
+ * Português de Moçambique: «fatura», «a pagar», sem gerúndio. O envio passa pelo
  * `sendEmail` do roteador, que ainda aplica a camada pt-MZ ao texto.
  */
 import { tokensLegiveis } from "@/lib/billing/tokens";
@@ -30,12 +30,12 @@ export interface DadosDoEmail {
   currency: string;
   /** `AAAA-MM-DD`. */
   vencimento: string;
-  /** `AAAA-MM-DD` do início do período facturado. */
+  /** `AAAA-MM-DD` do início do período faturado. */
   periodo: string;
   linkDePagamento?: string | null;
   /** `AAAA-MM-DD`: quando a conta será suspensa se nada for pago. */
   suspensaoPrevista?: string;
-  /** Contacto de quem factura (o `SUPPORT_EMAIL` da instalação), se houver. */
+  /** Contacto de quem fatura (o `SUPPORT_EMAIL` da instalação), se houver. */
   suporte?: string | null;
   /** Como pagar por transferência bancária (texto do operador). Entra nas mensagens que pedem pagamento. */
   instrucoesDeTransferencia?: string | null;
@@ -71,22 +71,22 @@ export function montarEmail(tipo: TipoDeEmail, d: DadosDoEmail): Mensagem {
 
   switch (tipo) {
     case "fatura_nova":
-      assunto = `Nova factura de ${valor} — vence a ${venc}`;
+      assunto = `Nova fatura de ${valor} — vence a ${venc}`;
       paragrafos = [
-        `Foi emitida a factura de ${d.organizacao} referente ao período que começa a ${periodo}.`,
+        `Foi emitida a fatura de ${d.organizacao} referente ao período que começa a ${periodo}.`,
         `Valor: ${valor}. Vencimento: ${venc}.`,
       ];
       botao = "Pagar agora (M-Pesa, e-Mola ou cartão)";
       break;
     case "lembrete":
-      assunto = `A sua factura de ${valor} vence hoje`;
-      paragrafos = [`A factura de ${d.organizacao}, no valor de ${valor}, vence a ${venc}.`, "Se já pagou, ignore esta mensagem."];
+      assunto = `A sua fatura de ${valor} vence hoje`;
+      paragrafos = [`A fatura de ${d.organizacao}, no valor de ${valor}, vence a ${venc}.`, "Se já pagou, ignore esta mensagem."];
       botao = "Pagar agora";
       break;
     case "aviso_final":
       assunto = `Aviso final: a conta será suspensa a ${d.suspensaoPrevista ? dataLegivel(d.suspensaoPrevista) : "breve"}`;
       paragrafos = [
-        `A factura de ${d.organizacao}, no valor de ${valor}, venceu a ${venc} e continua por pagar.`,
+        `A fatura de ${d.organizacao}, no valor de ${valor}, venceu a ${venc} e continua por pagar.`,
         `Se não for paga até ${d.suspensaoPrevista ? dataLegivel(d.suspensaoPrevista) : "breve"}, a conta será suspensa: o assistente deixa de responder aos seus clientes no WhatsApp.`,
         "Os seus dados ficam guardados e tudo volta ao normal assim que o pagamento entrar.",
       ];
@@ -95,7 +95,7 @@ export function montarEmail(tipo: TipoDeEmail, d: DadosDoEmail): Mensagem {
     case "suspensa":
       assunto = "A conta foi suspensa por falta de pagamento";
       paragrafos = [
-        `A factura de ${d.organizacao}, no valor de ${valor}, venceu a ${venc} e não foi paga. A conta está suspensa: o assistente não responde no WhatsApp.`,
+        `A fatura de ${d.organizacao}, no valor de ${valor}, venceu a ${venc} e não foi paga. A conta está suspensa: o assistente não responde no WhatsApp.`,
         "Os dados estão guardados. Assim que o pagamento entrar, a conta volta sozinha — não precisa de contactar ninguém.",
       ];
       botao = "Pagar agora";
@@ -149,7 +149,7 @@ export function montarEmail(tipo: TipoDeEmail, d: DadosDoEmail): Mensagem {
       .filter(Boolean)
       .join(" · ");
     paragrafos.push(
-      `Se preferir pagar directamente (transferência bancária ou números de recepção): ${emUmaLinha}. Depois de transferir, envie o comprovativo: a conta é actualizada assim que a equipa confirmar.`,
+      `Se preferir pagar directamente (transferência bancária ou números de recepção): ${emUmaLinha}. Depois de transferir, envie o comprovativo: a conta é atualizada assim que a equipa confirmar.`,
     );
   }
   if (contacto) paragrafos.push(contacto);

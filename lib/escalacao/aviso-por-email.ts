@@ -128,6 +128,7 @@ export async function aplicaAvisoPorEmail(deps: AvisoPorEmailDeps, row: EventRow
   const texto = montarAvisoDeCaso({
     marca: marca.nome,
     idioma: marca.idioma,
+    caseId,
     kind: caso.kind,
     source: caso.source,
     title: caso.title,

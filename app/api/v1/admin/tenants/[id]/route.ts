@@ -1,17 +1,19 @@
 import { type NextRequest } from "next/server";
+import { z } from "zod";
 import {
   falhaDaEscritaDePlatformAdmin,
   requirePlatformAdmin,
   requirePlatformAdminEscrita,
+  type PlatformAdminContext,
 } from "@/lib/auth/requirePlatformAdmin";
+import { requireSupportWrite } from "@/lib/impersonate/support";
+import { logger } from "@/lib/logger";
+import { tenantSchema } from "@/lib/schemas/settings";
+import { gravarDadosCadastrais } from "@/lib/tenants/dados-cadastrais";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { ok, fail } from "@/lib/api/wrappers";
 import { audit } from "@/lib/audit";
 import { randomUUID } from "node:crypto";
-import { z } from "zod";
-import { requireSupportWrite } from "@/lib/impersonate/support";
-import { logger } from "@/lib/logger";
-import { colunasDaEdicao, edicaoDaOrganizacaoSchema, organizacaoTemUso } from "@/lib/admin/edicao-da-organizacao";
 
 // ---------------------------------------------------------------------------
 // GET /api/v1/admin/tenants/[id]
@@ -27,8 +29,8 @@ export async function GET(
   let adminCtx: Awaited<ReturnType<typeof requirePlatformAdmin>>;
   try {
     adminCtx = await requirePlatformAdmin();
-  } catch {
-    return fail("forbidden", "Platform admin required", 403, { requestId });
+  } catch (err) {
+    return falhaDaEscritaDePlatformAdmin(err, requestId);
   }
 
   const admin = createAdminClient();
@@ -46,8 +48,17 @@ export async function GET(
       status,
       onboarded_at,
       suspended_at,
+      suspended_kind,
       created_at,
-      settings
+      settings,
+      country,
+      timezone,
+      locale,
+      currency,
+      media_retention_days,
+      media_retention_enforced,
+      dpo_email,
+      privacy_policy_url
     `,
     )
     .eq("id", id)
@@ -168,171 +179,92 @@ export async function GET(
 }
 
 // ---------------------------------------------------------------------------
-// SonghaiCRM — PATCH (editar) e DELETE (apagar organização sem uso). Porte do
-// `b1b1eb812` do fork. Regras em `lib/admin/edicao-da-organizacao.ts`.
+// PATCH /api/v1/admin/tenants/[id] — dados cadastrais pelo admin da plataforma
 // ---------------------------------------------------------------------------
+//
+// Os MESMOS campos (e o mesmo schema) que o admin do tenant edita em
+// Configurações › Empresa, gravados pela mesma função
+// (`lib/tenants/dados-cadastrais.ts`). O que muda é a autoridade: aqui é a
+// plataforma, com escopo `full` e MFA de sessão, e a organização vem do PATH —
+// é o recurso que o admin da plataforma escolheu na lista, não uma org ativa.
 
-/** Quem chama já passou por `requireSupportWrite` — o gate a quer em cada handler. */
-async function adminComAcessoTotal(requestId: string) {
-  try {
-    // Escrita de platform admin: scope `full` e MFA em dia (helper do upstream, #2078).
-    const ctx = await requirePlatformAdminEscrita();
-    return { ok: true, ctx } as const;
-  } catch (err) {
-    return { ok: false, negado: falhaDaEscritaDePlatformAdmin(err, requestId) } as const;
-  }
-}
-
-export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }): Promise<Response> {
-  const supportDenied = await requireSupportWrite((await params).id);
-  if (supportDenied) return supportDenied;
-
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
   const requestId = randomUUID();
   const { id } = await params;
-  const auth = await adminComAcessoTotal(requestId);
-  if (!auth.ok) return auth.negado;
+  if (!z.string().uuid().safeParse(id).success) {
+    return fail("not_found", "Tenant not found", 404, { requestId });
+  }
+
+  const supportDenied = await requireSupportWrite(id);
+  if (supportDenied) return supportDenied;
+
+  let adminCtx: PlatformAdminContext;
+  try {
+    adminCtx = await requirePlatformAdminEscrita();
+  } catch (err) {
+    return falhaDaEscritaDePlatformAdmin(err, requestId);
+  }
 
   let raw: unknown;
   try {
     raw = await req.json();
   } catch {
-    return fail("validation_error", "Invalid JSON body", 400, { requestId });
+    return fail("validation_failed", "Invalid JSON body", 400, { requestId });
   }
-  const parsed = edicaoDaOrganizacaoSchema.safeParse(raw);
+  const parsed = tenantSchema.safeParse(raw);
   if (!parsed.success) {
-    return fail("validation_error", "Dados inválidos.", 400, { requestId, details: parsed.error.flatten() });
+    return fail("validation_failed", "Dados inválidos", 400, {
+      requestId,
+      details: parsed.error.flatten(),
+    });
   }
-  const colunas = colunasDaEdicao(parsed.data);
 
   const admin = createAdminClient();
-  const { data: org } = await admin
+  const { data: org, error: orgError } = await admin
     .from("organizations")
-    .select("id, slug, display_name, legal_name, cnpj, status")
+    .select("id, slug")
     .eq("id", id)
     .maybeSingle();
+  if (orgError) return fail("internal_error", orgError.message, 500, { requestId });
   if (!org) return fail("not_found", "Tenant not found", 404, { requestId });
-  if (org.status === "redacted") {
-    return fail("state_conflict", "Organização anonimizada — edição não disponível.", 409, { requestId });
-  }
 
-  const { data: atualizada, error } = await admin
-    .from("organizations")
-    .update({ ...colunas, updated_at: new Date().toISOString() })
-    .eq("id", id)
-    .select("id, slug, display_name, legal_name, cnpj")
-    .single();
-  if (error) {
-    if (error.code === "23505") {
-      return fail("conflict", "Já existe uma organização com este slug ou NUIT.", 409, { requestId });
+  const gravado = await gravarDadosCadastrais(admin, id, parsed.data);
+  if (!gravado.ok) {
+    if (gravado.erro === "cnpj_em_uso") {
+      return fail("state_conflict", "Este NUIT já pertence a outra organização.", 409, { requestId });
     }
-    return fail("internal_error", "Não foi possível guardar a organização.", 500, { requestId });
+    return fail("validation_failed", gravado.erro, 400, { requestId });
   }
 
-  const antes: Record<string, unknown> = {};
-  for (const coluna of Object.keys(colunas)) antes[coluna] = (org as Record<string, unknown>)[coluna];
-  await audit({
-    action: "tenant.updated_by_platform_admin",
-    actorUserId: auth.ctx.user.id,
+  void audit({
+    action: "org.updated",
+    actorUserId: adminCtx.user.id,
     actingAsPlatformAdmin: true,
     bypassedRls: true,
     organizationId: id,
     resourceType: "organization",
     resourceId: id,
     requestId,
-    metadata: { before: antes, after: colunas },
+    metadata: { fields_changed: Object.keys(parsed.data), via: "platform_admin" },
   });
 
-  return ok(atualizada, { requestId });
-}
+  // Mesmo evento da edição pela tela do tenant: quem consome `org.updated`
+  // não precisa saber quem editou.
+  void admin
+    .rpc("emit_event", {
+      p_event_type: "org.updated",
+      p_entity_kind: "organization",
+      p_entity_id: id,
+      p_payload: { organization_id: id },
+      p_metadata: { request_id: requestId, via: "platform_admin" },
+      p_organization_id: id,
+    })
+    .then(({ error }) => {
+      if (error) logger.warn("[admin.tenants.patch] emit_event falhou", { requestId, erro: error.message });
+    });
 
-const apagarSchema = z.object({ slug_confirmation: z.string() });
-
-export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }): Promise<Response> {
-  const supportDenied = await requireSupportWrite((await params).id);
-  if (supportDenied) return supportDenied;
-
-  const requestId = randomUUID();
-  const { id } = await params;
-  const auth = await adminComAcessoTotal(requestId);
-  if (!auth.ok) return auth.negado;
-
-  let raw: unknown;
-  try {
-    raw = await req.json();
-  } catch {
-    return fail("validation_error", "Invalid JSON body", 400, { requestId });
-  }
-  const parsed = apagarSchema.safeParse(raw);
-  if (!parsed.success) {
-    return fail("validation_error", "Escreva o slug da organização para confirmar.", 400, { requestId });
-  }
-
-  const admin = createAdminClient();
-  const { data: org } = await admin
-    .from("organizations")
-    .select("id, slug, display_name, created_by")
-    .eq("id", id)
-    .maybeSingle();
-  if (!org) return fail("not_found", "Tenant not found", 404, { requestId });
-  if (parsed.data.slug_confirmation.trim().toLowerCase() !== String(org.slug).toLowerCase()) {
-    return fail("validation_error", "O slug escrito não confere.", 422, { requestId });
-  }
-
-  const contar = (tabela: string) =>
-    admin.from(tabela).select("*", { count: "exact", head: true }).eq("organization_id", id);
-  let membros = admin
-    .from("user_organizations")
-    .select("*", { count: "exact", head: true })
-    .eq("organization_id", id)
-    .is("revoked_at", null)
-    .not("accepted_at", "is", null);
-  if (org.created_by) membros = membros.neq("user_id", org.created_by as string);
-  const [m, c, msg, l, o, s] = await Promise.all([
-    membros,
-    contar("conversations"),
-    contar("messages"),
-    contar("crm_leads"),
-    contar("orders"),
-    contar("channel_sessions"),
-  ]);
-  if ([m, c, msg, l, o, s].some((r) => r.error)) {
-    return fail("internal_error", "Não foi possível verificar o uso da organização.", 500, { requestId });
-  }
-  const uso = {
-    membros_ativos: m.count ?? 0,
-    conversas: c.count ?? 0,
-    mensagens: msg.count ?? 0,
-    negocios: l.count ?? 0,
-    pedidos: o.count ?? 0,
-    canais: s.count ?? 0,
-  };
-  if (organizacaoTemUso(uso)) {
-    return fail(
-      "state_conflict",
-      "A organização já tem uso real (membros, conversas, negócios ou canais). Suspenda-a em vez de apagar.",
-      409,
-      { requestId, details: uso },
-    );
-  }
-
-  const { error } = await admin.from("organizations").delete().eq("id", id);
-  if (error) {
-    logger.error("[admin.tenants] organização não apagada", { organizationId: id, error: error.message });
-    return fail("internal_error", "Não foi possível apagar a organização.", 500, { requestId });
-  }
-
-  // Sem `organizationId`: a linha deixou de existir (a FK da auditoria é ON
-  // DELETE SET NULL). Slug e nome ficam no metadata; o id em `resourceId`.
-  await audit({
-    action: "tenant.deleted_by_platform_admin",
-    actorUserId: auth.ctx.user.id,
-    actingAsPlatformAdmin: true,
-    bypassedRls: true,
-    resourceType: "organization",
-    resourceId: id,
-    requestId,
-    metadata: { slug: org.slug, display_name: org.display_name },
-  });
-
-  return ok({ id, deleted: true }, { requestId });
+  return ok({ id }, { requestId });
 }

@@ -315,7 +315,7 @@ describe("aplicar agente-modelo — recusas", () => {
 
 describe("o banco e a rota", () => {
   const raiz = process.cwd();
-  const migration = readFileSync(join(raiz, "supabase/migrations/20261008130000_9009_origem_do_agente_modelo.sql"), "utf8");
+  const migration = readFileSync(join(raiz, "supabase/migrations/20261008130001_9009_origem_do_agente_modelo.sql"), "utf8");
   const songhai = readFileSync(join(raiz, "supabase/songhai.sql"), "utf8");
 
   it("a origem é registo, não dependência: on delete set null, idempotente, no songhai.sql antes da varredura", () => {

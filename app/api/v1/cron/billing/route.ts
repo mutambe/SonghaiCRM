@@ -1,7 +1,7 @@
 /**
  * GET/POST /api/v1/cron/billing — a rodada da faturação dos pacotes (SonghaiCRM, 9010).
  *
- * De hora a hora. Emite as facturas devidas, cria os links de pagamento,
+ * De hora a hora. Emite as faturas devidas, cria os links de pagamento,
  * confere no PaySuite o que já foi pago, aplica a régua (lembrete, aviso final,
  * suspensão) e reactiva quem pagou. Cada passo é idempotente: repetir a rodada
  * não repete nada, e uma rodada perdida é apanhada pela seguinte. O desenho
@@ -11,7 +11,7 @@
  * sai na hora (200, `desligada`) — nunca emite nem suspende às cegas.
  *
  * Auditoria: quem audita é o motor, linha a linha e só quando há EFEITO
- * (factura emitida, aviso enviado, conta suspensa). Esta borda não audita
+ * (fatura emitida, aviso enviado, conta suspensa). Esta borda não audita
  * rodada vazia (`tests/unit/cron-audita-so-quando-ha-efeito.test.ts`).
  */
 import { randomUUID } from "node:crypto";

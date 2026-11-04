@@ -469,7 +469,7 @@ describe("nenhum chamador de produção decide a publicada pelo palpite", () => 
     );
     expect(selects.length, "não achei SELECT nenhum em ai_agents: sonda cega").toBeGreaterThan(0);
     const doCadastro = selects.filter((s) => s.includes("name") && s.includes("priority"));
-    expect(doCadastro, "o SELECT do cadastro sumiu ou mudou de forma").toHaveLength(1);
+    expect(doCadastro, "o SELECT do registo sumiu ou mudou de forma").toHaveLength(1);
     expect(doCadastro[0]).toContain("published_version_id");
   });
 });

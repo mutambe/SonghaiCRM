@@ -136,7 +136,7 @@ describe("quota acordada com um cliente", () => {
     expect(t.organization_subscriptions![0]!.ai_tokens_override).toBeNull();
   });
 
-  it("pode mudar-se depois da primeira factura (ao contrário do piloto)", async () => {
+  it("pode mudar-se depois da primeira fatura (ao contrário do piloto)", async () => {
     const t = mundo();
     t.billing_invoices!.push({ id: "f1", organization_id: "o1" });
     expect((await alterarTermosDoCliente(banco(t), "o1", { ai_tokens_override: 100_000 })).ok).toBe(true);

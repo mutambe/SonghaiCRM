@@ -3,8 +3,8 @@ import { notFound } from "next/navigation";
 
 import { Card } from "@/components/ui/card";
 import { loadAuthUser } from "@/lib/auth/server";
-import { traduzir } from "@/lib/i18n/dicionario";
 import { tagDeIdioma } from "@/lib/i18n/datas";
+import { traduzir } from "@/lib/i18n/dicionario";
 import { normalizarIdioma } from "@/lib/i18n/idiomas";
 import { createAdminClient } from "@/lib/supabase/admin";
 

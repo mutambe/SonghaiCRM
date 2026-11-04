@@ -63,6 +63,14 @@ export async function persistMessageMedia(row: EventRow): Promise<HandlerResult>
   if (error) return { consumer_key, status: "error", detail: error.message };
 
   const msg = data as MessageMediaRow | null;
+  // A retenção marcou `metadata.media_status='expired'` (migration 0557): a mídia
+  // foi retirada por política, nem `media_url` nem `media_storage_path` devem
+  // voltar. NÃO tentar baixar de novo do provedor o que expirou (#1534). Vem
+  // ANTES do `!media_url`: a poda anula a `media_url`, e depois dele esta guarda
+  // nunca seria alcançada — o detalhe diria "no media_url" em vez do motivo real.
+  if (msg?.metadata?.media_status === "expired") {
+    return { consumer_key, status: "skipped", detail: "expired by retention" };
+  }
   if (!msg?.media_url) return { consumer_key, status: "skipped", detail: "no media_url" };
   if (msg.media_storage_path) return { consumer_key, status: "skipped", detail: "already stored" };
 
@@ -115,12 +123,15 @@ export async function persistMessageMedia(row: EventRow): Promise<HandlerResult>
     // O worker não pergunta QUAL canal é — o invariante 1 proíbe e o
     // `lint:channels` reprova. Ele pede a sessão, pede o adapter e testa a
     // presença do método.
-    const { data: sessao } = await admin
+    const { data: sessao, error: sessionErr } = await admin
       .from("channel_sessions")
       .select(`provider, ${CHANNEL_SESSION_REF_COLUMNS}`)
       .eq("organization_id", msg.organization_id)
       .eq("id", msg.channel_session_id)
       .maybeSingle();
+    // Leitura que falhou não prova ausência de suporte a mídia. O catch mantém
+    // as tentativas do dreno e só marca failed quando elas se esgotam.
+    if (sessionErr) throw new Error(`session lookup failed: ${sessionErr.message}`);
 
     const adapter = getAdapter(
       ((sessao?.provider as string) ?? DEFAULT_CHANNEL_PROVIDER) as ChannelProvider,
@@ -240,7 +251,12 @@ export async function persistMessageMedia(row: EventRow): Promise<HandlerResult>
   }
   const isGroup = Boolean((conv as { is_group?: boolean | null } | null)?.is_group);
 
-  if (!isGroup) {
+  // Histórico importado (#999) é guardado para análise de atendimento depois:
+  // sem transcrição nem visão automática, que são pagas e responderiam a conversa
+  // de meses atrás. A chave é texto 'true' (contrato da 0760).
+  const historicoImportado = msg.metadata?.historico_importado === "true";
+
+  if (!isGroup && !historicoImportado) {
     // Dispara a derivação textual (Onda 3) — fire-and-forget, mesmo padrão do
     // resto do repo: falha de emit não reverte a persistência já concluída.
     const { error: emitErr } = await admin.rpc("emit_event" as never, {

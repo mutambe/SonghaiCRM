@@ -2,6 +2,7 @@ import { defineConfig } from "vitest/config";
 import path from "node:path";
 
 import { selecionarCercas } from "./vitest.cercas";
+import { ARQUIVOS_FORA_DA_OFERTA } from "./tests/songhai-fora-da-oferta";
 
 // As guardas estruturais — o arquivo de teste que só lê o repositório (baseline
 // × cadeia, MANIFEST, varredura de anon, docs, workflows, i18n, fragmentos) e
@@ -40,10 +41,14 @@ export default defineConfig({
       ".worktrees/**",
       "tests/e2e/**",
       "tests/invariants/**",
+      "tests/mysql/**",
       "tests/journeys/**",
       // Bancada opcional: usa node:test, PostgreSQL próprio e Playwright com
       // configuração dedicada. Não depende do ambiente da suíte do produto.
       "experiments/extensoes/**",
+      // SonghaiCRM: testes do upstream que provam o que a distribuição desliga
+      // (cada um com o motivo em tests/songhai-fora-da-oferta.ts).
+      ...ARQUIVOS_FORA_DA_OFERTA,
     ],
     // Dois projetos, a mesma suíte: `pnpm test:unit` continua rodando TUDO,
     // uma vez só. A divisão existe por duas razões medidas em 18/09/2026:
@@ -58,11 +63,11 @@ export default defineConfig({
     projects: [
       {
         extends: true,
-        test: { name: "cercas", environment: "node", include: CERCAS },
+        test: { name: "cercas", environment: "node", include: CERCAS, exclude: ["**/node_modules/**", ".worktrees/**", ...ARQUIVOS_FORA_DA_OFERTA] },
       },
       {
         extends: true,
-        test: { name: "produto", exclude: CERCAS },
+        test: { name: "produto", exclude: [...CERCAS, "**/node_modules/**", ".worktrees/**", "tests/e2e/**", "tests/invariants/**", "tests/mysql/**", "tests/journeys/**", "experiments/extensoes/**", ...ARQUIVOS_FORA_DA_OFERTA] },
       },
     ],
   },

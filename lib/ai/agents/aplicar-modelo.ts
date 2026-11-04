@@ -197,7 +197,8 @@ export async function aplicarAgenteModelo(
     .single();
   if (versionErr || !newVersion) {
     // Sem a versão a cópia é uma casca: arquiva-se, como em `duplicate.ts`.
-    await admin.from("ai_agents").update({ archived_at: new Date().toISOString() }).eq("id", agentId);
+    const quando = new Date().toISOString();
+    await admin.from("ai_agents").update({ archived_at: quando }).eq("id", agentId);
     return { ok: false, error: "version_insert_failed", message: versionErr?.message };
   }
 

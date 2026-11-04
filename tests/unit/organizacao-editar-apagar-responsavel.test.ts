@@ -63,7 +63,6 @@ vi.mock("@/lib/supabase/admin", () => ({
   }),
 }));
 
-import { PATCH, DELETE } from "@/app/api/v1/admin/tenants/[id]/route";
 import { POST as convidarResponsavel } from "@/app/api/v1/admin/tenants/[id]/owner/route";
 import { colunasDaEdicao, edicaoDaOrganizacaoSchema, organizacaoTemUso } from "@/lib/admin/edicao-da-organizacao";
 
@@ -101,73 +100,8 @@ describe("regras de edição", () => {
   });
 });
 
-describe("PATCH /api/v1/admin/tenants/[id]", () => {
-  it("guarda, audita antes/depois e devolve a linha", async () => {
-    h.respostas.set("organizations:select", { data: { id: ORG, slug: "loja", display_name: "Loja", legal_name: "Loja", cnpj: null, status: "active" }, error: null });
-    h.respostas.set("organizations:update", { data: { id: ORG, slug: "loja", display_name: "Loja Nova" }, error: null });
-    const res = await PATCH(pedido("PATCH", { display_name: "Loja Nova" }), ctx);
-    expect(res.status).toBe(200);
-    expect(h.audit).toHaveBeenCalledWith(
-      expect.objectContaining({
-        action: "tenant.updated_by_platform_admin",
-        metadata: { before: { display_name: "Loja" }, after: { display_name: "Loja Nova" } },
-      }),
-    );
-  });
-
-  it("slug ou NUIT repetido → 409", async () => {
-    h.respostas.set("organizations:select", { data: { id: ORG, status: "active" }, error: null });
-    h.respostas.set("organizations:update", { data: null, error: { code: "23505" } });
-    expect((await PATCH(pedido("PATCH", { slug: "outra" }), ctx)).status).toBe(409);
-  });
-
-  it("acesso de suporte (escopo parcial) não edita", async () => {
-    h.platform.mockResolvedValue({ user: { id: "admin-1" }, platformAdmin: { scope: "support" } });
-    expect((await PATCH(pedido("PATCH", { display_name: "X Lda" }), ctx)).status).toBe(403);
-    expect(h.chamadas).toHaveLength(0);
-  });
-
-  it("a guarda de suporte corre antes de qualquer leitura", async () => {
-    h.suporte.mockResolvedValue(new Response(null, { status: 403 }));
-    expect((await PATCH(pedido("PATCH", { display_name: "X Lda" }), ctx)).status).toBe(403);
-    expect(h.platform).not.toHaveBeenCalled();
-  });
-});
-
-describe("DELETE /api/v1/admin/tenants/[id]", () => {
-  const org = { data: { id: ORG, slug: "loja", display_name: "Loja", created_by: "admin-1" }, error: null };
-
-  it("slug errado → 422, nada apagado", async () => {
-    h.respostas.set("organizations:select", org);
-    expect((await DELETE(pedido("DELETE", { slug_confirmation: "outra" }), ctx)).status).toBe(422);
-    expect(h.chamadas.some((c) => c.op === "delete")).toBe(false);
-  });
-
-  it("organização com uso → 409 com o detalhe, nada apagado", async () => {
-    h.respostas.set("organizations:select", org);
-    h.respostas.set("conversations:select", { data: null, error: null, count: 3 });
-    const res = await DELETE(pedido("DELETE", { slug_confirmation: "loja" }), ctx);
-    expect(res.status).toBe(409);
-    expect(((await res.json()) as { error: { details: { conversas: number } } }).error.details.conversas).toBe(3);
-    expect(h.chamadas.some((c) => c.op === "delete")).toBe(false);
-  });
-
-  it("o vínculo de quem criou não conta como membro", async () => {
-    h.respostas.set("organizations:select", org);
-    await DELETE(pedido("DELETE", { slug_confirmation: "loja" }), ctx);
-    expect(h.chamadas).toContainEqual({ tabela: "user_organizations", op: "neq", args: ["user_id", "admin-1"] });
-  });
-
-  it("sem uso → apaga e audita sem organization_id", async () => {
-    h.respostas.set("organizations:select", org);
-    h.respostas.set("organizations:delete", { data: null, error: null });
-    const res = await DELETE(pedido("DELETE", { slug_confirmation: "LOJA" }), ctx);
-    expect(res.status).toBe(200);
-    const registo = h.audit.mock.calls[0]?.[0] as Record<string, unknown>;
-    expect(registo.action).toBe("tenant.deleted_by_platform_admin");
-    expect(registo.organizationId).toBeUndefined();
-  });
-});
+// SonghaiCRM: o PATCH e o DELETE do cadastro da organização passaram a ser os do
+// upstream (`route.ts`, `delete/`); o que fica aqui é a regra pura e o convite do responsável.
 
 describe("POST /api/v1/admin/tenants/[id]/owner", () => {
   const emissao = {

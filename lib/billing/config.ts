@@ -7,7 +7,7 @@
  *   configura em Integrações › PaySuite para cobrar os clientes dela.
  * - `BILLING_ATIVA_DESDE`: o dia em que a faturação foi ligada. Períodos que
  *   começaram antes não se cobram (ver `indicesAEmitir`), para ligar isto numa
- *   instalação com clientes antigos não fazer chover facturas do passado.
+ *   instalação com clientes antigos não fazer chover faturas do passado.
  *
  * Sem `BILLING_ORGANIZATION_ID` a faturação está DESLIGADA: nada se emite, nada
  * se suspende, e quem opera vê o aviso na tela. Falha fechada, como os módulos.
@@ -42,7 +42,7 @@ export interface ConfigDaFaturacao {
   organizationId: string;
   /** `AAAA-MM-DD` em Maputo. */
   ativaDesde: string;
-  /** Como pagar por transferência bancária, ou `null` se o operador não definiu. Vai nas facturas e nos e-mails. */
+  /** Como pagar por transferência bancária, ou `null` se o operador não definiu. Vai nas faturas e nos e-mails. */
   instrucoesDeTransferencia: string | null;
   /** Quem recebe os avisos do fornecedor (tokens a esgotar). Vazio = os administradores da plataforma. */
   emailsDoFornecedor: string[];

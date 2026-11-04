@@ -16,7 +16,7 @@ import {
   tokensLegiveis,
 } from "@/lib/billing/tokens";
 
-describe("o período da quota é o ciclo de facturação", () => {
+describe("o período da quota é o ciclo de faturação", () => {
   it("contém o dia de hoje, do início ao fim, inclusive", () => {
     expect(periodoQueContem("2026-10-10", "2026-10-10")).toEqual({ inicio: "2026-10-10", fim: "2026-11-09" });
     expect(periodoQueContem("2026-10-10", "2026-11-09")).toEqual({ inicio: "2026-10-10", fim: "2026-11-09" });
@@ -37,7 +37,7 @@ describe("o período da quota é o ciclo de facturação", () => {
     expect(periodoQueContem("2026-10-10", "2026-09-01")).toEqual({ inicio: "2026-10-10", fim: "2026-11-09" });
   });
 
-  it("sem ciclo de facturação, vale o mês do calendário", () => {
+  it("sem ciclo de faturação, vale o mês do calendário", () => {
     expect(janelaDeTokens("2026-02-14", null)).toEqual({ inicio: "2026-02-01", fim: "2026-02-28" });
     expect(janelaDeTokens("2028-02-14", null)).toEqual({ inicio: "2028-02-01", fim: "2028-02-29" });
     expect(janelaDeTokens("2026-12-31", null)).toEqual({ inicio: "2026-12-01", fim: "2026-12-31" });

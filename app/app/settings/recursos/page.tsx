@@ -20,8 +20,10 @@ import { requireAuth, resolveActiveOrg } from "@/lib/auth/server";
 import { ROLE_RANK, type Role } from "@/lib/auth/types";
 import { traduzir } from "@/lib/i18n/dicionario";
 import {
+  MODULOS_DA_EMPRESA,
   RECURSOS_OPCIONAIS,
   ROTULO_DO_ESTADO,
+  ehOpcaoDoBrasil,
   estadoDoRecurso,
   portaDoModuloNaEmpresa,
   type RecursoOpcional,
@@ -51,9 +53,11 @@ export default async function RecursosOpcionaisPage() {
     dono ||
     (r.quemDecide !== "dono_do_servidor" && ROLE_RANK[activeOrg.role] >= ROLE_RANK[PAPEL_QUE_DECIDE[r.quemDecide]]);
 
-  const modulos = RECURSOS_OPCIONAIS.filter((r) => r.nivel === "instalacao" && r.modulo);
-  const daEmpresa = RECURSOS_OPCIONAIS.filter((r) => r.nivel === "organizacao");
-  const deCadaAgente = RECURSOS_OPCIONAIS.filter((r) => r.nivel === "agente");
+  // SonghaiCRM: as opções do Brasil não são oferecidas; onde já estão ligadas continuam à vista.
+  const oferecido = (r: RecursoOpcional): boolean => !ehOpcaoDoBrasil(r) || estadoDoRecurso(r, fontes) === "ligado";
+  const modulos = MODULOS_DA_EMPRESA.filter(oferecido);
+  const daEmpresa = RECURSOS_OPCIONAIS.filter((r) => r.nivel === "organizacao" && oferecido(r));
+  const deCadaAgente = RECURSOS_OPCIONAIS.filter((r) => r.nivel === "agente" && oferecido(r));
 
   /** Recurso que depende de módulo desligado no servidor: a empresa sabe que existe e a quem pedir. */
   const semModulo = (r: RecursoOpcional): boolean =>

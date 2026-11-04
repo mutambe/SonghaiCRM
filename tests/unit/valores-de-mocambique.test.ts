@@ -132,7 +132,7 @@ export function achadosNoFonte(arquivo: string, codigo: string): Achado[] {
 /** Exceções por arquivo e regra — cada uma diz por que não é defeito. */
 const EXCECOES: Record<string, { regras: Regra[]; motivo: string }> = {
   "lib/i18n/dicionario.ts": {
-    regras: ["ddi55", "lgpd"],
+    regras: ["ddi55", "lgpd", "reais"],
     motivo: "dicionário do upstream: as CHAVES são o texto-fonte brasileiro; a tela recebe a versão da camada pt-MZ",
   },
   "lib/agent-engine/guardrails/promise/engine.ts": {
@@ -141,17 +141,42 @@ const EXCECOES: Record<string, { regras: Regra[]; motivo: string }> = {
   },
   "lib/ai/rag/format-product.ts": { regras: ["reais"], motivo: "produtos da Nuvemshop — módulo brasileiro desligado" },
   "app/app/honorarios/_client.tsx": { regras: ["brl"], motivo: "Honorários — módulo brasileiro desligado" },
-  "app/app/honorarios/_parcelas.tsx": { regras: ["brl"], motivo: "Honorários — módulo brasileiro desligado" },
 
 
 
+  "app/api/v1/ai/cases/alerta/route.ts": { regras: ["ddi55"], motivo: "frase-fonte do upstream: a tela recebe a versão escrita em português de Moçambique (`lib/i18n/frases-pt-mz.ts`)" },
+  "app/app/agenda/avisos/_components/AvisoDeAgendamento.tsx": {
+    regras: ["ddi55"],
+    motivo: "o aviso só aparece com exemplo de telefone +55 (organização do Brasil); aqui o exemplo é +258 e o ramo não corre",
+  },
+  "lib/agenda/rascunho-do-aviso-de-agendamento.ts": {
+    regras: ["ddi55"],
+    motivo: "`numeroPareceDeForaDoBrasil` só avalia organização com exemplo +55; o ramo não corre em Moçambique",
+  },
+  "lib/schemas/contacts.ts": {
+    regras: ["ddi55"],
+    motivo: "régua do telefone brasileiro do upstream (DDD), usada só quando o perfil do país é o brasileiro — que não está no registro",
+  },
+  "components/auth/RecoverOrganizationForm.tsx": { regras: ["brl"], motivo: "cobrança do revendedor do upstream (módulo `cobranca`, desligado); a nossa faturação por pacote é em metical" },
+  "components/auth/SignupForm.tsx": { regras: ["brl"], motivo: "cobrança do revendedor do upstream (módulo `cobranca`, desligado); a nossa faturação por pacote é em metical" },
+  "components/cobranca/AcoesDaAssinatura.tsx": { regras: ["brl"], motivo: "cobrança do revendedor do upstream (módulo `cobranca`, desligado); a nossa faturação por pacote é em metical" },
+  "components/cobranca/PainelDaAssinatura.tsx": { regras: ["brl"], motivo: "cobrança do revendedor do upstream (módulo `cobranca`, desligado); a nossa faturação por pacote é em metical" },
+  "lib/cobranca/vocabulario.ts": { regras: ["brl"], motivo: "cobrança do revendedor do upstream (módulo `cobranca`, desligado); a nossa faturação por pacote é em metical" },
+  "lib/lgpd/sla-alarm.ts": {
+    regras: ["lei", "lgpd"],
+    motivo: "ramo `noBrasil` do upstream: «BR» não está no registro de países desta distribuição, o ramo é inalcançável",
+  },
+  "app/admin/(protected)/cobranca/_planos.tsx": {
+    regras: ["reais", "brl"],
+    motivo: "cobrança do revendedor do upstream (módulo `cobranca`, desligado); a nossa faturação por pacote é em metical",
+  },
+  "lib/schemas/cobranca-plano.ts": {
+    regras: ["reais"],
+    motivo: "cobrança do revendedor do upstream (módulo `cobranca`, desligado); a nossa faturação por pacote é em metical",
+  },
   "lib/channels/phone-variants.ts": {
     regras: ["ddi55"],
     motivo: "variantes do nono dígito para número que JÁ chega com +55 (contacto brasileiro de verdade)",
-  },
-  "lib/webhooks/inbound.ts": {
-    regras: ["ddi55"],
-    motivo: "`normalizePhoneBR`, que só o CRM B2B (desligado) usa; a captação usa `normalizarTelefoneLocal` (+258)",
   },
 };
 /** A vitrine do design system (`/design`) é página interna, sem dado de cliente. */

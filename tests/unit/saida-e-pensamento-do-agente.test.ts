@@ -22,7 +22,7 @@ import { z } from "zod";
 
 import { semBlocosDePensamento } from "@/lib/agent-engine/agent/sem-pensamento";
 import { runModelCall } from "@/lib/agent-engine/edge/llm/run-model-call";
-import { LIMITE_DE_SAIDA_DO_AGENTE, limiteDeSaidaDoSdkDesconhecido } from "@/lib/ai/limite-de-saida";
+import { limiteDeSaidaDoSdkDesconhecido } from "@/lib/ai/limite-de-saida";
 
 const ORG = "22222222-2222-4222-8222-222222222222";
 
@@ -96,17 +96,18 @@ async function pedidoDoAgente(
 }
 
 describe("o limite de saída do agente", () => {
+  // O AI SDK subiu com o merge do upstream (2026-11-03) e passou a conhecer estes modelos: o
+  // piso de 16 000 que o motor mandava deixou de ser necessário. Se um modelo novo voltar a ser
+  // subestimado (o SDK sozinho manda 4096), acrescente a família em `lib/ai/limite-de-saida.ts`.
   it.each(["claude-haiku-5-5", "claude-opus-5-5", "claude-opus-5"])(
-    "%s: o SDK sozinho mandaria 4096; o motor manda o piso explícito",
+    "%s: o SDK já acerta (128000) e o motor NÃO mexe",
     async (id) => {
-      // A prova de que o defeito existe: SEM o motor, o SDK manda 4096.
       const { provedor, corpos } = anthropicQueCaptura();
       await generateText({ model: provedor(id), prompt: "oi" });
-      expect(corpos[0]?.max_tokens, `o SDK já conhece ${id}: o piso deixou de ser necessário`).toBe(4096);
+      expect(corpos[0]?.max_tokens).toBe(128_000);
 
       const corpo = await pedidoDoAgente(id);
-      expect(corpo.max_tokens).toBe(LIMITE_DE_SAIDA_DO_AGENTE);
-      expect(LIMITE_DE_SAIDA_DO_AGENTE).toBeGreaterThanOrEqual(16_000);
+      expect(corpo.max_tokens).toBe(128_000);
     },
   );
 
@@ -127,8 +128,9 @@ describe("o limite de saída do agente", () => {
   });
 
   it("a regra pura: só Anthropic, só as famílias que o SDK subestima", () => {
-    expect(limiteDeSaidaDoSdkDesconhecido("anthropic", "claude-haiku-5-5")).toBe(16_000);
-    expect(limiteDeSaidaDoSdkDesconhecido("anthropic", "anthropic/claude-opus-5-5")).toBe(16_000);
+    // Hoje nenhuma família é subestimada pelo SDK instalado (lista vazia).
+    expect(limiteDeSaidaDoSdkDesconhecido("anthropic", "claude-haiku-5-5")).toBeUndefined();
+    expect(limiteDeSaidaDoSdkDesconhecido("anthropic", "anthropic/claude-opus-5-5")).toBeUndefined();
     expect(limiteDeSaidaDoSdkDesconhecido("anthropic", "claude-sonnet-5")).toBeUndefined();
     expect(limiteDeSaidaDoSdkDesconhecido("anthropic", "claude-haiku-4-5")).toBeUndefined();
     expect(limiteDeSaidaDoSdkDesconhecido("openai", "claude-haiku-5-5")).toBeUndefined();

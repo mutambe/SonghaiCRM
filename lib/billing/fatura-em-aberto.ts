@@ -1,5 +1,5 @@
 /**
- * A FACTURA QUE O CLIENTE TEM DE VER (SonghaiCRM, 9010): a mais urgente em
+ * A FATURA QUE O CLIENTE TEM DE VER (SonghaiCRM, 9010): a mais urgente em
  * aberto de UMA organização, para o aviso no topo da aplicação e para a tela de
  * conta suspensa.
  *
@@ -67,7 +67,7 @@ export async function faturaMaisUrgente(
         atrasoDias >= 0 ? dataPrevistaDaSuspensao(f.due_date, f.warned_at ? new Date(f.warned_at) : null, agora) : null,
     };
   } catch (erro) {
-    logger.warn("faturação: não deu para ler a factura em aberto", {
+    logger.warn("faturação: não deu para ler a fatura em aberto", {
       organization_id: organizationId,
       detalhe: erro instanceof Error ? erro.message : String(erro),
     });

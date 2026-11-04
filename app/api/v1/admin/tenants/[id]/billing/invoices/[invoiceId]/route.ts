@@ -1,9 +1,9 @@
 /**
  * PATCH /api/v1/admin/tenants/[id]/billing/invoices/[invoiceId] — dar prazo ou
- * anular UMA factura em aberto (SonghaiCRM, 9010).
+ * anular UMA fatura em aberto (SonghaiCRM, 9010).
  *
  *   { "due_date": "AAAA-MM-DD" }  adia o vencimento (até 60 dias) e recomeça a
- *                                 régua dessa factura; se a conta estava
+ *                                 régua dessa fatura; se a conta estava
  *                                 suspensa por falta de pagamento, volta na hora
  *   { "void": true }              anula (engano, acordo)
  *   { "paid_via": "transferencia" }  dá como paga uma transferência bancária que
@@ -37,8 +37,8 @@ const bodySchema = z.union([
 ]);
 
 const MENSAGENS: Record<string, { status: number; code: string; message: string }> = {
-  fatura_nao_encontrada: { status: 404, code: "not_found", message: "Factura não encontrada neste cliente." },
-  fatura_nao_aberta: { status: 409, code: "invoice_not_open", message: "Só se mexe numa factura em aberto." },
+  fatura_nao_encontrada: { status: 404, code: "not_found", message: "Fatura não encontrada neste cliente." },
+  fatura_nao_aberta: { status: 409, code: "invoice_not_open", message: "Só se mexe numa fatura em aberto." },
   data_invalida: { status: 400, code: "validation_failed", message: "Data inválida." },
   data_no_passado: { status: 400, code: "validation_failed", message: "A nova data não pode estar no passado." },
   prazo_demasiado_longo: { status: 400, code: "validation_failed", message: "O prazo pode ir até 60 dias de cada vez." },
@@ -70,7 +70,7 @@ export async function PATCH(
 
   const db = createAdminClient();
 
-  // Transferência bancária que entrou: dá-se a factura como paga pela MESMA via que o PaySuite
+  // Transferência bancária que entrou: dá-se a fatura como paga pela MESMA via que o PaySuite
   // usa (reactiva a conta, agradece, audita com `via` e quem a marcou), não por uma cópia.
   if ("paid_via" in parsed.data) {
     const cfg = await lerConfigDaFaturacao(db);
@@ -81,7 +81,7 @@ export async function PATCH(
       .eq("id", invoiceId)
       .eq("organization_id", id)
       .maybeSingle();
-    if (!fatura) return fail("not_found", "Factura não encontrada neste cliente.", 404, { requestId });
+    if (!fatura) return fail("not_found", "Fatura não encontrada neste cliente.", 404, { requestId });
     try {
       const mudou = await registrarPagamentoDeFatura(
         await dependenciasReais(db, cfg),
@@ -90,9 +90,9 @@ export async function PATCH(
         "transferencia",
         { ator: adminCtx.user.id, referencia: parsed.data.reference },
       );
-      if (!mudou) return fail("invoice_not_open", "Só se mexe numa factura em aberto.", 409, { requestId });
+      if (!mudou) return fail("invoice_not_open", "Só se mexe numa fatura em aberto.", 409, { requestId });
     } catch {
-      return fail("internal_error", "Não foi possível dar a factura como paga.", 500, { requestId });
+      return fail("internal_error", "Não foi possível dar a fatura como paga.", 500, { requestId });
     }
     return ok({ id: invoiceId, paga: true }, { requestId });
   }
@@ -102,7 +102,7 @@ export async function PATCH(
   if (!r.ok) {
     const m = MENSAGENS[r.erro ?? ""];
     if (m) return fail(m.code, m.message, m.status, { requestId });
-    return fail("internal_error", "Não foi possível alterar a factura.", 500, { requestId });
+    return fail("internal_error", "Não foi possível alterar a fatura.", 500, { requestId });
   }
 
   void audit({
@@ -118,7 +118,7 @@ export async function PATCH(
   });
 
   // A conta estava parada por esta dívida? Volta já, sem esperar pela rodada de hora a hora.
-  // Só se não houver outra factura vencida: `reativarSePago` confere.
+  // Só se não houver outra fatura vencida: `reativarSePago` confere.
   let reativada = false;
   try {
     const cfg = await lerConfigDaFaturacao(db);
@@ -129,7 +129,7 @@ export async function PATCH(
       reativada = (antes as { status?: string } | null)?.status === "suspended" && (depois as { status?: string } | null)?.status === "active";
     }
   } catch {
-    // A rodada de hora a hora reactiva na mesma; a mudança da factura já está feita.
+    // A rodada de hora a hora reactiva na mesma; a mudança da fatura já está feita.
   }
 
   return ok({ id: invoiceId, reativada }, { requestId });

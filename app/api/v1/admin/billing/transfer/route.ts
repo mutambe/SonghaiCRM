@@ -3,11 +3,11 @@
  * bancária (SonghaiCRM, 9010).
  *
  * Texto livre que o operador escreve (banco, titular, NIB/IBAN) e que o cliente lê
- * na página de facturação, nas facturas e nos e-mails que pedem pagamento. O
+ * na página de faturação, nas faturas e nos e-mails que pedem pagamento. O
  * sistema não o interpreta nem o valida. Vazio ou `null` apaga.
  *
  * O PaySuite confirma sozinho M-Pesa, e-Mola e cartão; a transferência não: quem
- * a dá como paga é uma pessoa, na factura do cliente.
+ * a dá como paga é uma pessoa, na fatura do cliente.
  */
 import { randomUUID } from "node:crypto";
 import type { NextRequest } from "next/server";

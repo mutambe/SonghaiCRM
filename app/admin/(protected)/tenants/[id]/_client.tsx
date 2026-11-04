@@ -6,16 +6,16 @@ import { TenantActions } from "@/components/admin/tenants/TenantActions";
 import { AgenteModeloDoCliente } from "@/components/admin/tenants/AgenteModeloDoCliente";
 import { FaturacaoDaOrganizacao } from "@/components/admin/tenants/FaturacaoDaOrganizacao";
 import { PlanoDaOrganizacao } from "@/components/admin/tenants/PlanoDaOrganizacao";
-import { GestaoDaOrganizacao } from "@/components/admin/tenants/GestaoDaOrganizacao";
-import { ResponsavelDaOrganizacao } from "@/components/admin/tenants/ResponsavelDaOrganizacao";
 import { SuspendedBanner } from "@/components/admin/tenants/SuspendedBanner";
+import { TenantMembers } from "@/components/admin/tenants/TenantMembers";
 import { useT } from "@/hooks/i18n/useT";
 
 interface TenantOverviewClientProps {
   id: string;
+  cobrancaLigada?: boolean;
 }
 
-export function TenantOverviewClient({ id }: TenantOverviewClientProps) {
+export function TenantOverviewClient({ id, cobrancaLigada = false }: TenantOverviewClientProps) {
   const t = useT();
   const { data, isLoading, isError } = useTenantDetail(id);
 
@@ -53,28 +53,22 @@ export function TenantOverviewClient({ id }: TenantOverviewClientProps) {
         <div className="space-y-6">
           {/* SonghaiCRM — o pacote vigente e a troca (migration 9004). */}
           <PlanoDaOrganizacao organizationId={organization.id} />
-          {/* SonghaiCRM — preço acordado, piloto, extras e facturas deste cliente (migration 9010). */}
+          {/* SonghaiCRM — preço acordado, piloto, extras e faturas deste cliente (migration 9010). */}
           <FaturacaoDaOrganizacao organizationId={organization.id} />
-          <ResponsavelDaOrganizacao organizationId={organization.id} />
           {/* SonghaiCRM — aplicar um agente-modelo a este cliente (migration 9009). */}
           <AgenteModeloDoCliente organizationId={organization.id} />
           <TenantOverview
             organization={organization}
             counts={counts}
             integrations={integrations}
+            cobrancaLigada={cobrancaLigada}
           />
-        </div>
-        <div className="space-y-4">
-          <TenantActions
+          <TenantMembers
             organizationId={organization.id}
-            status={organization.status}
-            displayName={organization.display_name}
+            readOnly={organization.status === "redacted"}
           />
-          {/* SonghaiCRM — editar e apagar (porte do b1b1eb812). */}
-          <div className="space-y-2 rounded-lg border bg-card p-5">
-            <GestaoDaOrganizacao organization={organization} />
-          </div>
         </div>
+        <TenantActions organization={organization} counts={counts} />
       </div>
     </div>
   );

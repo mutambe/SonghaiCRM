@@ -10,9 +10,9 @@
  * Contratadas = o limite do pacote + os extras (um número a mais sobe a quota na
  * hora). Pacote sem teto de números (Enterprise) conta as contas que existem.
  *
- * ─── O período é o ciclo de facturação ──────────────────────────────────────
- * A quota renova quando a conta renova: o período é o da facturação (ancorado no
- * dia em que o cliente começou), e não o mês do calendário. Sem facturação, vale
+ * ─── O período é o ciclo de faturação ──────────────────────────────────────
+ * A quota renova quando a conta renova: o período é o da faturação (ancorado no
+ * dia em que o cliente começou), e não o mês do calendário. Sem faturação, vale
  * o mês do calendário — o mesmo que o orçamento em dinheiro usa.
  *
  * ─── O que conta ────────────────────────────────────────────────────────────
@@ -38,7 +38,7 @@ export interface JanelaDeTokens {
   fim: string;
 }
 
-/** O período de facturação, de índice qualquer, que contém `hoje`. */
+/** O período de faturação, de índice qualquer, que contém `hoje`. */
 export function periodoQueContem(ancora: string, hoje: string): JanelaDeTokens {
   if (hoje < ancora) return periodoDaFatura(ancora, 0);
   const [a1, m1] = ancora.split("-").map(Number);
@@ -49,7 +49,7 @@ export function periodoQueContem(ancora: string, hoje: string): JanelaDeTokens {
   return periodoDaFatura(ancora, i);
 }
 
-/** O período da quota: o ciclo de facturação, ou o mês do calendário se não há ciclo. */
+/** O período da quota: o ciclo de faturação, ou o mês do calendário se não há ciclo. */
 export function janelaDeTokens(hoje: string, ancora: string | null): JanelaDeTokens {
   if (ancora) return periodoQueContem(ancora, hoje);
   const [a, m] = hoje.split("-").map(Number);
@@ -198,7 +198,7 @@ export interface AvisoDeTokens {
  * O aviso de tokens que vale HOJE para uma organização, lido do que a rodada já
  * registou — uma consulta indexada, barata para pôr no layout de toda página.
  * É o retrato da hora do aviso, e não uma medição nova: a medição exacta está na
- * página de facturação. Nunca lança (o aviso é acréscimo, não pode derrubar a tela).
+ * página de faturação. Nunca lança (o aviso é acréscimo, não pode derrubar a tela).
  */
 export async function avisoDeTokensAtual(
   db: SupabaseClient,

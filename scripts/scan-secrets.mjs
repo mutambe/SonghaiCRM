@@ -47,6 +47,12 @@ const ALLOWLIST_PATHS = new Set([
   "tests/unit/credenciais-ia-editar-na-tela.test.tsx",
   "tests/unit/credenciais-ia-rotacao.test.ts",
   "tests/unit/redacao-de-segredo.test.ts",
+  // Fusão com o upstream v1.99 (auditado em 2026-11-04): marcadores de EXEMPLO que o
+  // upstream distribui — uma chave Anthropic de exemplo numa lição do curso (o texto
+  // diz «exemplo-do-curso-nao-vale») e um JWT de fixture terminado em «assinatura-de-teste».
+  // Nenhum é credencial.
+  "curso/licoes/credenciais.json",
+  "tests/shell/single-server-traefik-rota-publica.test.sh",
 ]);
 
 function hasGitleaks() {

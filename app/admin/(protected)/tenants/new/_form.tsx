@@ -31,6 +31,7 @@ import { ApiError } from "@/lib/api/types";
 import { useT } from "@/hooks/i18n/useT";
 import { useIdioma } from "@/lib/i18n/IdiomaProvider";
 import { copyToClipboard } from "@/lib/clipboard";
+import { MOEDA_PADRAO } from "@/lib/money";
 
 // ---------------------------------------------------------------------------
 // Schema (mirrors server Zod; client keeps it in sync)
@@ -72,7 +73,28 @@ function maskCnpj(value: string): string {
 // Form component
 // ---------------------------------------------------------------------------
 
-export function NewTenantForm() {
+/** Um plano ativo de `cobranca_planos`, como o formulário o oferece. */
+export interface PlanoParaEscolher {
+  id: string;
+  nome: string;
+  preco_cents: number;
+  intervalo: string;
+  trial_dias: number;
+}
+
+/** Valor do item "Sem cobrança": o Select do Radix não aceita valor vazio. */
+const ISENTA = "isenta";
+
+function formatarPreco(cents: number, idioma: string): string {
+  return new Intl.NumberFormat(idioma, { style: "currency", currency: MOEDA_PADRAO }).format(cents / 100);
+}
+
+export function NewTenantForm({
+  cobranca,
+}: {
+  /** Spec da cobrança §9: ligada, o plano de cobrança substitui o rótulo antigo (D-2). */
+  cobranca: { ligada: boolean; planos: readonly PlanoParaEscolher[] };
+}) {
   const t = useT();
   const idioma = useIdioma();
   const router = useRouter();
@@ -95,6 +117,7 @@ export function NewTenantForm() {
       legal_name: "",
       cnpj: "",
       plan: PLANO_PADRAO,
+      plano_id: undefined,
       owner_email: "",
     },
   });
@@ -135,7 +158,8 @@ export function NewTenantForm() {
         slug: values.slug,
         legal_name: values.legal_name || undefined,
         cnpj: values.cnpj || undefined,
-        plan: values.plan,
+        // Ligada: o plano de cobrança (ausente = isenta) e nunca o rótulo antigo.
+        ...(cobranca.ligada ? { plano_id: values.plano_id } : { plan: values.plan }),
         owner_email: values.owner_email,
         owner_interface_settings: ownerInterface,
         ...(piloto ? { is_pilot: true } : {}),
@@ -158,6 +182,7 @@ export function NewTenantForm() {
   });
 
   const planValue = useWatch({ control: form.control, name: "plan" });
+  const planoIdValue = useWatch({ control: form.control, name: "plano_id" });
 
   if (created)
     return (
@@ -293,7 +318,34 @@ export function NewTenantForm() {
               )}
             </div>
 
-            {/* plan */}
+            {/* plano: com a cobrança ligada, o plano de cobrança substitui o rótulo antigo (D-2) */}
+            {cobranca.ligada ? (
+              <div className="space-y-1.5">
+                <Label htmlFor="plano_id">{t("Plano de cobrança")}</Label>
+                <Select
+                  value={planoIdValue ?? ISENTA}
+                  onValueChange={(v) => setValue("plano_id", v === ISENTA ? undefined : v)}
+                >
+                  <SelectTrigger id="plano_id" aria-label={t("Plano de cobrança")}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={ISENTA}>{t("Sem cobrança (isenta)")}</SelectItem>
+                    {cobranca.planos.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>
+                        {p.nome} · {formatarPreco(p.preco_cents, idioma)}{" "}
+                        {p.intervalo === "mes" ? t("por mês") : t("por ano")} · {p.trial_dias} {t("dias de teste")}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  {cobranca.planos.length === 0
+                    ? t("Nenhum plano criado ainda: a empresa nasce isenta. Crie planos em Cobrança e atribua um no painel da empresa.")
+                    : t("Com um plano, a empresa começa em teste grátis pelos dias do plano. Isenta, ela não paga e não tem limites.")}
+                </p>
+              </div>
+            ) : (
             <div className="space-y-1.5">
               <Label htmlFor="plan">{t("Plano")}</Label>
               <Select
@@ -315,6 +367,7 @@ export function NewTenantForm() {
                 <p className="text-xs text-error-fg">{t(errors.plan.message ?? "")}</p>
               )}
             </div>
+            )}
 
             {/* termos comerciais: piloto e preço acordado (SonghaiCRM, 9010) */}
             <div className="space-y-3 rounded-md border p-3">
@@ -322,7 +375,7 @@ export function NewTenantForm() {
                 <div className="space-y-0.5">
                   <Label htmlFor="is_pilot">{t("Piloto")}</Label>
                   <p className="text-xs text-text-muted">
-                    {t("Setup grátis e 50% de desconto na primeira mensalidade. O sistema aplica sozinho na primeira factura.")}
+                    {t("Setup grátis e 50% de desconto na primeira mensalidade. O sistema aplica sozinho na primeira fatura.")}
                   </p>
                 </div>
                 <Switch id="is_pilot" checked={piloto} onCheckedChange={setPiloto} aria-label={t("Piloto")} />

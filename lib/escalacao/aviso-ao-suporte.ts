@@ -53,11 +53,14 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createHash } from "node:crypto";
 
+import { canalDesativado } from "@/lib/channels/desativado";
 import { phoneLookupVariants } from "@/lib/channels/phone-variants";
 import type { EventRow } from "@/lib/event-log/dispatcher";
 import type { Idioma } from "@/lib/i18n/idiomas";
 import { logger } from "@/lib/logger";
 
+import type { DestinoDoAviso } from "./destino-do-aviso";
+import { resolveDestinoDoEnvio, type MundoDoAviso } from "./membros-do-aviso";
 import { montarAvisoDeCaso } from "./texto-do-aviso";
 import { linkDoCaso, urlPublicaUsavel } from "./url-publica";
 import {
@@ -130,6 +133,14 @@ export interface ConfigDoAviso {
   telefone_destino: string;
   destino_jid: string | null;
   ligado: boolean;
+  resposta_whatsapp_habilitada: boolean;
+  /**
+   * `fixo` (o `default` da coluna, e o valor de toda linha gravada antes do
+   * #3803) ou `responsavel`. Opcional no TIPO porque dezenas de fixtures
+   * montam esta configuração: ausente é lido como `fixo`, que é o
+   * comportamento que a instalação já tinha.
+   */
+  destino_modo?: string | null;
 }
 
 export interface CasoDoAviso {
@@ -161,6 +172,8 @@ export interface CanalDoAviso {
   archived_at: string | null;
   /** CAPACIDADE, nunca o nome do provedor — quem resolve é `lib/channels/`. */
   aceitaMensagemLivre: boolean;
+  /** Pausado pelo operador (`metadata.disabled`). Ausente = ligado, a leitura estrita de `canalDesativado`. */
+  desativado?: boolean;
 }
 
 export interface PatchDaEntrega {
@@ -197,6 +210,20 @@ export interface AvisoDb {
    * `channel_sessions`, a MESMA que `fn_definir_aviso_de_caso` faz.
    */
   destinoEhDaPropriaOrganizacao(orgId: string, telefone: string): Promise<boolean>;
+  /**
+   * O MUNDO do destino dinâmico (#3803): a conversa do caso, o negócio aberto
+   * do contato, a carteira e o WhatsApp de cada um deles. Só é chamado no modo
+   * `responsavel` — no modo `fixo` não há uma única consulta a mais.
+   *
+   * Opcional na interface pelo mesmo motivo do `destino_modo`: os dublês que
+   * existem antes desta entrega não o têm e continuam no número fixo. O
+   * adapter de produção, abaixo, o implementa.
+   */
+  carregaMundoDoAviso?(entrada: {
+    organizationId: string;
+    conversationId: string | null;
+    contactId: string | null;
+  }): Promise<MundoDoAviso>;
   avisaNaCentral(entrada: {
     organizationId: string;
     caseId: string;
@@ -293,6 +320,36 @@ function textoOuNulo(v: unknown): string | null {
 }
 
 /**
+ * PARA QUEM vai este aviso (#3803) — a decisão, com o mundo só quando ele é
+ * necessário.
+ *
+ * No modo `fixo` (o `default`, e o de toda linha gravada antes desta entrega)
+ * isto é o número da empresa e ZERO consulta: o caminho de quem nunca abriu a
+ * opção não muda de custo. No modo `responsavel` o adapter lê a conversa, o
+ * negócio aberto, a carteira e os telefones dos três, e a regra pura decide.
+ *
+ * Dublê sem `carregaMundoDoAviso` (os testes anteriores a esta entrega) cai no
+ * número da empresa — declarado, não silencioso: o adapter de produção o tem, e
+ * é ele que `criaAvisoDeps` monta.
+ */
+async function destinoDoEnvio(
+  deps: AvisoDeps,
+  orgId: string,
+  cfg: ConfigDoAviso,
+  conversationId: string | null,
+  contactId: string | null,
+): Promise<DestinoDoAviso> {
+  return resolveDestinoDoEnvio({
+    config: { destino_modo: cfg.destino_modo, telefone_destino: cfg.telefone_destino },
+    organizationId: orgId,
+    conversationId,
+    contactId,
+    carregaMundo: deps.db.carregaMundoDoAviso,
+    aviso: "caso",
+  });
+}
+
+/**
  * `true` quando dá para AFIRMAR que o evento passou do teto.
  *
  * Sem `created_at` devolve `false` — falhar ABERTO na informação: sem a idade
@@ -369,11 +426,27 @@ export async function aplicaAvisoDeCaso(
   if (!ORIGENS_ACEITAS.has(caso.source ?? "")) return skipped(`origem_nao_aceita:${caso.source}`);
   if (!STATUS_ABERTOS.has(caso.status)) return skipped(`caso_fechado:${caso.status}`);
 
+  // ── 4b. PARA QUEM vai o aviso (#3803) ────────────────────────────────────
+  //
+  // Antes da reivindicação e por uma razão de chave: `destino` faz parte da
+  // `unique (organization_id, case_id, destino)`, então ele precisa estar
+  // decidido quando a linha nasce. No modo `fixo` isto é o número da empresa e
+  // nenhuma consulta a mais é feita; no modo `responsavel` são quatro leituras
+  // (conversa, negócio aberto, carteira e os telefones dos três) e a decisão da
+  // função única `resolverDestinoDoAviso`.
+  const contactId = textoOuNulo(row.payload.contact_id);
+  const destino: DestinoDoAviso = await destinoDoEnvio(deps, orgId, cfg, caso.conversation_id, contactId);
+  // Sem número não há aviso: `sem_destino` é a resposta honesta (a coluna é
+  // `not null` com CHECK, então este ramo só existe para uma linha torta — e
+  // mandar para `""` faria o transporte recusar com um erro que ninguém lê).
+  if (!destino.telefone) return skipped("sem_destino");
+  const numeroDoAviso = destino.telefone;
+
   // ── 5. REIVINDICA antes de tocar a rede ──────────────────────────────────
   const { criada, entrega } = await deps.db.reivindicaEntrega({
     organizationId: orgId,
     caseId,
-    destino: cfg.telefone_destino,
+    destino: numeroDoAviso,
     channelSessionId,
   });
   if (!entrega) return skipped("reivindicacao_sem_linha");
@@ -404,7 +477,6 @@ export async function aplicaAvisoDeCaso(
   // Vem DEPOIS da reivindicação de propósito: o cancelamento precisa de uma
   // linha para morar. Sem item na Central — não há nada a fazer, e um aviso
   // pedindo ação sobre um contato anonimizado convidaria alguém a procurá-lo.
-  const contactId = textoOuNulo(row.payload.contact_id);
   if (contactId && (await deps.db.contatoAnonimizado(orgId, contactId))) {
     await deps.db.atualizaEntrega(orgId, entrega.id, {
       status: "cancelado",
@@ -419,6 +491,10 @@ export async function aplicaAvisoDeCaso(
   const canal = await deps.db.carregaCanal(orgId, channelSessionId);
   if (!canal || canal.archived_at) {
     return await condena(deps, orgId, caso, entrega, "canal_arquivado", null, agora);
+  }
+  // Pausado não é `canal_desconectado`: esperar não resolve, só o operador retomando.
+  if (canal.desativado) {
+    return await condena(deps, orgId, caso, entrega, "canal_desativado", null, agora);
   }
   if (!canal.aceitaMensagemLivre) {
     return await condena(deps, orgId, caso, entrega, "canal_nao_aceita_aviso_livre", null, agora);
@@ -472,7 +548,7 @@ export async function aplicaAvisoDeCaso(
   // volta (canal oficial, pareamento do onboarding, conclusão do pareamento
   // por QR) em vez de uma guarda por caminho — a próxima forma de reativar
   // nasceria sem ela.
-  if (await deps.db.destinoEhDaPropriaOrganizacao(orgId, cfg.telefone_destino)) {
+  if (await deps.db.destinoEhDaPropriaOrganizacao(orgId, numeroDoAviso)) {
     return await condena(
       deps,
       orgId,
@@ -485,7 +561,7 @@ export async function aplicaAvisoDeCaso(
   }
 
   // ── 12. O destino ────────────────────────────────────────────────────────
-  const to = await deps.transporte.resolveDestino(orgId, canal, cfg.telefone_destino);
+  const to = await deps.transporte.resolveDestino(orgId, canal, numeroDoAviso);
   if (!to) {
     return await condena(deps, orgId, caso, entrega, "destino_invalido", null, agora);
   }
@@ -501,8 +577,14 @@ export async function aplicaAvisoDeCaso(
     title: caso.title,
     summary: caso.summary,
     blocker: caso.blocker,
+    caseId: caso.id,
     nomeDoCliente: nome,
     link: linkDoCaso(deps.urlPublica, caso.id),
+    // RESPONDER/PERGUNTAR só é reconhecido quando chega do número interno de
+    // aviso (`resposta-whatsapp-ao-caso.ts`). O celular de um vendedor não é
+    // esse número: ensinar o comando a ele faria a resposta entrar no CRM como
+    // mensagem comum. Para ele, o aviso diz para abrir o link (#3803).
+    respostaWhatsappHabilitada: cfg.resposta_whatsapp_habilitada && destino.origem === "numero_da_empresa",
   });
 
   // ── 14. O transporte ─────────────────────────────────────────────────────
@@ -539,7 +621,12 @@ export async function aplicaAvisoDeCaso(
     enviado_em: agora.toISOString(),
   });
 
-  await depoisDoEnvio(deps, orgId, channelSessionId, caso, entrega, to, agora);
+  await depoisDoEnvio(deps, orgId, channelSessionId, caso, entrega, to, agora, {
+    // O JID é a memória do corte da INGESTÃO do número da empresa. Registrar o
+    // JID de um celular de vendedor faria as mensagens DELE deixarem de virar
+    // atendimento — efeito que ninguém pediu ao escolher "avisar o responsável".
+    registraJid: destino.origem === "numero_da_empresa",
+  });
 
   deps.audita({
     action: "ai.case_alert_sent",
@@ -568,6 +655,7 @@ async function depoisDoEnvio(
   entrega: EntregaDoAviso,
   to: string,
   agora: Date,
+  opcoes: { registraJid: boolean },
 ): Promise<void> {
   try {
     await deps.pacing.registraEnvio(orgId, channelSessionId, agora);
@@ -578,13 +666,15 @@ async function depoisDoEnvio(
       causa: err instanceof Error ? err.message : String(err),
     });
   }
-  try {
-    await deps.db.registraJidDoAviso(orgId, to);
-  } catch (err) {
-    logger.warn("[aviso-de-caso] JID do destino não registrado", {
-      organizationId: orgId,
-      causa: err instanceof Error ? err.message : String(err),
-    });
+  if (opcoes.registraJid) {
+    try {
+      await deps.db.registraJidDoAviso(orgId, to);
+    } catch (err) {
+      logger.warn("[aviso-de-caso] JID do destino não registrado", {
+        organizationId: orgId,
+        causa: err instanceof Error ? err.message : String(err),
+      });
+    }
   }
   try {
     await deps.db.registraEventoDoCaso({
@@ -685,11 +775,23 @@ export function createSupabaseAvisoDb(admin: SupabaseClient): AvisoDb {
     async carregaConfig(orgId) {
       const { data, error } = await admin
         .from("config_aviso_de_caso")
-        .select("organization_id, channel_session_id, telefone_destino, destino_jid, ligado")
+        .select(
+          "organization_id, channel_session_id, telefone_destino, destino_jid, ligado, resposta_whatsapp_habilitada, destino_modo",
+        )
         .eq("organization_id", orgId)
         .maybeSingle();
       if (error) throw new Error(error.message);
       return (data as ConfigDoAviso | null) ?? null;
+    },
+
+    /**
+     * O mundo do destino dinâmico (#3803) — a MESMA função que o aviso de
+     * proposta usa (`lib/escalacao/membros-do-aviso`), para que as duas rotas
+     * leiam os três elos e os telefones da mesma forma.
+     */
+    async carregaMundoDoAviso({ organizationId, conversationId, contactId }) {
+      const { carregaMundoDoAviso } = await import("@/lib/escalacao/membros-do-aviso");
+      return carregaMundoDoAviso(admin, { organizationId, conversationId, contactId });
     },
 
     async carregaCaso(orgId, caseId) {
@@ -771,13 +873,19 @@ export function createSupabaseAvisoDb(admin: SupabaseClient): AvisoDb {
     async carregaCanal(orgId, channelSessionId) {
       const { data, error } = await admin
         .from("channel_sessions")
-        .select("id, status, archived_at, provider")
+        .select("id, status, archived_at, provider, metadata")
         .eq("organization_id", orgId)
         .eq("id", channelSessionId)
         .maybeSingle();
       if (error) throw new Error(error.message);
       if (!data) return null;
-      const linha = data as { id: string; status: string; archived_at: string | null; provider: string | null };
+      const linha = data as {
+        id: string;
+        status: string;
+        archived_at: string | null;
+        provider: string | null;
+        metadata: unknown;
+      };
       // A capacidade é resolvida em `lib/channels/` — este módulo nunca conhece
       // provedor. O import é TARDIO pelo mesmo motivo que `urlPublica` chega
       // pronta: o topo deste arquivo tem de carregar sem ambiente.
@@ -795,6 +903,7 @@ export function createSupabaseAvisoDb(admin: SupabaseClient): AvisoDb {
         status: linha.status,
         archived_at: linha.archived_at,
         aceitaMensagemLivre: aceita,
+        desativado: canalDesativado(linha.metadata),
       };
     },
 
@@ -895,7 +1004,7 @@ export function createSupabaseAvisoDb(admin: SupabaseClient): AvisoDb {
         import("@/lib/branding/saida"),
         import("@/lib/i18n/idiomas"),
       ]);
-      const marca = await marcaDaSaida(orgId);
+      const marca = await marcaDaSaida(orgId, { semMemo: true });
       const { data } = await admin
         .from("organizations")
         .select("locale")

@@ -29,6 +29,8 @@
 import WebSocket from "ws";
 import type { Socket } from "node:net";
 import { pcm16ToUlaw, ulawToPcm16 } from "@/lib/voip/ulaw";
+import { somarUsoDaResposta, usoVazio, type UsoDaSessao } from "./uso-da-sessao";
+import { esperaDaVez } from "./espera-da-vez";
 
 // Fallback só pra quem ainda não configurou nada na aba Voz do agente
 // (config.voice_model) -- normalmente this.ctx.voiceModel já vem preenchido
@@ -38,6 +40,9 @@ import { pcm16ToUlaw, ulawToPcm16 } from "@/lib/voip/ulaw";
 // do modelo iria vazio para a API. Vazio (ou só espaço) conta como ausente,
 // mesma regra de `graphVersion()` em lib/graph-version.ts.
 const REALTIME_MODEL_FALLBACK = process.env.OPENAI_REALTIME_MODEL?.trim() || "gpt-realtime";
+
+// Quanto esperar antes de responder (ver ./espera-da-vez.ts). Padrão "low".
+const ESPERA_DA_VEZ = esperaDaVez(process.env.VOICE_VAD_EAGERNESS);
 
 const FRAME_TYPE = { HANGUP: 0x00, UUID: 0x01, DTMF: 0x03, AUDIO: 0x10 } as const;
 
@@ -149,6 +154,20 @@ export class AudioSocketCallBridge {
 
   private readonly realtimeModel: string;
 
+  /**
+   * O uso medido da sessão, somado a cada `response.done` — vira a linha de
+   * `llm_calls` no fim da ligação (`index.ts`, `finalizeAudioSocketCall`). Ver
+   * `./uso-da-sessao.ts` para o que é medido e o que NÃO é (o preço).
+   */
+  private uso: UsoDaSessao = usoVazio();
+  /** Handshake recusado pela OpenAI: a sessão nem abriu, e a linha sai como erro. */
+  private erroDeAbertura: { message: string; status?: number } | null = null;
+
+  /** O que a ligação consumiu até agora, e se a sessão falhou ao abrir. */
+  usoDaSessao(): { modelo: string; uso: UsoDaSessao; erro: { message: string; status?: number } | null } {
+    return { modelo: this.realtimeModel, uso: this.uso, erro: this.erroDeAbertura };
+  }
+
   constructor(
     private socket: Socket,
     private ctx: AudioSocketCallContext,
@@ -257,10 +276,11 @@ export class AudioSocketCallBridge {
                 // som é fala de verdade. semantic_vad usa um classificador que
                 // avalia o CONTEÚDO (é fala? faz sentido como turno
                 // terminado?), não só amplitude -- muito mais resistente a
-                // ruído/eco. eagerness "low": espera mais confiança antes de
-                // considerar que a pessoa terminou de falar, custa alguma
-                // latência mas evita a IA emendar resposta em cima de nada.
-                turn_detection: { type: "semantic_vad", eagerness: "low" },
+                // ruído/eco. eagerness padrão "low": espera mais confiança antes
+                // de considerar que a pessoa terminou de falar, custa latência
+                // (pode passar de segundos) mas evita a IA emendar resposta em
+                // cima de nada. Linha limpa: VOICE_VAD_EAGERNESS=auto.
+                turn_detection: { type: "semantic_vad", eagerness: ESPERA_DA_VEZ },
                 // Sem `language`, o Whisper detecta automaticamente a cada
                 // trecho -- e erra de vez em quando (ruído de linha, palavra
                 // ambígua), transcrevendo em outro idioma no meio da
@@ -380,6 +400,7 @@ export class AudioSocketCallBridge {
           break;
         }
         case "response.done": {
+          this.uso = somarUsoDaResposta(this.uso, event.response?.usage);
           const output = (event.response?.output ?? []) as Array<{ type?: string; name?: string }>;
           const pediuEncerrar = output.some(
             (item) => item.type === "function_call" && item.name === ENCERRAR_CHAMADA_TOOL_NAME,
@@ -399,9 +420,13 @@ export class AudioSocketCallBridge {
     this.realtimeWs.on("unexpected-response", (_req, res) => {
       let body = "";
       res.on("data", (chunk) => (body += chunk));
-      res.on("end", () =>
-        console.error(`[realtime] call=${this.ctx.callId} handshake rejeitado, HTTP ${res.statusCode}: ${body}`),
-      );
+      res.on("end", () => {
+        this.erroDeAbertura = {
+          message: `handshake rejeitado: ${body}`.slice(0, 500),
+          ...(typeof res.statusCode === "number" ? { status: res.statusCode } : {}),
+        };
+        console.error(`[realtime] call=${this.ctx.callId} handshake rejeitado, HTTP ${res.statusCode}: ${body}`);
+      });
     });
 
     this.realtimeWs.on("close", (code, reason) => {

@@ -23,6 +23,7 @@ function payload(): ExportPayload {
     messages_count_total: 0,
     messages_recent: [],
     leads: [],
+    lead_field_proposals: [],
     honorarios_contratos: [],
     honorarios_parcelas: [],
     orders: [],
@@ -96,14 +97,14 @@ it("PDF mostra a transcrição da mídia nas mensagens do titular e nas de grupo
   data.messages_recent = [mensagem("msg-audio", "TRANSCRICAO-DO-TITULAR")];
   data.group_messages_authored = [mensagem("msg-grupo", "TRANSCRICAO-NO-GRUPO")];
   const pdf = await rendered(data);
-  expect(pdf.text).toContain("transcrição/texto extraído da mídia: TRANSCRICAO-DO-TITULAR");
-  expect(pdf.text).toContain("transcrição/texto extraído da mídia: TRANSCRICAO-NO-GRUPO");
+  expect(pdf.text).toContain("transcrição/texto extraído da multimédia: TRANSCRICAO-DO-TITULAR");
+  expect(pdf.text).toContain("transcrição/texto extraído da multimédia: TRANSCRICAO-NO-GRUPO");
 });
 
 it("PDF não imprime o rótulo quando a mídia não tem transcrição", async () => {
   const data = payload();
   data.messages_recent = [mensagem("msg-audio", null)];
   const pdf = await rendered(data);
-  expect(pdf.text).toContain("[mídia]");
-  expect(pdf.text).not.toContain("transcrição/texto extraído da mídia");
+  expect(pdf.text).toContain("[multimédia]");
+  expect(pdf.text).not.toContain("transcrição/texto extraído da multimédia");
 });

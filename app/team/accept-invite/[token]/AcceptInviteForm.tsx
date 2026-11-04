@@ -2,7 +2,7 @@
 import { useActionState } from "react";
 import { acceptInviteAction, type AcceptInviteResult } from "@/app/actions/team/acceptInvite";
 
-export function AcceptInviteForm({ token, label, failureLabel, pendingLabel }: { token: string; label: string; failureLabel: string; pendingLabel: string }) {
+export function AcceptInviteForm({ token, label, failureLabel, pendingLabel, planLimitLabel }: { token: string; label: string; failureLabel: string; pendingLabel: string; planLimitLabel: string }) {
   const [result, submit, pending] = useActionState<AcceptInviteResult | null, FormData>(
     async () => acceptInviteAction(token), null,
   );
@@ -10,7 +10,11 @@ export function AcceptInviteForm({ token, label, failureLabel, pendingLabel }: {
     {result && !result.ok && (
       <p role="alert">
         {/* SonghaiCRM: no teto do plano, a mensagem do servidor diz o pacote e o limite. */}
-        {result.error === "plan_limit_reached" && result.message ? result.message : failureLabel}
+        {result.error === "limite_do_plano"
+          ? planLimitLabel
+          : result.error === "plan_limit_reached" && result.message
+            ? result.message
+            : failureLabel}
       </p>
     )}
     <button type="submit" disabled={pending}

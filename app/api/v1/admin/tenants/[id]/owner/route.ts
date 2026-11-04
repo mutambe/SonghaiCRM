@@ -42,8 +42,8 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   const { id: organizationId } = await params;
   try {
     await requirePlatformAdmin();
-  } catch {
-    return fail("forbidden", "Platform admin required", 403, { requestId });
+  } catch (err) {
+    return falhaDaEscritaDePlatformAdmin(err, requestId);
   }
 
   const admin = createAdminClient();

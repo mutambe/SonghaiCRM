@@ -83,7 +83,7 @@ describe("o bloco em texto", () => {
 
   it("⭐ traz horário e título do compromisso", () => {
     const t = renderCompromissos([linha(4)]);
-    expect(t).toContain("2026-09-04T14:00:00Z");
+    expect(t).toContain("2026-09-04T16:00:00+02:00");
     expect(t).toContain("Consulta 4");
   });
 

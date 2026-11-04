@@ -588,6 +588,11 @@ const AJUSTES_FINAIS: ReadonlyArray<readonly [string, string]> = [
   ["Qual agente apanha qual conversa", "Que agente fica com que conversa"],
   ["deve apanhar aquela conversa", "deve ficar com aquela conversa"],
   ["ninguém mais o apanha", "mais ninguém o ocupa"],
+  ["aplicação está desatualizado", "aplicação está desatualizada"],
+  ["ecrã foi atualizada", "ecrã foi atualizado"],
+  // O documento da empresa nesta distribuição é o NUIT, não o CNPJ do upstream.
+  ["slug ou CNPJ", "slug ou NUIT"],
+  ["empresa, CNPJ, pessoa", "empresa, NUIT, pessoa"],
 ];
 
 // ─── A camada ─────────────────────────────────────────────────────────────

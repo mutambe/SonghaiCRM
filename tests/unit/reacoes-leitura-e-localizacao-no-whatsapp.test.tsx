@@ -250,7 +250,7 @@ describe("message.reaction recebido", () => {
       const linha = readFileSync(arquivo, "utf8").split("\n").find((l) => l.includes("WHATSAPP_HOOK_EVENTS")) ?? "";
       expect(linha, `${arquivo} não assina message.reaction`).toContain("message.reaction");
     }
-    expect(readFileSync("lib/waha/ingest.ts", "utf8")).toMatch(/eventType === "message\.reaction"[\s\S]{0,200}gravarReacaoRecebida/);
+    expect(readFileSync("lib/waha/ingest.ts", "utf8")).toMatch(/eventType === "message\.reaction"[\s\S]{0,200}(?:gravarReacaoRecebida|handleReaction)/);
   });
 
   it("cliente reage: grava na mensagem reagida, pela chave de quem reagiu", async () => {

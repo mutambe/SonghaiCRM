@@ -4,7 +4,7 @@
  *
  * Do catálogo (`addon_slug`) ou à medida (descrição + preço + recorrência). O
  * preço pode ser só deste cliente. Os limites que o extra acrescenta sobem na
- * hora; o preço entra na factura seguinte — sem segundo passo.
+ * hora; o preço entra na fatura seguinte — sem segundo passo.
  */
 import { randomUUID } from "node:crypto";
 import type { NextRequest } from "next/server";

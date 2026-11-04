@@ -2,7 +2,7 @@
  * /api/v1/admin/billing — o painel da faturação dos pacotes (SonghaiCRM, 9010).
  *
  * GET devolve o resumo: o que está configurado, quanto cobra cada pacote, quem
- * deve, quem foi suspenso por dívida e as facturas recentes.
+ * deve, quem foi suspenso por dívida e as faturas recentes.
  * PUT escolhe a organização que RECEBE (é a das credenciais do PaySuite) e liga a
  * faturação: sem ela nada se emite nem se suspende.
  *
@@ -28,8 +28,8 @@ export async function GET(): Promise<Response> {
   const requestId = randomUUID();
   try {
     await requirePlatformAdmin();
-  } catch {
-    return fail("forbidden", "Platform admin required", 403, { requestId });
+  } catch (err) {
+    return falhaDaEscritaDePlatformAdmin(err, requestId);
   }
   return ok(await resumoDaFaturacao(createAdminClient()), { requestId });
 }

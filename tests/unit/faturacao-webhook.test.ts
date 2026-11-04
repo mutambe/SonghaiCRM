@@ -4,7 +4,7 @@
  * O mesmo endereço serve os dois mundos: o pagamento de um negócio de uma
  * organização (`payments`) e a mensalidade de um cliente (`billing_invoices`).
  * Este ficheiro prova a fronteira: só o webhook da organização que RECEBE pode
- * fechar factura, e quando o faz não toca no outro mundo.
+ * fechar fatura, e quando o faz não toca no outro mundo.
  */
 import { createHmac } from "node:crypto";
 import { NextRequest } from "next/server";
@@ -75,21 +75,21 @@ beforeEach(() => {
   vi.mocked(lerConfigDaFaturacao).mockResolvedValue({ organizationId: ORG_QUE_RECEBE, ativaDesde: "2026-10-01", instrucoesDeTransferencia: null, emailsDoFornecedor: [] });
 });
 
-describe("webhook do PaySuite × facturas de pacote", () => {
-  it("pagamento da factura, no webhook da organização que recebe: dá a factura como paga", async () => {
+describe("webhook do PaySuite × faturas de pacote", () => {
+  it("pagamento da fatura, no webhook da organização que recebe: dá a fatura como paga", async () => {
     const { db, tocouEmPayments } = banco({ dono: ORG_QUE_RECEBE, fatura: FATURA });
     vi.mocked(createAdminClient).mockReturnValue(db as never);
 
     const r = await enviar("payment.success");
     expect(r.status).toBe(200);
-    expect(await r.json()).toMatchObject({ data: { status: "processed", alvo: "factura" } });
+    expect(await r.json()).toMatchObject({ data: { status: "processed", alvo: "fatura" } });
     expect(registrarPagamentoDeFatura).toHaveBeenCalledTimes(1);
     expect(vi.mocked(registrarPagamentoDeFatura).mock.calls[0]![1]).toMatchObject({ id: "fat-1" });
     // o outro mundo (pagamento de negócio) não é tocado
     expect(tocouEmPayments).not.toHaveBeenCalled();
   });
 
-  it("webhook de OUTRA organização nunca fecha factura de pacote", async () => {
+  it("webhook de OUTRA organização nunca fecha fatura de pacote", async () => {
     const { db } = banco({ dono: OUTRA_ORG, fatura: FATURA });
     vi.mocked(createAdminClient).mockReturnValue(db as never);
 
@@ -97,7 +97,7 @@ describe("webhook do PaySuite × facturas de pacote", () => {
     expect(registrarPagamentoDeFatura).not.toHaveBeenCalled();
   });
 
-  it("pagamento falhado não fecha a factura (a reconciliação renova o link)", async () => {
+  it("pagamento falhado não fecha a fatura (a reconciliação renova o link)", async () => {
     const { db } = banco({ dono: ORG_QUE_RECEBE, fatura: FATURA });
     vi.mocked(createAdminClient).mockReturnValue(db as never);
 
@@ -116,7 +116,7 @@ describe("webhook do PaySuite × facturas de pacote", () => {
     expect(tocouEmPayments).toHaveBeenCalled();
   });
 
-  it("pagamento que não é de factura segue para os negócios", async () => {
+  it("pagamento que não é de fatura segue para os negócios", async () => {
     const { db, tocouEmPayments } = banco({ dono: ORG_QUE_RECEBE, fatura: null });
     vi.mocked(createAdminClient).mockReturnValue(db as never);
 
@@ -125,7 +125,7 @@ describe("webhook do PaySuite × facturas de pacote", () => {
     expect(tocouEmPayments).toHaveBeenCalled();
   });
 
-  it("erro ao fechar a factura responde 500 (para o PaySuite reenviar)", async () => {
+  it("erro ao fechar a fatura responde 500 (para o PaySuite reenviar)", async () => {
     vi.mocked(registrarPagamentoDeFatura).mockRejectedValueOnce(new Error("banco fora"));
     const { db } = banco({ dono: ORG_QUE_RECEBE, fatura: FATURA });
     vi.mocked(createAdminClient).mockReturnValue(db as never);

@@ -63,6 +63,7 @@ function payload(patch: Partial<ExportPayload> = {}): ExportPayload {
     messages_count_total: 0,
     messages_recent: [],
     leads: [],
+    lead_field_proposals: [],
     honorarios_contratos: [],
     honorarios_parcelas: [],
     orders: [],
@@ -130,7 +131,7 @@ describe("rodapé do relatório LGPD", () => {
     expect(tudo).toContain("encarregado@bemviver.com.br");
     // O texto anterior era "DPO: contato via canal oficial do controlador" — um
     // não-resposta num campo cuja função é dizer a quem o titular reclama.
-    expect(tudo).not.toContain("contato via canal oficial");
+    expect(tudo).not.toContain("contacto via canal oficial");
   });
 
   it("sem DPO na organização e sem o do ambiente, DIZ que não foi informado", () => {

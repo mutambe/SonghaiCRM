@@ -12,6 +12,7 @@ import {
   ClipboardText,
   ClockCountdown,
   ClockCounterClockwise,
+  DeviceMobile,
   FileText,
   Flag,
   FlowArrow,
@@ -49,6 +50,7 @@ import {
   type NavMetadata,
   type NavGroup,
   type NavGroupId,
+  sobeAoMenuLateral,
 } from "./catalogo";
 import type { ModuloOpcional } from "@/lib/instalacao/modulos";
 import type { CapacidadeDaOrganizacao } from "@/lib/organizacao/capacidades";
@@ -67,6 +69,7 @@ const ICONS = {
   ClipboardText,
   ClockCountdown,
   ClockCounterClockwise,
+  DeviceMobile,
   FileText,
   Flag,
   FlowArrow,
@@ -127,7 +130,10 @@ export function sidebarGroups(
   return NAV_GROUPS.map((group) => ({
     group,
     items: NAV_DESTINATIONS.filter(
-      (d) => d.group === group.id && (d.sidebar || (!group.hub && !!settings?.destinos)) && visible.has(d.href),
+      (d) =>
+        d.group === group.id &&
+        sobeAoMenuLateral(d, !!settings?.destinos) &&
+        visible.has(d.href),
     ),
   })).filter(
     (g) =>
@@ -176,5 +182,9 @@ export function searchable(
   const visible = new Set<string>(
     destinosDaInterface(settings, isPlatformAdmin, role, modulos, capacidades).map((d) => d.href),
   );
-  return NAV_DESTINATIONS.filter((d) => visible.has(d.href));
+  // SonghaiCRM: a integração da loja brasileira (Nuvemshop) saiu do menu lateral, e agora também do ⌘K.
+  return NAV_DESTINATIONS.filter((d) => visible.has(d.href) && !HREFS_DO_BRASIL.has(d.href));
 }
+
+/** Telas que são só de integrações do Brasil: fora da busca ⌘K desta distribuição. */
+const HREFS_DO_BRASIL: ReadonlySet<string> = new Set(["/app/integrations/nuvemshop"]);

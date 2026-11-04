@@ -24,7 +24,12 @@ import { idDoModelo } from "./esforco";
 export const LIMITE_DE_SAIDA_DO_AGENTE = 16_000;
 
 /** Famílias que o SDK instalado não conhece e por isso limita a 4096. */
-const FAMILIAS_QUE_O_SDK_SUBESTIMA = /^claude-(haiku|opus)-5(-|$)/;
+// SonghaiCRM (2026-11-03): VAZIA. O merge do upstream subiu o AI SDK (`@ai-sdk/anthropic`
+// 4.0.16 → 4.0.78) e ele passou a conhecer claude-haiku-5-5, claude-opus-5 e claude-opus-5-5
+// (128000 de saída, medido no corpo HTTP em `tests/unit/saida-e-pensamento-do-agente.test.ts`).
+// O piso de 16 000 deixou de ser necessário; o mecanismo fica para o próximo modelo que o SDK
+// não conheça: basta acrescentar a família aqui.
+const FAMILIAS_QUE_O_SDK_SUBESTIMA = /(?!)/;
 
 /**
  * O `max_tokens` a passar quando ninguém definiu um (nem a chamada, nem a

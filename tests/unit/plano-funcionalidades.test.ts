@@ -62,9 +62,9 @@ describe("a regra do pacote", () => {
   });
 
   it("o plano entra no canal das capacidades; omitido, a função responde só pela empresa", () => {
-    expect(capacidadesLigadas({}, [], [])).toEqual([]);
-    expect(capacidadesLigadas({}, [], ["agenda"])).toEqual(["agenda"]);
-    expect(capacidadesLigadas({ proposals: { enabled: true } }, ["propostas"], ["crm"])).toEqual(["propostas", "crm"]);
+    expect(capacidadesLigadas({}, [], false, [])).toEqual([]);
+    expect(capacidadesLigadas({}, [], false, ["agenda"])).toEqual(["agenda"]);
+    expect(capacidadesLigadas({ proposals: { enabled: true } }, ["propostas"], false, ["crm"])).toEqual(["propostas", "crm"]);
     expect(capacidadesLigadas({}, [])).toEqual([]);
   });
 });

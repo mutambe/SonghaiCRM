@@ -7,12 +7,12 @@
  *
  * ─── Os dois níveis de preço ─────────────────────────────────────────────────
  * - GLOBAL: `plans.price_cents` / `setup_fee_cents`. Mudar o preço do pacote vale
- *   para todo cliente SEM preço acordado, a partir da PRÓXIMA factura.
+ *   para todo cliente SEM preço acordado, a partir da PRÓXIMA fatura.
  * - POR CLIENTE: `agreed_price_cents` / `agreed_setup_cents` na assinatura, e os
  *   EXTRAS (`subscription_items`, p. ex. um número de WhatsApp a mais). O preço
  *   acordado vence o do pacote; o extra soma-se a ele.
  *
- * Factura emitida NUNCA muda: o preço novo só alcança facturas ainda por emitir.
+ * Fatura emitida NUNCA muda: o preço novo só alcança faturas ainda por emitir.
  *
  * ─── Datas ───────────────────────────────────────────────────────────────────
  * Datas de calendário são texto `AAAA-MM-DD` no fuso de Maputo (`FUSO_PADRAO`),
@@ -21,9 +21,9 @@
  */
 import { FUSO_PADRAO } from "@/lib/tempo/fusos";
 
-/** Dias de antecedência com que a factura de um período é emitida. */
+/** Dias de antecedência com que a fatura de um período é emitida. */
 export const DIAS_DE_ANTECEDENCIA = 5;
-/** Dias para pagar a PRIMEIRA factura (a do setup), contados da emissão. */
+/** Dias para pagar a PRIMEIRA fatura (a do setup), contados da emissão. */
 export const DIAS_PARA_PAGAR_A_PRIMEIRA = 5;
 /** Dias de atraso em que o aviso final sai. */
 export const DIAS_DO_AVISO = 3;
@@ -94,13 +94,13 @@ export function periodoDaFatura(inicio: string, indice: number): { inicio: strin
 }
 
 /**
- * Que períodos já devem ter factura e ainda não têm.
+ * Que períodos já devem ter fatura e ainda não têm.
  *
  * - O período `i` é emitido `DIAS_DE_ANTECEDENCIA` antes de começar; o primeiro
  *   (`i = 0`) é emitido logo.
- * - `ativaDesde` é o dia em que a facturação foi ligada. Período que COMEÇOU
- *   antes dele não é cobrado: sem isto, ligar a facturação numa instalação com
- *   clientes de meses faria chover facturas do passado.
+ * - `ativaDesde` é o dia em que a faturação foi ligada. Período que COMEÇOU
+ *   antes dele não é cobrado: sem isto, ligar a faturação numa instalação com
+ *   clientes de meses faria chover faturas do passado.
  * - Devolve índices por ordem; a cobrança de vários de uma vez só acontece se o
  *   relógio ficou parado, e aí cada um é, de facto, devido.
  */
@@ -126,7 +126,7 @@ export function indicesAEmitir(entrada: {
   return indices;
 }
 
-/** Vencimento: o início do período; a primeira factura ganha prazo a contar de hoje. */
+/** Vencimento: o início do período; a primeira fatura ganha prazo a contar de hoje. */
 export function vencimentoDaFatura(entrada: { indice: number; inicioDoPeriodo: string; hoje: string }): string {
   const { indice, inicioDoPeriodo, hoje } = entrada;
   if (indice === 0) return somarDias(hoje > inicioDoPeriodo ? hoje : inicioDoPeriodo, DIAS_PARA_PAGAR_A_PRIMEIRA);
@@ -144,7 +144,7 @@ export interface ItemDeCobranca {
   /** `AAAA-MM-DD` em Maputo. */
   startedOn: string;
   endedOn: string | null;
-  /** Para `once`: a factura que já o cobrou. */
+  /** Para `once`: a fatura que já o cobrou. */
   billedInvoiceId: string | null;
 }
 
@@ -177,7 +177,7 @@ export function mensalidadeQueVale(planoPriceCents: number | null, agreedPriceCe
 }
 
 /**
- * As linhas da factura de um período, ou `null` quando não há o que cobrar (sem
+ * As linhas da fatura de um período, ou `null` quando não há o que cobrar (sem
  * preço nenhum — a organização fica isenta, nunca cobrada em zero).
  */
 export function montarLinhas(e: EntradaDasLinhas): LinhaDaFatura[] | null {
@@ -265,14 +265,14 @@ export interface EntradaDaRegua {
 }
 
 /**
- * O que fazer com UMA factura em aberto. No máximo uma acção por rodada, e a
+ * O que fazer com UMA fatura em aberto. No máximo uma acção por rodada, e a
  * mais tardia vence — mas a suspensão exige o aviso final com ≥ 48 h:
  *
  *   vencimento ........ lembrete
  *   +3 dias ........... aviso final ("será suspensa em …")
  *   +7 dias e aviso há ≥ 48 h ... suspensão
  *
- * Se o relógio esteve parado e a factura já passou dos 7 dias sem aviso, o aviso
+ * Se o relógio esteve parado e a fatura já passou dos 7 dias sem aviso, o aviso
  * sai AGORA e a suspensão espera as 48 h: ninguém é suspenso sem ter sido avisado.
  */
 export function acaoDaRegua(e: EntradaDaRegua): AcaoDaRegua | null {

@@ -1,8 +1,8 @@
 /**
  * DELETE /api/v1/admin/tenants/[id]/billing/items/[itemId] — acaba um extra
- * (SonghaiCRM, 9010). Nunca apaga: a história das facturas aponta para ele. O
+ * (SonghaiCRM, 9010). Nunca apaga: a história das faturas aponta para ele. O
  * recorrente deixa de ser cobrado a partir do período seguinte e o teto do
- * cliente desce na hora; o pontual por facturar fica sem efeito.
+ * cliente desce na hora; o pontual por faturar fica sem efeito.
  */
 import { randomUUID } from "node:crypto";
 import type { NextRequest } from "next/server";
@@ -20,7 +20,7 @@ export const dynamic = "force-dynamic";
 const MENSAGENS: Record<string, { status: number; code: string; message: string }> = {
   extra_nao_encontrado: { status: 404, code: "not_found", message: "Extra não encontrado neste cliente." },
   extra_ja_terminado: { status: 409, code: "already_ended", message: "Este extra já terminou." },
-  extra_ja_facturado: { status: 409, code: "already_billed", message: "Este extra pontual já foi facturado e não se desfaz aqui." },
+  extra_ja_facturado: { status: 409, code: "already_billed", message: "Este extra pontual já foi faturado e não se desfaz aqui." },
 };
 
 export async function DELETE(
