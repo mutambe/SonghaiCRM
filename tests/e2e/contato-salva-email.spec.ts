@@ -166,13 +166,13 @@ test("documento inválido avisa no campo; corrigir permite criar e vazio continu
     );
     await expect(dialogo).not.toBeVisible();
     // A tentativa inválida não chegou à rota: só o documento corrigido saiu.
-    expect(documentosEnviados).toEqual(["529.982.247-25"]);
+    expect(documentosEnviados).toEqual(["400123456"]);
 
     await page.getByRole("button", { name: "Novo contato", exact: true }).click();
     await dialogo.getByLabel("Nome", { exact: true }).fill(`Sem documento ${sufixo}`);
     await dialogo.getByLabel("Email", { exact: true }).fill(`sem.documento.${sufixo}@example.test`);
-    await dialogo.getByLabel(/CPF/).focus();
-    await dialogo.getByLabel(/CPF/).press("Tab");
+    await dialogo.getByLabel(/NUIT/).focus();
+    await dialogo.getByLabel(/NUIT/).press("Tab");
     await expect(dialogo.getByRole("alert")).toHaveCount(0);
     const salvoSemDocumento = page.waitForResponse(
       (r) => r.request().method() === "POST" && new URL(r.url()).pathname === "/api/v1/contacts",
@@ -184,7 +184,7 @@ test("documento inválido avisa no campo; corrigir permite criar e vazio continu
       ((await semDocumento.json()) as { data: { contact: { id: string } } }).data.contact.id,
     );
     await expect(dialogo).not.toBeVisible();
-    expect(documentosEnviados).toEqual(["529.982.247-25", undefined]);
+    expect(documentosEnviados).toEqual(["400123456", undefined]);
     await page.screenshot({ path: "evidence/lote-bugfixes-01a178b3/contatos-criados-apos-validacao.png" });
   } finally {
     for (const id of criados) {
