@@ -190,7 +190,7 @@ test.describe("J1 — onboarding do dono numa instalação fresca", () => {
     await page.getByRole("option", { name: "Los Angeles", exact: true }).click();
     await expect(page.locator('input[name="timezone"]')).toHaveValue("America/Los_Angeles");
     await page.locator("#timezone").click();
-    await page.getByRole("option", { name: "São Paulo, Rio, Brasília, Sul e Sudeste", exact: true }).click();
+    await page.getByRole("option", { name: "Maputo, Beira, Nampula e todo Moçambique", exact: true }).click();
     await expect(page.locator('input[name="timezone"]')).toHaveValue("Africa/Maputo");
     await page.locator('input[type="checkbox"]').check();
     await expect(continuar).toBeEnabled();

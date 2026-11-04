@@ -1,7 +1,7 @@
 import { defineConfig } from "vitest/config";
 import path from "node:path";
 
-import { ARQUIVOS_FORA_DA_OFERTA } from "./tests/songhai-fora-da-oferta";
+import { ARQUIVOS_FORA_DA_OFERTA } from "./vitest.fora-da-oferta";
 
 // Config dedicada da suíte de invariantes de banco (tests/invariants/**).
 // Roda SÓ via `pnpm test:db` (scripts/test-db.sh), que sobe o Postgres efêmero
@@ -11,7 +11,7 @@ export default defineConfig({
     environment: "node",
     include: ["tests/invariants/**/*.test.ts"],
     // SonghaiCRM: invariantes do upstream que provam o que a distribuição desliga
-    // (cada uma com o motivo em tests/songhai-fora-da-oferta.ts).
+    // (cada uma com o motivo em vitest.fora-da-oferta.ts).
     exclude: ["**/node_modules/**", ...ARQUIVOS_FORA_DA_OFERTA],
     globals: false,
     // Seed + queries via docker exec são lentos o suficiente pro default de 5s.

@@ -2,7 +2,7 @@ import { defineConfig } from "vitest/config";
 import path from "node:path";
 
 import { selecionarCercas } from "./vitest.cercas";
-import { ARQUIVOS_FORA_DA_OFERTA } from "./tests/songhai-fora-da-oferta";
+import { ARQUIVOS_FORA_DA_OFERTA } from "./vitest.fora-da-oferta";
 
 // As guardas estruturais — o arquivo de teste que só lê o repositório (baseline
 // × cadeia, MANIFEST, varredura de anon, docs, workflows, i18n, fragmentos) e
@@ -47,7 +47,7 @@ export default defineConfig({
       // configuração dedicada. Não depende do ambiente da suíte do produto.
       "experiments/extensoes/**",
       // SonghaiCRM: testes do upstream que provam o que a distribuição desliga
-      // (cada um com o motivo em tests/songhai-fora-da-oferta.ts).
+      // (cada um com o motivo em vitest.fora-da-oferta.ts).
       ...ARQUIVOS_FORA_DA_OFERTA,
     ],
     // Dois projetos, a mesma suíte: `pnpm test:unit` continua rodando TUDO,

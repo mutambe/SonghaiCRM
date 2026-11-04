@@ -143,7 +143,8 @@ test.afterAll(() => {
   semear();
 });
 
-test("o painel de Skills avisa da versão nova do catálogo em pt-BR e em es, e o aviso some ao adotar", async ({
+// SonghaiCRM: o espanhol não é servido (lib/i18n/registro.ts); o seletor de idioma já não oferece «es».
+test.skip("o painel de Skills avisa da versão nova do catálogo em pt-BR e em es, e o aviso some ao adotar", async ({
   page,
 }) => {
   const creds = semear();

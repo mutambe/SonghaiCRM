@@ -225,7 +225,7 @@ telas (`cobranca-*`, `honorarios-instalar-e-pagar`) estão em `FORA_DO_CI` com o
 
 Alguns testes do upstream provam espanhol, turco, pt-BR, CPF, LGPD por país, o dólar em convenção en-US e a cobrança Stripe/Asaas. Esses comportamentos estão desligados **por decisão do dono**, e o teste correspondente não pode passar. Eles **continuam no repositório** (o merge com o `upstream/main` não quer um delete), mas `vitest.config.ts` e `vitest.db.config.ts` não os correm.
 
-- **Fonte única:** [`tests/songhai-fora-da-oferta.ts`](../tests/songhai-fora-da-oferta.ts), com o **motivo escrito** para cada ficheiro.
+- **Fonte única:** [`vitest.fora-da-oferta.ts`](../vitest.fora-da-oferta.ts), com o **motivo escrito** para cada ficheiro.
 - **Cerca:** `tests/unit/fora-da-oferta-so-o-que-esta-escrito.test.ts` reprova ficheiro que já não existe, motivo vazio, repetido, spec e2e, e invariante de banco que não seja do módulo `cobranca`.
 - **Regra de entrada:** só entra o teste cujo **comportamento** está desligado. Teste cuja expectativa é só o **texto** brasileiro (Salvar, contato, excluir…) **não entra**: corrige-se a expectativa para pt-MZ. Teste com hora de São Paulo: refaz-se o instante em Maputo.
 

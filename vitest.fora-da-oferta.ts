@@ -1,6 +1,9 @@
 /**
  * SonghaiCRM — testes do upstream que provam o que ESTA distribuição desliga.
  *
+ * Mora na RAIZ (ao lado de `vitest.cercas.ts`) e não em `tests/`: os `vitest*.ts`
+ * entram na imagem Docker e o `.dockerignore` exclui `tests/` (cerca `pr-mexe-na-imagem`).
+ *
  * O produto é só de Moçambique (pt-MZ, MZN, NUIT, Lei n.º 3/2017). O upstream
  * também prova espanhol, turco, pt-BR, CPF, LGPD por país e a cobrança do Brasil.
  * Esses ficheiros continuam no repositório (o merge com o `upstream/main` não

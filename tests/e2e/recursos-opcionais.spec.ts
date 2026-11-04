@@ -126,7 +126,10 @@ test("dono do servidor vê a porta Recursos opcionais e os três blocos no Admin
  * a tela promete e vai ao CRM conferir se a promessa se cumpriu. Depois desliga
  * e exige que a porta saia — senão o verde seria só a metade fácil.
  */
-test("liga um módulo, a tela diz onde ele aparece, e a porta está lá no CRM", async ({ page }) => {
+// SonghaiCRM: esta jornada dirige o módulo «Empresas» (CRM B2B, CNPJ e BrasilAPI), que saiu da
+// oferta (MODULOS_DO_BRASIL) e já não tem interruptor. A jornada do interruptor volta com outro
+// módulo da oferta (docs/songhai-diferencas-do-upstream.md §7.2).
+test.skip("liga um módulo, a tela diz onde ele aparece, e a porta está lá no CRM", async ({ page }) => {
   await afirmarDonoDoServidor(lerCreds().users.dono!.email);
   await loginComoDono(page, lerCreds());
 

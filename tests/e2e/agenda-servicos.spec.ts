@@ -149,7 +149,7 @@ test("Google compartilhado preserva identidade em retry, remarcação e cancelam
   const calendar = await insert("calendar_connection_calendars", { organization_id: f.org, connection_id: connection, external_calendar_id: "shared-fictitious-calendar", name: "Compartilhada fictícia", access_role: "owner", available: true });
   const type = await insert("calendar_event_types", { organization_id: f.org, name: "Atividade fictícia", slug: `shared-${randomUUID()}`, duration_minutes: 40, minimum_notice_minutes: 0, booking_window_days: 90, requires_confirmation: false, service_enabled: true, booking_mode: "collective_unlimited", service_publication_mode: "service", destination_calendar_id: calendar });
   const day = new Date(Date.now() + 3 * 86400000).toISOString().slice(0, 10);
-  const start = `${day}T17:00:00Z`, next = `${day}T18:00:00Z`;
+  const start = `${day}T12:00:00Z`, next = `${day}T13:00:00Z`;
   for (const minute of [840, 900]) await insert("calendar_service_schedule", { organization_id: f.org, event_type_id: type, weekday: new Date(`${day}T12:00:00Z`).getUTCDay(), timing_kind: "fixed", start_minute: minute });
   const auth = createClient(credentials.url, credentials.anonKey, { auth: { persistSession: false } });
   const login = await auth.auth.signInWithPassword({ email: f.email, password }); if (login.error) throw login.error;
@@ -186,17 +186,17 @@ test("Google compartilhado preserva identidade em retry, remarcação e cancelam
   expect(await run()).toBe("processed"); stored = await row();
   expect(stored.google_event_id).toBe(externalIdentity); expect(reciboDoServico(stored).google_publication).toBe("synced");
   const event = remote as unknown as Record<string, unknown>;
-  remote = { ...event, start: { dateTime: start, timeZone: "Africa/Maputo" }, end: { dateTime: `${day}T17:40:00Z`, timeZone: "Africa/Maputo" }, etag: `"v${++version}"` };
+  remote = { ...event, start: { dateTime: start, timeZone: "Africa/Maputo" }, end: { dateTime: `${day}T12:40:00Z`, timeZone: "Africa/Maputo" }, etag: `"v${++version}"` };
   expect(await run()).toBe("processed"); stored = await row();
   expect(Date.parse(stored.starts_at)).toBe(Date.parse(start)); expect(stored.google_conflict).toBeNull();
-  remote = { ...remote, end: { dateTime: `${day}T18:00:00Z`, timeZone: "Africa/Maputo" }, etag: `"v${++version}"` };
+  remote = { ...remote, end: { dateTime: `${day}T13:00:00Z`, timeZone: "Africa/Maputo" }, etag: `"v${++version}"` };
   expect(await run()).toBe("processed"); stored = await row();
   expect(stored.google_conflict).toMatchObject({ reason: "overlap" }); expect(stored.google_sync_error).toBeNull();
   expect(Date.parse(stored.ends_at) - Date.parse(stored.starts_at)).toBe(40 * 60000);
   await googleRpc(auth, "fn_google_resolve", { p_org: f.org, p_id: id, p_revision: String(stored.revision), p_local_revision: String(stored.google_local_revision), p_etag: stored.google_etag, p_choice: "local" });
   await run(); stored = await row(); expect(reciboDoServico(stored).google_publication).toBe("synced");
   // Mesmo bloqueada para novas entradas, uma reserva existente pode ser cancelada no Google.
-  await insert("calendar_service_blocks", { organization_id: f.org, scope_kind: "service", event_type_id: type, starts_at: start, ends_at: `${day}T17:40:00Z`, reason: "Bloqueio fictício", operation_key: randomUUID() });
+  await insert("calendar_service_blocks", { organization_id: f.org, scope_kind: "service", event_type_id: type, starts_at: start, ends_at: `${day}T12:40:00Z`, reason: "Bloqueio fictício", operation_key: randomUUID() });
   remote = { ...remote, status: "cancelled", etag: `"v${++version}"` };
   expect(await run()).toBe("processed"); stored = await row();
   expect(stored.status).toBe("cancelled"); expect(stored.google_event_id).toBe(externalIdentity);

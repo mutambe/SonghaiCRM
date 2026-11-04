@@ -1,5 +1,5 @@
 /**
- * SonghaiCRM — a lista de testes «fora da oferta» (tests/songhai-fora-da-oferta.ts)
+ * SonghaiCRM — a lista de testes «fora da oferta» (vitest.fora-da-oferta.ts)
  * é o único sítio onde um teste do upstream deixa de correr. Para não virar o
  * lugar onde se escondem falhas: todo ficheiro listado existe, tem motivo escrito,
  * não se repete, e não é uma cerca estrutural nem um teste de base de dados.
@@ -9,7 +9,7 @@ import path from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import { FORA_DA_OFERTA } from "../songhai-fora-da-oferta";
+import { FORA_DA_OFERTA } from "../../vitest.fora-da-oferta";
 
 const RAIZ = path.resolve(__dirname, "../..");
 

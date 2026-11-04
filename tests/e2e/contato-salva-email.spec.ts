@@ -138,19 +138,20 @@ test("documento inválido avisa no campo; corrigir permite criar e vazio continu
     const dialogo = page.getByRole("dialog", { name: "Novo contato", exact: true });
     await dialogo.getByLabel("Nome", { exact: true }).fill(`Documento corrigido ${sufixo}`);
     await dialogo.getByLabel("Email", { exact: true }).fill(`documento.${sufixo}@example.test`);
-    const documento = dialogo.getByLabel(/CPF/);
-    await documento.fill("123.456.789-00");
+    // SonghaiCRM: o documento do titular é o NUIT (9 dígitos), não o CPF do upstream.
+    const documento = dialogo.getByLabel(/NUIT/);
+    await documento.fill("12345");
     await documento.press("Tab");
-    await expect(dialogo.getByRole("alert")).toHaveText("CPF inválido");
+    await expect(dialogo.getByRole("alert")).toHaveText("NUIT inválido (9 dígitos)");
     await expect(documento).toHaveAttribute("aria-invalid", "true");
     await expect(documento).toHaveAttribute("aria-describedby", "cpf-erro");
     fs.mkdirSync("evidence/lote-bugfixes-01a178b3", { recursive: true });
     await page.screenshot({ path: "evidence/lote-bugfixes-01a178b3/documento-invalido-junto-do-campo.png" });
     // Com o documento inválido o envio fica impedido (#3621): o botão nem aceita o clique.
     await expect(dialogo.getByRole("button", { name: "Criar contato", exact: true })).toBeDisabled();
-    await expect(dialogo.getByRole("alert")).toHaveText("CPF inválido");
+    await expect(dialogo.getByRole("alert")).toHaveText("NUIT inválido (9 dígitos)");
 
-    await documento.fill("529.982.247-25");
+    await documento.fill("400123456");
     await documento.press("Tab");
     await expect(dialogo.getByRole("alert")).toHaveCount(0);
     await expect(dialogo.getByRole("button", { name: "Criar contato", exact: true })).toBeEnabled();
