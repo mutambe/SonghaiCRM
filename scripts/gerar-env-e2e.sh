@@ -183,6 +183,9 @@ COBRANCA_API_BASE_URL_TESTE=http://127.0.0.1:3995
 # coincidência durou até a primeira divergência, que custou 8 specs em 401.
 INTERNAL_SECRET=e2e-placeholder-nao-e-segredo
 IMPERSONATE_COOKIE_SECRET=e2e-support-cookie-local-placeholder-32-chars
+# Recetor de subscrições por webhook (SonghaiCRM): a rota fica DESLIGADA (404) sem este segredo.
+# A spec subscricoes-webhook assina os eventos com o mesmo valor.
+SUBSCRICOES_WEBHOOK_SECRET=e2e-subscricoes-webhook-segredo-de-teste-local
 # As três abaixo são chaves de CIFRA de verdade: o app exige 32 bytes e recusa
 # um rótulo. Medido — com o placeholder, criar credencial de IA devolvia 500
 # ("AI_CRED_AES_KEY deve ter exatamente 32 bytes (lido: 21)") e todo run do

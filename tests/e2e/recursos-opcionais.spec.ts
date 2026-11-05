@@ -57,7 +57,7 @@ const db = createClient(
 );
 
 async function esperarModuloNoBanco(ligado: boolean): Promise<void> {
-  await expect.poll(async () => moduloLigado(db, "crm_b2b"), { timeout: 20_000 }).toBe(ligado);
+  await expect.poll(async () => moduloLigado(db, "fluxos_atendimento"), { timeout: 20_000 }).toBe(ligado);
 }
 
 test("admin da empresa acha os recursos opcionais e o Ajustar leva à tela certa", async ({ page }) => {
@@ -126,15 +126,15 @@ test("dono do servidor vê a porta Recursos opcionais e os três blocos no Admin
  * a tela promete e vai ao CRM conferir se a promessa se cumpriu. Depois desliga
  * e exige que a porta saia — senão o verde seria só a metade fácil.
  */
-// SonghaiCRM: esta jornada dirige o módulo «Empresas» (CRM B2B, CNPJ e BrasilAPI), que saiu da
-// oferta (MODULOS_DO_BRASIL) e já não tem interruptor. A jornada do interruptor volta com outro
-// módulo da oferta (docs/songhai-diferencas-do-upstream.md §7.2).
-test.skip("liga um módulo, a tela diz onde ele aparece, e a porta está lá no CRM", async ({ page }) => {
+// SonghaiCRM: a jornada dirige o módulo «Fluxos de atendimento» (na oferta, com interruptor e
+// porta no hub do Agente de IA). O upstream usava «Empresas» (CRM B2B, CNPJ), que saiu da
+// oferta (MODULOS_DO_BRASIL) e já não tem interruptor (docs/songhai-diferencas-do-upstream.md §7.2).
+test("liga um módulo, a tela diz onde ele aparece, e a porta está lá no CRM", async ({ page }) => {
   await afirmarDonoDoServidor(lerCreds().users.dono!.email);
   await loginComoDono(page, lerCreds());
 
-  const PORTA = "Empresas";
-  const chave = page.getByRole("switch", { name: "Empresas e pessoas (venda para empresas)" });
+  const PORTA = "Fluxos de atendimento";
+  const chave = page.getByRole("switch", { name: "Fluxos de atendimento", exact: true });
 
   await test.step("a tela diz onde o módulo vai aparecer ANTES de ligar", async () => {
     await page.goto("/admin/sistema");
@@ -159,7 +159,7 @@ test.skip("liga um módulo, a tela diz onde ele aparece, e a porta está lá no 
     // inclusive "Configurações › Dados externos", que é a exceção do grupo do
     // rodapé. Mas asserção que casa com quatro linhas não diz qual delas mediu.
     await expect(
-      page.getByText(/^Ao ligar, aparece no menu em: CRM › Ver tudo em CRM › Empresas/),
+      page.getByText(/^Ao ligar, aparece no menu em: Agente de IA › Ver tudo em IA › Fluxos de atendimento/),
     ).toBeVisible();
     await page.screenshot({ path: evidencia("modulo-desligado-diz-onde.png"), fullPage: true });
   });
@@ -171,7 +171,7 @@ test.skip("liga um módulo, a tela diz onde ele aparece, e a porta está lá no 
     // `^` separa os dois estados: "Ao ligar, aparece…" CONTÉM "aparece no menu
     // em:", e sem a âncora o caso de ligado passaria com a frase de desligado.
     await expect(
-      page.getByText(/^Aparece no menu em: CRM › Ver tudo em CRM › Empresas/),
+      page.getByText(/^Aparece no menu em: Agente de IA › Ver tudo em IA › Fluxos de atendimento/),
     ).toBeVisible();
     await page.screenshot({ path: evidencia("modulo-ligado-diz-onde.png"), fullPage: true });
   });
@@ -197,7 +197,7 @@ test.skip("liga um módulo, a tela diz onde ele aparece, e a porta está lá no 
     // mesmo `modulosLigados` que o menu lateral (`app/app/crm/page.tsx` → `NavHub`),
     // é caminho real de usuário ("Ver tudo em CRM") e não depende de viewport, de
     // grupo aberto nem de barra inferior. A rota segue conferida logo abaixo.
-    await page.goto("/app/crm");
+    await page.goto("/app/ai");
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
     // ⚠️ A ÂNCORA É O TÍTULO DO CARD, e as duas correções aqui vieram de medição.
     //
@@ -225,7 +225,7 @@ test.skip("liga um módulo, a tela diz onde ele aparece, e a porta está lá no 
     await expect(chave).toHaveAttribute("aria-checked", "false");
     await esperarModuloNoBanco(false);
 
-    await page.goto("/app/crm");
+    await page.goto("/app/ai");
     // A mesma âncora do passo positivo, para os dois lados usarem a mesma régua. O `Received: 1`
     // da rodada anterior era o card "Prospecção" casando por substring — foi ele que me fez
     // perseguir três hipóteses erradas sobre revalidação e corrida de estado.

@@ -218,6 +218,10 @@ já os tem ligados continua a vê-los (para os desligar).
 **Vigiado por** `tests/unit/opcoes-do-brasil-fora-da-oferta.test.ts`. As specs e2e que dirigem essas
 telas (`cobranca-*`, `honorarios-instalar-e-pagar`) estão em `FORA_DO_CI` com o motivo escrito.
 
+A jornada do interruptor de módulos (`tests/e2e/recursos-opcionais.spec.ts`) dirigia o «Empresas» do upstream
+(CRM B2B); aqui dirige o **Fluxos de atendimento**, que está na oferta e tem porta no hub do Agente de IA.
+Outro módulo novo do upstream com interruptor pode servir de substituto se este sair da oferta.
+
 **Depois de um merge:** módulo novo do upstream feito para o Brasil entra nesta lista; confira com
 `grep -n "MODULOS_DO_BRASIL" lib/instalacao/modulos.ts`.
 
