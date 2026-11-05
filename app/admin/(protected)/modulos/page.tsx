@@ -4,6 +4,7 @@ import { ModulosManager } from "@/components/modulos/ModulosManager";
 import { loadAuthUser } from "@/lib/auth/server";
 import { traduzir } from "@/lib/i18n/dicionario";
 import { normalizarIdioma } from "@/lib/i18n/idiomas";
+import { MODULOS_DO_BRASIL } from "@/lib/instalacao/modulos";
 import { listarModulos } from "@/lib/modulos/service";
 
 export const metadata = { title: "Módulos da instalação" };
@@ -24,7 +25,16 @@ export default async function Page() {
   const idioma = normalizarIdioma(usuario.locale);
   const t = (s: string) => traduzir(s, idioma);
 
-  const modulos = await listarModulos();
+  // SonghaiCRM: Honorários é módulo do Brasil e não se oferece para instalar; onde já está
+  // instalado continua listado (para o dono o poder suspender ou reaplicar).
+  const todos = await listarModulos();
+  const jaInstalado = new Set(todos.instalados.map((m) => m.modulo));
+  const modulos = {
+    ...todos,
+    disponiveis: todos.disponiveis.filter(
+      (m) => !(MODULOS_DO_BRASIL as readonly string[]).includes(m.slug) || jaInstalado.has(m.slug),
+    ),
+  };
 
   return (
     <div className="space-y-6" data-testid="tela-modulos-da-instalacao">

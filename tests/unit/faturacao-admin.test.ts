@@ -3,7 +3,7 @@
  * (lib/billing/admin.ts).
  *
  * Os três níveis — global, por cliente, extras — e a regra comum a todos:
- * nenhuma factura já emitida é tocada.
+ * nenhuma fatura já emitida é tocada.
  */
 import { describe, expect, it } from "vitest";
 
@@ -99,7 +99,7 @@ describe("preço GLOBAL do pacote", () => {
     expect(r.dados!.depois.price_cents).toBe(900_000);
   });
 
-  it("não toca em facturas já emitidas", async () => {
+  it("não toca em faturas já emitidas", async () => {
     const t = mundo();
     t.billing_invoices!.push({ id: "f1", amount_cents: 800_000, status: "open" });
     await alterarPrecoDoPacote(banco(t), "plano-medio", { price_cents: 999_000 });
@@ -146,7 +146,7 @@ describe("preço POR CLIENTE", () => {
     expect(t.organization_subscriptions![0]!.agreed_price_cents).toBe(0);
   });
 
-  it("piloto liga-se antes da primeira factura e depois já não se muda", async () => {
+  it("piloto liga-se antes da primeira fatura e depois já não se muda", async () => {
     const t = mundo();
     expect((await alterarTermosDoCliente(banco(t), ORG, { is_pilot: true })).ok).toBe(true);
     expect(t.organization_subscriptions![0]!.is_pilot).toBe(true);
@@ -154,7 +154,7 @@ describe("preço POR CLIENTE", () => {
     t.billing_invoices!.push({ id: "f1", organization_id: ORG, status: "open" });
     expect((await alterarTermosDoCliente(banco(t), ORG, { is_pilot: false })).erro).toBe("piloto_ja_nao_se_aplica");
     expect(t.organization_subscriptions![0]!.is_pilot).toBe(true);
-    // mas o preço continua a poder mudar depois da primeira factura
+    // mas o preço continua a poder mudar depois da primeira fatura
     expect((await alterarTermosDoCliente(banco(t), ORG, { agreed_price_cents: 700_000 })).ok).toBe(true);
   });
 
@@ -239,7 +239,7 @@ describe("EXTRAS por cliente", () => {
     expect(t.subscription_items![0]!.ended_on).toBe(HOJE);
   });
 
-  it("pontual ainda por facturar fica sem efeito; já facturado não se desfaz", async () => {
+  it("pontual ainda por faturar fica sem efeito; já faturado não se desfaz", async () => {
     const t = mundo();
     t.subscription_items!.push(
       { id: "p1", organization_id: ORG, recurrence: "once", started_on: "2026-10-10", ended_on: null, billed_invoice_id: null },
@@ -258,7 +258,7 @@ describe("EXTRAS por cliente", () => {
   });
 });
 
-describe("DAR PRAZO e ANULAR uma factura", () => {
+describe("DAR PRAZO e ANULAR uma fatura", () => {
   function comFatura(sobre: Linha = {}): Tabelas {
     const t = mundo();
     t.billing_invoices!.push({
@@ -268,7 +268,7 @@ describe("DAR PRAZO e ANULAR uma factura", () => {
     return t;
   }
 
-  it("adia o vencimento e a régua da factura recomeça do zero", async () => {
+  it("adia o vencimento e a régua da fatura recomeça do zero", async () => {
     const t = comFatura();
     const r = await darPrazo(banco(t), ORG, "f1", "2026-11-05", HOJE);
     expect(r.ok).toBe(true);
@@ -293,7 +293,7 @@ describe("DAR PRAZO e ANULAR uma factura", () => {
     expect((await darPrazo(banco(t), ORG, "f1", "2026-12-19", HOJE)).ok).toBe(true);
   });
 
-  it("factura paga ou anulada não se mexe; de outro cliente também não", async () => {
+  it("fatura paga ou anulada não se mexe; de outro cliente também não", async () => {
     const paga = comFatura({ status: "paid" });
     expect((await darPrazo(banco(paga), ORG, "f1", "2026-11-05", HOJE)).erro).toBe("fatura_nao_aberta");
     expect((await anularFatura(banco(paga), ORG, "f1")).erro).toBe("fatura_nao_aberta");

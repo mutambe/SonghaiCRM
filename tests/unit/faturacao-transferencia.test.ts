@@ -3,7 +3,7 @@
  *
  * O PaySuite confirma sozinho M-Pesa, e-Mola e cartão; a transferência entra no
  * banco, onde o sistema não vê. Daí três coisas, todas provadas aqui: os dados do
- * banco chegam ao cliente (e-mail e telas), uma pessoa dá a factura como paga, e
+ * banco chegam ao cliente (e-mail e telas), uma pessoa dá a fatura como paga, e
  * isso passa pela MESMA via do PaySuite — reactiva a conta, agradece, audita.
  */
 import { describe, expect, it, vi } from "vitest";
@@ -169,7 +169,7 @@ describe("dar uma transferência como paga", () => {
     expect(rpc).toHaveBeenCalledWith("fn_marcar_fatura_paga", expect.objectContaining({ p_via: "paysuite" }));
   });
 
-  it("factura que já não está em aberto: nada muda, ninguém é agradecido duas vezes", async () => {
+  it("fatura que já não está em aberto: nada muda, ninguém é agradecido duas vezes", async () => {
     const { rpc, emails, deps } = mundo();
     rpc.mockResolvedValueOnce({ data: { changed: false }, error: null });
     expect(await registrarPagamentoDeFatura(deps, fatura, undefined, "transferencia")).toBe(false);

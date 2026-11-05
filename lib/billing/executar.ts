@@ -4,8 +4,8 @@
  * Cinco passos, cada um IDEMPOTENTE e independente dos outros (um que falha não
  * impede o seguinte, e a rodada seguinte repete o que faltou):
  *
- *   1. emitir      — factura de cada período devido, com o link de pagamento
- *   2. links       — factura aberta que ficou sem link (o PaySuite estava fora)
+ *   1. emitir      — fatura de cada período devido, com o link de pagamento
+ *   2. links       — fatura aberta que ficou sem link (o PaySuite estava fora)
  *   3. reconciliar — pergunta ao PaySuite por quem ainda não foi dado como pago
  *   4. régua       — lembrete, aviso final, suspensão (ver `acaoDaRegua`)
  *   5. reactivar   — conta suspensa por cobrança sem dívida vencida volta sozinha
@@ -33,6 +33,7 @@ import type { ConfigDaFaturacao } from "@/lib/billing/config";
 import { LIMIARES_DE_TOKENS, estadoDosTokens } from "@/lib/billing/tokens";
 import { montarEmail, type DadosDoEmail, type Mensagem, type TipoDeEmail } from "@/lib/billing/emails";
 import type { AuditAction } from "@/lib/audit/actions";
+import { invalidarOrg } from "@/lib/auth/cache-curto";
 import { logger } from "@/lib/logger";
 import { STATUS_OPERANTE, ehOperante } from "@/lib/organizacao/operante";
 
@@ -49,7 +50,7 @@ export interface DependenciasDaRodada {
   gateway: Gateway | null;
   /** E-mail dos administradores da organização. */
   emailsDosAdmins: (organizationId: string) => Promise<string[]>;
-  /** E-mails do fornecedor (quem factura), para os avisos de tokens. Ausente = o fornecedor não é avisado. */
+  /** E-mails do fornecedor (quem fatura), para os avisos de tokens. Ausente = o fornecedor não é avisado. */
   emailsDoFornecedor?: () => Promise<string[]>;
   /** `false` = não entregou (sem transporte, endereço recusado). Nunca lança. */
   enviarEmail: (para: string[], mensagem: Mensagem) => Promise<boolean>;
@@ -98,7 +99,7 @@ export interface FaturaAberta {
 export const COLUNAS_DA_FATURA =
   "id, organization_id, subscription_id, period_start, due_date, amount_cents, currency, reference, provider_payment_id, checkout_url, reminded_at, warned_at";
 
-/** Só organizações vivas são facturadas. `redacted` e `archived` já não existem para o negócio. */
+/** Só organizações vivas são faturadas. `redacted` e `archived` já não existem para o negócio. */
 const ESTADOS_FACTURAVEIS = new Set(["active", "suspended"]);
 
 async function nomeDaOrganizacao(db: SupabaseClient, id: string): Promise<string> {
@@ -261,7 +262,7 @@ async function criarLink(d: DependenciasDaRodada, f: FaturaAberta, resumo: Resum
     const criado = await d.gateway.criar({
       amountCents: f.amount_cents,
       reference: f.reference,
-      description: `Factura ${f.period_start}`.slice(0, 125),
+      description: `Fatura ${f.period_start}`.slice(0, 125),
     });
     const { error } = await d.db
       .from("billing_invoices")
@@ -272,9 +273,9 @@ async function criarLink(d: DependenciasDaRodada, f: FaturaAberta, resumo: Resum
     resumo.links++;
     return { ...f, provider_payment_id: criado.id, checkout_url: criado.checkoutUrl };
   } catch (erro) {
-    // A factura existe; só falta o link. A rodada seguinte tenta de novo.
+    // A fatura existe; só falta o link. A rodada seguinte tenta de novo.
     logger.warn("faturação: não deu para criar o link de pagamento", {
-      factura: f.id,
+      fatura: f.id,
       detalhe: erro instanceof Error ? erro.message : String(erro),
     });
     return f;
@@ -297,7 +298,7 @@ async function garantirLinks(d: DependenciasDaRodada, resumo: ResumoDaRodada): P
 
 // ─── 3. reconciliar ─────────────────────────────────────────────────────────
 
-/** Dá a factura como paga, reactiva a conta se era isso que a prendia, e agradece. Idempotente. */
+/** Dá a fatura como paga, reactiva a conta se era isso que a prendia, e agradece. Idempotente. */
 export async function registrarPagamentoDeFatura(
   d: DependenciasDaRodada,
   f: FaturaAberta,
@@ -348,7 +349,7 @@ async function reconciliar(d: DependenciasDaRodada, resumo: ResumoDaRodada): Pro
     try {
       estado = await d.gateway.consultar(f.provider_payment_id!);
     } catch (erro) {
-      logger.warn("faturação: o PaySuite não respondeu", { factura: f.id, detalhe: erro instanceof Error ? erro.message : String(erro) });
+      logger.warn("faturação: o PaySuite não respondeu", { fatura: f.id, detalhe: erro instanceof Error ? erro.message : String(erro) });
       continue;
     }
     if (estado === "paid") await registrarPagamentoDeFatura(d, f, resumo);
@@ -428,10 +429,11 @@ async function aplicarRegua(d: DependenciasDaRodada, resumo: ResumoDaRodada): Pr
       const { data: resultado, error } = await d.db.rpc("fn_suspender_organizacao", {
         p_org: f.organization_id,
         p_kind: "cobranca",
-        p_motivo: `Factura de ${f.period_start} por pagar desde ${f.due_date}`,
+        p_motivo: `Fatura de ${f.period_start} por pagar desde ${f.due_date}`,
         p_ator: null,
       });
       if (error) throw new Error(`suspender ${f.organization_id}: ${error.message}`);
+      invalidarOrg(f.organization_id);
       await d.db.from("billing_invoices").update({ suspended_at: d.agora.toISOString() }).eq("id", f.id).is("suspended_at", null);
       if ((resultado as { changed?: boolean } | null)?.changed) {
         resumo.suspensas++;
@@ -473,6 +475,7 @@ export async function reativarSePago(
     p_ator: null,
   });
   if (error) throw new Error(`reativar ${organizationId}: ${error.message}`);
+  invalidarOrg(organizationId);
   if (!(resultado as { changed?: boolean } | null)?.changed) return;
 
   resumo.reativadas++;

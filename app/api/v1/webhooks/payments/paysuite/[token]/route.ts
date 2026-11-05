@@ -84,7 +84,7 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ token: str
 
   // SonghaiCRM (9010): o pagamento pode ser de uma FACTURA de pacote, e não de um
   // negócio. Só vale se o webhook é da organização que recebe — o token da URL
-  // resolveu as credenciais dela, e nenhuma outra organização pode fechar factura.
+  // resolveu as credenciais dela, e nenhuma outra organização pode fechar fatura.
   // `payment.failed` não mexe: a reconciliação renova o link na rodada seguinte.
   const cfgDaFaturacao = await lerConfigDaFaturacao(admin);
   if (cfgDaFaturacao && cfgDaFaturacao.organizationId === organizationId) {
@@ -98,14 +98,14 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ token: str
         try {
           await registrarPagamentoDeFatura(await dependenciasReais(admin, cfgDaFaturacao), fatura as unknown as FaturaAberta);
         } catch (erro) {
-          logger.error("[webhooks.paysuite] falha ao dar a factura como paga", {
+          logger.error("[webhooks.paysuite] falha ao dar a fatura como paga", {
             organizationId,
             detalhe: erro instanceof Error ? erro.message : String(erro),
           });
           return fail("internal_error", "falha ao gravar confirmação", 500, { requestId });
         }
       }
-      return ok({ status: "processed", alvo: "factura" }, { requestId });
+      return ok({ status: "processed", alvo: "fatura" }, { requestId });
     }
   }
 

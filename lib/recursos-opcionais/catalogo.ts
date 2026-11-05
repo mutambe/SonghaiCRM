@@ -29,8 +29,15 @@
  * Os textos são a CHAVE em português do dicionário (`lib/i18n/dicionario.ts`);
  * quem desenha passa por `t()`/`traduzir()`.
  */
-import type { Role } from "@/lib/auth/types";
-import { MODULOS_OPCIONAIS, MODULOS_OPCIONAIS_POR_FLAG, type ModuloOpcional } from "@/lib/instalacao/modulos";
+import { type Role, visibilidadeRestritaAoAtendente } from "@/lib/auth/types";
+import {
+  MODULOS_DO_BRASIL,
+  MODULOS_OPCIONAIS,
+  MODULOS_OPCIONAIS_POR_FLAG,
+  MODULOS_SO_DA_INSTALACAO,
+  RECURSOS_DO_BRASIL,
+  type ModuloOpcional,
+} from "@/lib/instalacao/modulos";
 import { NAV_CATALOG, type NavMetadata } from "@/lib/navigation/catalogo";
 import { vendaPeloCanalLigada } from "@/lib/conversoes/venda-pelo-canal";
 import { lerConfigDoJev } from "@/lib/ai/decisao/config";
@@ -58,6 +65,13 @@ export interface FontesDeEstado {
   settings: Record<string, unknown> | null;
   /** Detecção dos recursos do servidor, por `id`. Ausente/`null` = não detectado. */
   servidor: Readonly<Record<string, boolean | null>>;
+  /**
+   * A telefonia está em uso NESTA organização (#1290) — o mesmo sinal que decide
+   * o item Chamadas no menu (`lib/telefonia/em-uso.ts`): o tronco SIP salvo.
+   * `null` = não lido. Booleano porque a leitura compartilhada falha fechada e
+   * não distingue "desligada" de "não li" — igual a `modulosLigados()`.
+   */
+  telefonia: boolean | null;
 }
 
 export interface RecursoOpcional {
@@ -117,6 +131,31 @@ const TEXTO_DO_MODULO: Record<ModuloOpcional, { nome: string; oQueFaz: string }>
   honorarios: {
     nome: "Honorários",
     oQueFaz: "Contratos de honorários com parcelas e o controle do que já foi pago.",
+  },
+  // #1907 item 4 — a linha do catálogo de recursos opcionais (#1876): a
+  // comanda, o caixa e as comissões. Módulo de tabela, então o `href` do mapa
+  // (`MODULOS_OPCIONAIS_POR_FLAG`) já aponta para `/admin/modulos`.
+  financeiro: {
+    nome: "Comandas",
+    oQueFaz: "A comanda do atendimento: itens, forma de pagamento, comissões e fidelidade.",
+  },
+  cobranca: {
+    nome: "Cobrança dos seus clientes",
+    oQueFaz: "Você cria planos e cobra as empresas desta instalação, com teste grátis e suspensão de quem não paga.",
+  },
+  login_codex: {
+    nome: "Login do Codex por assinatura",
+    oQueFaz:
+      "Conecta a assinatura do ChatGPT (o mesmo login do Codex): cada empresa conecta a própria conta, em Credenciais, com a chave de API da mesma empresa como reserva. Desligado por padrão.",
+  },
+  setores: {
+    nome: "Setores de atendimento",
+    oQueFaz:
+      "Agrupa os atendentes da Equipe por área e distribui as conversas que têm setor definido entre quem atende aquela área, dentro do horário do setor. Conversa sem setor continua indo pelo número, como antes.",
+  },
+  avisos: {
+    nome: "Avisos para a equipe",
+    oQueFaz: "O administrador da empresa escreve um aviso e ele chega como notificação nos aparelhos da equipe.",
   },
 };
 
@@ -258,6 +297,25 @@ const DO_SERVIDOR: RecursoOpcional[] = [
     ler: peloServidor("voz_whatsapp"),
   },
   {
+    // Entra aqui pelo review do #2441: a feature passa a ser visível ao dono
+    // do servidor do mesmo jeito que a voz — `JITSI_SERVER_URL` no `.env`,
+    // liga ou não, sem rebuild. A linha existe mesmo o teste não cobrando
+    // recurso que vive só em env: quem chega nesta tela é justamente para
+    // saber o que está ligado, e a videochamada não pode ser a uma que só
+    // aparece quando alguém lembra do `.env`.
+    id: "videochamada_jitsi",
+    nome: "Videochamada (Jitsi Meet)",
+    oQueFaz:
+      "Abrir sala de vídeo no header da conversa: o contato entra pelo link no chat, sem instalar nada.",
+    nivel: "servidor",
+    padrao: "desligado",
+    quemDecide: "dono_do_servidor",
+    href: null,
+    comoLigar:
+      "No arquivo de ambiente, JITSI_SERVER_URL apontando para a origem da sala (ex.: https://meet.jit.si). Vazio = o botão Vídeo não aparece.",
+    ler: peloServidor("videochamada_jitsi"),
+  },
+  {
     id: "telefonia_sip",
     nome: "Telefonia por SIP",
     oQueFaz: "Atender e ligar por telefone de verdade, com agente de voz.",
@@ -295,10 +353,10 @@ const DO_SERVIDOR: RecursoOpcional[] = [
     nome: "Notificação com a aba fechada",
     oQueFaz: "Os alertas chegam na bandeja do computador mesmo com o sistema fechado.",
     nivel: "servidor",
-    padrao: "desligado",
+    padrao: "ligado",
     quemDecide: "dono_do_servidor",
     href: null,
-    comoLigar: "No arquivo de ambiente, o par VAPID_PUBLIC_KEY e VAPID_PRIVATE_KEY.",
+    comoLigar: "Nasce pronto pelo kit de instalação, mas só funciona em endereço com https (em http://IP nenhum navegador entrega o aviso com o sistema fechado). Se aparecer desligado, rode no servidor: bash hostgator-setup-kit/update.sh",
     ler: peloServidor("web_push"),
   },
   {
@@ -343,7 +401,7 @@ const DA_EMPRESA: RecursoOpcional[] = [
     padrao: "desligado",
     quemDecide: "manager",
     href: "/app/settings/atendimento",
-    ler: peloSettings((s) => s.visibility_mode === "own" || s.visibility_mode === "own_and_unassigned"),
+    ler: peloSettings((s) => visibilidadeRestritaAoAtendente(s.visibility_mode)),
   },
   {
     id: "assinatura_do_emissor",
@@ -424,6 +482,17 @@ const DA_EMPRESA: RecursoOpcional[] = [
     quemDecide: "admin",
     href: "/app/settings/tenant/agenda",
     ler: peloSettings((s) => objeto(s.crm)?.cliente_pela_agenda === true),
+  },
+  {
+    id: "cliente_pela_venda",
+    nome: "Quem já comprou volta pelo funil de clientes",
+    oQueFaz:
+      "Contato com negócio ganho e nenhum aberto entra no funil de clientes, não no de captação.",
+    nivel: "organizacao",
+    padrao: "desligado",
+    quemDecide: "admin",
+    href: "/app/settings/atendimento",
+    ler: peloSettings((s) => objeto(s.crm)?.cliente_pela_venda === true),
   },
   {
     id: "colegas_mexem_na_agenda",
@@ -566,6 +635,25 @@ const DA_EMPRESA: RecursoOpcional[] = [
     href: "/app/extensions",
   },
   {
+    /**
+     * O par da empresa para a telefonia (#1290), no molde de
+     * `propostas_da_empresa`: `telefonia_sip` é o profile do servidor, que o app
+     * não lê; ESTA linha é o que a empresa fez — salvou o tronco em
+     * `/app/settings/voip-trunk`. É o mesmo sinal que o menu lê para mostrar (ou
+     * esconder) Chamadas: uma régua, dois lugares.
+     */
+    id: "telefonia_da_empresa",
+    nome: "Telefonia da empresa",
+    oQueFaz:
+      "Com o servidor preparado para telefonia, a empresa salva o tronco SIP da operadora e passa a ver as ligações em Chamadas.",
+    nivel: "organizacao",
+    padrao: "desligado",
+    quemDecide: "admin",
+    href: "/app/settings/voip-trunk",
+    capacidade: "telefonia",
+    ler: (f) => (f.telefonia === null ? "nao_lido" : f.telefonia ? "ligado" : "desligado"),
+  },
+  {
     id: "propostas_da_empresa",
     nome: "Proposta comercial da empresa",
     oQueFaz: "Com o módulo do servidor ligado, a empresa liga as propostas para si.",
@@ -585,6 +673,17 @@ const DA_EMPRESA: RecursoOpcional[] = [
 ];
 
 const DE_CADA_AGENTE: RecursoOpcional[] = [
+  {
+    id: "passagem_por_assunto_juridico",
+    nome: "Passagem por assunto jurídico",
+    oQueFaz:
+      "Por agente e decidido pelo admin: passar a conversa para uma pessoa quando o cliente falar de assunto jurídico (Procon, advogado, processo). Desligada, assunto jurídico passa a ser o trabalho normal deste agente e não é, sozinho, motivo de passagem — quem pede para falar com uma pessoa continua sendo passado. É OUTRA chave: a \"chamar uma pessoa\" de \"Ajustes de cada agente\" liga e desliga a ferramenta inteira; esta só tira a passagem por assunto jurídico.",
+    nivel: "agente",
+    padrao: "ligado",
+    quemDecide: "admin",
+    href: "/app/ai/agents",
+    ler: varia,
+  },
   {
     id: "ajustes_do_agente",
     nome: "Ajustes de cada agente",
@@ -616,6 +715,24 @@ export const RECURSOS_OPCIONAIS: readonly RecursoOpcional[] = [
   ...DA_EMPRESA,
   ...DE_CADA_AGENTE,
 ];
+
+/**
+ * Os módulos que a EMPRESA vê em Configurações › Recursos opcionais: todos os da
+ * instalação, menos os que são decisão só de quem administra o servidor
+ * (`MODULOS_SO_DA_INSTALACAO`).
+ */
+export const MODULOS_DA_EMPRESA: readonly RecursoOpcional[] = RECURSOS_OPCIONAIS.filter(
+  (r) => r.nivel === "instalacao" && !!r.modulo && !MODULOS_SO_DA_INSTALACAO.includes(r.modulo),
+);
+
+/**
+ * SonghaiCRM: o recurso é uma opção do Brasil (módulo ou integração) que esta distribuição não
+ * oferece? As telas de Recursos opcionais e de Módulos o tiram da lista; o catálogo em si fica
+ * inteiro — testes e o merge com o upstream contam com ele (`MODULOS_DO_BRASIL`).
+ */
+export function ehOpcaoDoBrasil(r: Pick<RecursoOpcional, "id" | "modulo">): boolean {
+  return (!!r.modulo && MODULOS_DO_BRASIL.includes(r.modulo)) || RECURSOS_DO_BRASIL.includes(r.id);
+}
 
 /**
  * O estado de um recurso. NUNCA lança: leitura que explode vira `nao_lido`,

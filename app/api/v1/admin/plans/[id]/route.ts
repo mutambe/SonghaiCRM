@@ -2,10 +2,10 @@
  * PATCH /api/v1/admin/plans/[id] — o preço GLOBAL de um pacote (SonghaiCRM, 9010).
  *
  * Vale para todos os clientes que seguem o preço do pacote (sem preço acordado),
- * a partir da PRÓXIMA factura: nenhuma factura já emitida é tocada. A resposta
+ * a partir da PRÓXIMA fatura: nenhuma fatura já emitida é tocada. A resposta
  * diz quantos clientes serão afectados, para a tela mostrar o alcance do clique.
  *
- * `price_cents: null` = sob consulta (Enterprise): sem preço acordado não se factura.
+ * `price_cents: null` = sob consulta (Enterprise): sem preço acordado não se fatura.
  */
 import { randomUUID } from "node:crypto";
 import type { NextRequest } from "next/server";

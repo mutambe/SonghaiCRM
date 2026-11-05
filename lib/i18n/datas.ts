@@ -1,4 +1,4 @@
-import { pt } from "date-fns/locale";
+import { es, pt } from "date-fns/locale";
 import type { Locale } from "date-fns";
 
 import { IDIOMA_PADRAO, type Idioma } from "./idiomas";
@@ -36,6 +36,9 @@ import { idiomaVisivelPorCodigo } from "./registro";
 // europeu (`pt` do date-fns: "quarta-feira, 30 de setembro"), não o `ptBR`.
 const LOCALE_DE_DATA: Record<Idioma, Locale> = {
   "pt-MZ": pt,
+  // Só para o tipo fechar: nenhum dos dois é servido nesta distribuição.
+  "pt-BR": pt,
+  es,
 };
 
 /** O `Locale` do date-fns para quem está lendo. */

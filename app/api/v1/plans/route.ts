@@ -5,6 +5,7 @@
  * teto de 60 pedidos por minuto por IP.
  */
 import { randomUUID } from "node:crypto";
+import { ipDoCliente } from "@/lib/http/ip-do-cliente";
 import type { NextRequest } from "next/server";
 
 import { ok, fail } from "@/lib/api/wrappers";
@@ -16,7 +17,7 @@ export const dynamic = "force-dynamic";
 export async function GET(req: NextRequest): Promise<Response> {
   const requestId = randomUUID();
 
-  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip")?.trim();
+  const ip = ipDoCliente(req.headers);
   if (ip) {
     const r = await checkRateLimit(`plans:list:${ip}`, 60, 60);
     if (!r.allowed) {

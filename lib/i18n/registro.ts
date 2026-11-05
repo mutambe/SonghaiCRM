@@ -90,6 +90,18 @@ export const REGISTRO_DE_IDIOMAS = [
     mantenedor: "mantenedores do projeto",
   },
   {
+    codigo: "tr",
+    nomeNativo: "Türkçe",
+    rotuloCurto: "TR",
+    tagBcp47: "tr",
+    subtagsDoNavegador: ["tr"],
+    // O primeiro idioma com catálogo completo (`lib/i18n/traducoes/tr.json`).
+    // Entra em construção, como o chinês (doc de decisão 198): aparece quando
+    // houver a carga por idioma e a régua de telas principais (fatia 5).
+    nivel: "em_construcao",
+    mantenedor: "Agenterix (@nusretbayindir-stack)",
+  },
+  {
     codigo: "zh-CN",
     nomeNativo: "简体中文",
     rotuloCurto: "中",
@@ -108,8 +120,8 @@ export const REGISTRO_DE_IDIOMAS = [
     // resolve pela região de quem lê (data, número), em vez de impor os EUA.
     tagBcp47: "en",
     subtagsDoNavegador: ["en"],
-    // Catálogo em `lib/i18n/traducoes/en.json`. Aparece quando o leitor do
-    // catálogo (fatia 4 do PROG-022) existir e o nível for promovido.
+    // Catálogo em `lib/i18n/traducoes/en.json`, lido por `catalogos.ts` (fatia 4
+    // do PROG-022). Aparece quando o nível for promovido.
     nivel: "em_construcao",
     mantenedor: null,
   },
@@ -142,6 +154,6 @@ export const IDIOMAS_EM_CONSTRUCAO: readonly IdiomaDoRegistro[] = REGISTRO_DE_ID
  * padrão do produto (a primeira linha do registro) é só a rede para um valor
  * que tenha escapado do tipo em tempo de execução — nunca uma tela quebrada.
  */
-export function idiomaVisivelPorCodigo(codigo: IdiomaVisivel["codigo"]): IdiomaVisivel {
+export function idiomaVisivelPorCodigo(codigo: string): IdiomaVisivel {
   return IDIOMAS_VISIVEIS.find((idioma) => idioma.codigo === codigo) ?? REGISTRO_DE_IDIOMAS[0];
 }

@@ -25,7 +25,7 @@
 ## Resposta: Tudo do Simples, mais a agenda (Google Calendar nativo no SonghaiCRM), integração com CRM externo, qualificação automática de contactos, relatórios diários ou semanais, até 4 ajustes por mês e suporte prioritário com resposta em menos de 2 horas em horário laboral.
 
 ## Pergunta: O que inclui o Agente Avançado?
-## Resposta: Tudo dos anteriores, mais integrações múltiplas (CRM, POS, ERP, facturação), processamento de pagamentos M-Pesa, painel de analytics em tempo real, ajustes ilimitados, suporte VIP (resposta em menos de 1 hora em horário laboral e 24/7 para incidentes críticos) e uma reunião mensal de optimização.
+## Resposta: Tudo dos anteriores, mais integrações múltiplas (CRM, POS, ERP, faturação), processamento de pagamentos M-Pesa, painel de analytics em tempo real, ajustes ilimitados, suporte VIP (resposta em menos de 1 hora em horário laboral e 24/7 para incidentes críticos) e uma reunião mensal de optimização.
 
 ## Pergunta: Para que empresas serve cada pacote?
 ## Resposta: O Simples serve equipas pequenas; o Médio, PMEs médias; o Avançado, empresas maiores e e-commerce. O Enterprise é para grandes empresas e grupos, com várias unidades, SLA à medida e gestor de conta dedicado.

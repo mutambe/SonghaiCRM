@@ -66,7 +66,7 @@ function predicativo(nomes: string): RegExp {
 /** O sujeito não é o nome trocado: há outro sujeito no meio ("…ecrã, que é usado…"). */
 const SUJEITO_NO_MEIO = /(?<![\p{L}])(ninguém|alguém|quem|que|o que|cada um|cada uma|todos|nenhum)(?![\p{L}])/iu;
 /** Nome depois de preposição é complemento, não sujeito: "ninguém da equipa é chamado". */
-const COMPLEMENTO = /(?<![\p{L}])(de|da|do|das|dos|na|no|nas|nos|à|ao|às|aos|para|com|pela|pelo|sem|entre)\s+$/iu;
+const COMPLEMENTO = /(?<![\p{L}])(de|da|do|das|dos|na|no|nas|nos|à|ao|às|aos|para|com|pela|pelo|sem|entre|avisar a|notificar a|informar a)\s+$/iu;
 
 function desconcordancias(frase: string): string[] {
   const achados: string[] = [];

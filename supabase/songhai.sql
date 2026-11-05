@@ -49,6 +49,7 @@ begin
          and data_type in ('text', 'character varying', 'character')
          and column_default is not null
          and column_default ~ ('^''' || replace(t[1], '/', '\/') || '''::')
+         and table_name not like 'cobranca_%'  -- módulo do Brasil: o check do upstream aceita só BRL
          and table_name in (
            select tablename from pg_catalog.pg_tables where schemaname = 'public'
          )
@@ -228,9 +229,9 @@ create table if not exists public.plans (
 
 insert into public.plans (slug, display_name, price_cents, setup_fee_cents, limits)
 values
-  ('agente_simples', 'Agente Simples', 500000, 200000, '{"max_users": 20, "max_whatsapp_connections": 1}'),
-  ('agente_medio', 'Agente Médio', 800000, 300000, '{"max_users": 50, "max_whatsapp_connections": 2}'),
-  ('agente_avancado', 'Agente Avançado', 1200000, 400000, '{"max_users": 200, "max_whatsapp_connections": 5}'),
+  ('agente_simples', 'Agente Simples', 700000, 200000, '{"max_users": 20, "max_whatsapp_connections": 1}'),
+  ('agente_medio', 'Agente Médio', 1200000, 300000, '{"max_users": 50, "max_whatsapp_connections": 1}'),
+  ('agente_avancado', 'Agente Avançado', 1800000, 400000, '{"max_users": 200, "max_whatsapp_connections": 1}'),
   ('enterprise', 'Enterprise', null, null, '{}')
 on conflict (slug) do nothing;
 
@@ -408,7 +409,7 @@ comment on column public.ai_agents.source_agent_id is
 comment on column public.ai_agents.source_version_id is
   'Versão publicada do modelo que foi copiada. Mesma regra de source_agent_id.';
 
--- ---- Faturação dos pacotes: preço acordado, extras, facturas (migration 9010) ----
+-- ---- Faturação dos pacotes: preço acordado, extras, faturas (migration 9010) ----
 --
 -- A troca de plano herda a âncora do ciclo (redefine fn_trocar_plano_da_organizacao da 9004).
 
@@ -424,7 +425,7 @@ comment on column public.organization_subscriptions.agreed_price_cents is
 comment on column public.organization_subscriptions.agreed_setup_cents is
   'Setup acordado com este cliente. Nulo = vale plans.setup_fee_cents.';
 comment on column public.organization_subscriptions.is_pilot is
-  'Piloto: setup grátis e 50% de desconto na mensalidade da PRIMEIRA factura. Aplicado pelo sistema ao emitir; não se repete.';
+  'Piloto: setup grátis e 50% de desconto na mensalidade da PRIMEIRA fatura. Aplicado pelo sistema ao emitir; não se repete.';
 comment on column public.organization_subscriptions.billing_anchor is
   'Dia em que o ciclo mensal da organização começou. A troca de plano herda-o: o ciclo é da organização, não da assinatura.';
 
@@ -497,7 +498,7 @@ create index if not exists subscription_items_org_idx
   on public.subscription_items using btree (organization_id) where ended_on is null;
 
 comment on table public.subscription_items is
-  'Extras contratados por UM cliente (um número de WhatsApp a mais, utilizadores, etc.). Entram na factura e, se adds_*, sobem o limite do cliente na hora (lib/billing/calculo.ts).';
+  'Extras contratados por UM cliente (um número de WhatsApp a mais, utilizadores, etc.). Entram na fatura e, se adds_*, sobem o limite do cliente na hora (lib/billing/calculo.ts).';
 
 -- ---- catálogo global dos extras --------------------------------------------------
 -- O preço aqui é o PADRÃO: ao contratar um extra a um cliente o operador pode
@@ -532,7 +533,7 @@ alter table public.billing_addons enable row level security;
 revoke all on public.billing_addons from public, anon, authenticated;
 grant select, insert, update on public.billing_addons to service_role;
 
--- ---- facturas -----------------------------------------------------------------
+-- ---- faturas -----------------------------------------------------------------
 create table if not exists public.billing_invoices (
   id uuid primary key default gen_random_uuid(),
   organization_id uuid not null references public.organizations(id) on delete cascade,
@@ -592,7 +593,7 @@ grant select, insert, update on public.subscription_items to service_role;
 grant select, insert, update on public.billing_invoices to service_role;
 grant select, insert, update on public.billing_invoice_lines to service_role;
 
--- Dinheiro é do admin da organização: manager para baixo não vê factura.
+-- Dinheiro é do admin da organização: manager para baixo não vê fatura.
 drop policy if exists tenant_isolation_subscription_items_select on public.subscription_items;
 create policy tenant_isolation_subscription_items_select on public.subscription_items
   for select to authenticated
@@ -608,9 +609,9 @@ create policy tenant_isolation_billing_invoice_lines_select on public.billing_in
   for select to authenticated
   using (organization_id in (select public.fn_user_org_ids()) and public.fn_role_at_least(organization_id, 'admin'));
 
--- ---- emitir factura (atómico e idempotente) -----------------------------------
+-- ---- emitir fatura (atómico e idempotente) -----------------------------------
 -- p_lines: [{"kind","description","amount_cents","item_id"?}]. O total é a soma, nunca
--- negativo. Devolve o id da factura nova, ou NULL se o período já tinha factura
+-- negativo. Devolve o id da fatura nova, ou NULL se o período já tinha fatura
 -- (rodada repetida, dois processos ao mesmo tempo): quem chama não duplica nada.
 create or replace function public.fn_emitir_fatura(
   p_org uuid, p_sub uuid, p_period_start date, p_period_end date, p_due date,
@@ -644,7 +645,7 @@ begin
          nullif(l->>'item_id', '')::uuid
     from jsonb_array_elements(p_lines) with ordinality as t(l, ord);
 
-  -- extras pontuais cobram-se uma vez: ficam amarrados a esta factura
+  -- extras pontuais cobram-se uma vez: ficam amarrados a esta fatura
   update public.subscription_items i
      set billed_invoice_id = v_id
    where i.organization_id = p_org
@@ -765,6 +766,30 @@ create policy tenant_isolation_config_aviso_de_caso_email_select on public.confi
   for select to authenticated
   using (organization_id in (select public.fn_user_org_ids()) and public.fn_role_at_least(organization_id, 'admin'));
 
+-- ---- Preços dos pacotes alinhados com songhai.cc/precos (migration 9101) ----
+-- Simples 7.000 / Médio 12.000 / Avançado 18.000 MZN por mês; 1 número de
+-- WhatsApp em todos (extra é complemento). Só toca no valor ainda igual ao da
+-- semente anterior: preço ou limite editado pelo admin não é desfeito.
+update public.plans set price_cents = 700000
+ where slug = 'agente_simples' and price_cents = 500000;
+update public.plans set price_cents = 1200000
+ where slug = 'agente_medio' and price_cents = 800000;
+update public.plans set price_cents = 1800000
+ where slug = 'agente_avancado' and price_cents = 1200000;
+update public.plans set limits = jsonb_set(limits, '{max_whatsapp_connections}', '1'::jsonb)
+ where slug = 'agente_medio' and (limits ->> 'max_whatsapp_connections') = '2';
+update public.plans set limits = jsonb_set(limits, '{max_whatsapp_connections}', '1'::jsonb)
+ where slug = 'agente_avancado' and (limits ->> 'max_whatsapp_connections') = '5';
+
+-- ---- Moeda dos planos de cobrança volta a BRL (migration 9102) ----
+-- Auto-cura de quem já correu a troca em massa acima: o check do upstream aceita só BRL.
+do $songhai_9102$
+begin
+  if to_regclass('public.cobranca_planos') is not null then
+    alter table public.cobranca_planos alter column moeda set default 'BRL';
+  end if;
+end $songhai_9102$;
+
 -- ---- VARREDURA anon do apêndice da distribuição (repete a migration 0116 do upstream) ----
 --
 -- ⚠️ ÚLTIMO BLOCO DESTE ARQUIVO, DE PROPÓSITO. O `ALTER DEFAULT PRIVILEGES ...
@@ -805,3 +830,4 @@ begin
     end if;
   end loop;
 end $$;
+

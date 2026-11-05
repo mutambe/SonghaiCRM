@@ -1,7 +1,7 @@
 /**
  * A ADMINISTRAÇÃO DOS PREÇOS — o que o operador muda, e onde (SonghaiCRM, 9010).
  *
- * Três níveis, do mais largo ao mais estreito, e nenhum toca em factura emitida:
+ * Três níveis, do mais largo ao mais estreito, e nenhum toca em fatura emitida:
  *
  *   1. GLOBAL      preço do pacote (`plans`) e preço padrão dos extras (`billing_addons`)
  *   2. POR CLIENTE preço e setup acordados, e o piloto (`organization_subscriptions`)
@@ -35,7 +35,7 @@ export interface PrecoDoPacote {
 
 /**
  * Muda o preço de um pacote para todos os clientes SEM preço acordado, a partir
- * da PRÓXIMA factura. Devolve quantos clientes serão afectados, para a tela
+ * da PRÓXIMA fatura. Devolve quantos clientes serão afectados, para a tela
  * dizer o que o clique faz antes e depois de o fazer.
  */
 export async function alterarPrecoDoPacote(
@@ -103,7 +103,7 @@ export interface TermosDoCliente {
 
 /**
  * Preço e setup acordados com ESTE cliente, e o piloto. O piloto só se muda
- * antes de a primeira factura existir: depois dela o desconto já foi (ou não foi)
+ * antes de a primeira fatura existir: depois dela o desconto já foi (ou não foi)
  * dado, e mudá-lo agora só criaria uma inconsistência entre a flag e a história.
  */
 export async function alterarTermosDoCliente(
@@ -166,7 +166,7 @@ interface LinhaDoCatalogo {
 /**
  * Contrata um extra a um cliente. Os limites que o extra acrescenta
  * (`adds_whatsapp_connections`, `adds_users`) vêm do catálogo e sobem o teto do
- * cliente na hora (`limitesDoTenant`); o preço entra na factura seguinte.
+ * cliente na hora (`limitesDoTenant`); o preço entra na fatura seguinte.
  */
 export async function adicionarExtra(
   db: SupabaseClient,
@@ -229,9 +229,9 @@ export async function adicionarExtra(
 }
 
 /**
- * Acaba um extra. Nunca apaga: a história das facturas aponta para ele. O
+ * Acaba um extra. Nunca apaga: a história das faturas aponta para ele. O
  * recorrente deixa de ser cobrado a partir do período seguinte e o teto do
- * cliente desce; o pontual ainda não facturado fica sem efeito. Já facturado não
+ * cliente desce; o pontual ainda não faturado fica sem efeito. Já faturado não
  * se desfaz aqui (é dinheiro emitido).
  */
 export async function terminarExtra(
@@ -251,9 +251,9 @@ export async function terminarExtra(
   if (item.ended_on) return falha("extra_ja_terminado");
   if (item.recurrence === "once" && item.billed_invoice_id) return falha("extra_ja_facturado");
 
-  // Pontual por facturar: acaba no próprio dia de início e a factura ignora-o.
+  // Pontual por faturar: acaba no próprio dia de início e a fatura ignora-o.
   // Recorrente: acaba ONTEM, para o teto do cliente descer já; o período em curso,
-  // se já facturado, não é reembolsado, e os seguintes não o levam. Nunca antes do
+  // se já faturado, não é reembolsado, e os seguintes não o levam. Nunca antes do
   // início (a base proíbe `ended_on < started_on`).
   const ontem = somarDias(hoje, -1);
   const fim = item.recurrence === "once" ? item.started_on : ontem < item.started_on ? item.started_on : ontem;
@@ -275,7 +275,7 @@ export const MAXIMO_DE_DIAS_DE_PRAZO = 60;
 const DATA = /^\d{4}-\d{2}-\d{2}$/;
 
 /**
- * Dá mais prazo a UMA factura em aberto. A régua recomeça do zero para ela (o
+ * Dá mais prazo a UMA fatura em aberto. A régua recomeça do zero para ela (o
  * lembrete e o aviso final voltam a valer em relação à data nova) — senão a conta
  * seria suspensa por um aviso que já não é verdade. Se a conta estava suspensa
  * por falta de pagamento, a rota reactiva-a na hora.
@@ -312,7 +312,7 @@ export async function darPrazo(
   return sucesso({ dueDate: novaData });
 }
 
-/** Anula uma factura em aberto (engano, acordo). Paga não se anula: é dinheiro que entrou. */
+/** Anula uma fatura em aberto (engano, acordo). Paga não se anula: é dinheiro que entrou. */
 export async function anularFatura(
   db: SupabaseClient,
   organizationId: string,

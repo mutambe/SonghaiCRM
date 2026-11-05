@@ -6,6 +6,8 @@ import { audit } from "@/lib/audit";
 import { escritaDeAdminOuRecusa } from "@/lib/auth/escritaDeAdminOuRecusa";
 import { invalidarMarcaDaInstalacao } from "@/lib/branding/instalacao";
 import { normalizarHex } from "@/lib/branding/rampa";
+import { respostaParaOperador } from "@/lib/erros/para-operador";
+import { ipDoCliente } from "@/lib/http/ip-do-cliente";
 import { platformBrandingSchema, type PlatformBrandingInput } from "@/lib/schemas/settings";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -85,7 +87,7 @@ export async function updateBranding(
 
   const hdrs = await headers();
   const requestId = hdrs.get("x-request-id");
-  const ip = hdrs.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null;
+  const ip = ipDoCliente(hdrs);
   const userAgent = hdrs.get("user-agent") ?? null;
 
   const valores = {
@@ -96,6 +98,11 @@ export async function updateBranding(
     // dois passa pelo banco. Normalizar aqui é o que faz "mudou?" ser uma
     // pergunta com resposta — duas grafias da mesma cor mentiriam.
     accent_hex: parsed.data.accent_hex === null ? null : normalizarHex(parsed.data.accent_hex),
+    // Mesma normalização e MESMO CHECK da irmã (#2482): `#FFF` passa pelo
+    // domínio e não passa pelo banco, e normalizar aqui é o que faz "mudou?"
+    // ser uma pergunta com resposta.
+    accent_dark_hex:
+      parsed.data.accent_dark_hex === null ? null : normalizarHex(parsed.data.accent_dark_hex),
     show_powered_by: parsed.data.show_powered_by,
     // A linha passa a ser HUMANA. É o que impede a semeadura do `.env` de
     // reescrever a escolha no render seguinte — inclusive quando a escolha foi
@@ -118,7 +125,13 @@ export async function updateBranding(
     // e nada seria gravado. É o mesmo modo de falha que a issue #144 mediu em
     // `organizations`, e a única defesa é não escrever a query que o permite.
     .upsert({ id: 1, ...valores }, { onConflict: "id" });
-  if (error) return { ok: false, error: error.message };
+  // #3747: `platform_branding_accent_hex` e `_accent_dark_hex` têm frase própria
+  // no mapeador (a cor precisa ser hexadecimal); o cru fica no log.
+  if (error) {
+    return respostaParaOperador(error, {
+      contexto: "[marca] falha ao gravar a marca da instalação",
+    });
+  }
 
   // No MESMO processo que renderiza (na VPS há um processo de app só), então a
   // troca aparece no próximo render sem esperar o TTL.

@@ -21,7 +21,13 @@ export type AcceptInviteResult =
   | { ok: true }
   | {
       ok: false;
-      error: "invalid_or_expired" | "email_mismatch" | "not_authenticated" | "internal_error" | "plan_limit_reached";
+      error:
+        | "invalid_or_expired"
+        | "email_mismatch"
+        | "not_authenticated"
+        | "internal_error"
+        | "plan_limit_reached"
+        | "limite_do_plano";
       message?: string;
       expectedEmail?: string;
     };

@@ -62,7 +62,7 @@ test.describe("moeda da organização", () => {
     if (await moeda.isVisible().catch(() => false)) {
       await moeda.click();
       await page.getByRole("option", { name: /^Metical/ }).click();
-      await page.getByRole("button", { name: /salvar/i }).click();
+      await page.getByRole("button", { name: /salvar|guardar/i }).first().click();
       await expect(page.getByText(/organiza..o atualizada/i)).toBeVisible({ timeout: 10_000 });
     }
   });
@@ -80,7 +80,7 @@ test.describe("moeda da organização", () => {
 
     await moeda.click();
     await page.getByRole("option", { name: /^Dólar americano/ }).click();
-    await page.getByRole("button", { name: /salvar/i }).click();
+    await page.getByRole("button", { name: /salvar|guardar/i }).first().click();
     await expect(page.getByText(/organiza..o atualizada/i)).toBeVisible({ timeout: 10_000 });
 
     await page.screenshot({ path: path.join(EVIDENCE, "moeda-02-usd-salvo.png") });
@@ -102,7 +102,7 @@ test.describe("moeda da organização", () => {
     await page.goto("/app/settings/tenant");
     await page.locator("#currency").click();
     await page.getByRole("option", { name: /^Metical/ }).click();
-    await page.getByRole("button", { name: /salvar/i }).click();
+    await page.getByRole("button", { name: /salvar|guardar/i }).first().click();
     await expect(page.getByText(/organiza..o atualizada/i)).toBeVisible({ timeout: 10_000 });
 
     await page.goto("/app/products");

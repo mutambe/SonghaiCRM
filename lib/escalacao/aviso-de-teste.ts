@@ -92,7 +92,21 @@ function recusa(
 
 export async function enviarAvisoDeTeste(
   deps: DepsDoAvisoDeTeste,
-  entrada: { organizationId: string; channelSessionId: string; telefone: string },
+  entrada: {
+    organizationId: string;
+    channelSessionId: string;
+    telefone: string;
+    /** A opção de responder casos por este número, como está SALVA. */
+    respostaWhatsappHabilitada?: boolean;
+    /**
+     * O texto de OUTRO aviso que reusa esta mesma fila de condições — hoje, o
+     * aviso de agendamento (`lib/agenda/aviso-de-agendamento.ts`). Esse texto
+     * não leva link, então o passo 9 (endereço público) não se aplica a ele:
+     * recusar por falta de domínio um aviso que não mostra domínio seria um
+     * "não" sem razão.
+     */
+    corpo?: (marca: Awaited<ReturnType<AvisoDb["marcaDaOrganizacao"]>>) => string;
+  },
 ): Promise<ResultadoDoAvisoDeTeste> {
   const agora = deps.clock();
   const { organizationId: orgId, channelSessionId, telefone } = entrada;
@@ -107,6 +121,7 @@ export async function enviarAvisoDeTeste(
     return recusa("indeterminado");
   }
   if (!canal || canal.archived_at) return recusa("canal_arquivado");
+  if (canal.desativado) return recusa("canal_desativado");
   if (!canal.aceitaMensagemLivre) return recusa("canal_nao_aceita_aviso_livre");
   // No motor, canal parado vira `retry` por até ~30 min. Aqui não: há alguém
   // esperando a resposta na tela, e "vou tentar de novo em 5 minutos" não é
@@ -114,7 +129,7 @@ export async function enviarAvisoDeTeste(
   if (canal.status !== "WORKING") return recusa("canal_desconectado");
 
   // ── 9. O link precisa abrir no celular de outra pessoa ───────────────────
-  if (!urlPublicaUsavel(deps.urlPublica)) return recusa("sem_endereco_publico");
+  if (!entrada.corpo && !urlPublicaUsavel(deps.urlPublica)) return recusa("sem_endereco_publico");
 
   // ── 10. O transporte desta instalação está de pé? ────────────────────────
   if (!(await deps.transporte.configurado(orgId, canal))) return recusa("transporte_ausente");
@@ -145,10 +160,11 @@ export async function enviarAvisoDeTeste(
 
   // ── 13. O texto ──────────────────────────────────────────────────────────
   const marca = await deps.db.marcaDaOrganizacao(orgId);
-  const body = montarAvisoDeTeste({
+  const body = entrada.corpo ? entrada.corpo(marca) : montarAvisoDeTeste({
     marca: marca.nome,
     idioma: marca.idioma,
     link: `${deps.urlPublica.replace(/\/+$/, "")}/app/ai/cases`,
+    respostaWhatsappHabilitada: entrada.respostaWhatsappHabilitada === true,
   });
 
   // ── 14. O transporte ─────────────────────────────────────────────────────

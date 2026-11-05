@@ -28,8 +28,9 @@ export const createFollowupFlowSchema = z.strictObject({
 // desse fluxo cancela (outcome='replied') na 1ª resposta do contato em vez de
 // acordar o classify. Sibling de `kind` (não dentro de `params`) porque é uma
 // política de REAÇÃO À RESPOSTA, ortogonal a como o fluxo foi disparado — vale
-// pros kinds igualmente. Default false quando ausente (fluxos existentes
-// continuam acordando o classify, comportamento inalterado).
+// pros kinds igualmente. Default false quando ausente, EXCETO em
+// `appointment_no_show`, em que ausente vale true (#3400; ver
+// `parseCancelOnReply` em `lib/followup/reactivity.ts`).
 const CANCEL_ON_REPLY = { cancel_on_reply: z.boolean().optional() };
 
 export const triggerConfigSchema = z.discriminatedUnion("kind", [
@@ -61,6 +62,21 @@ export const triggerConfigSchema = z.discriminatedUnion("kind", [
       max_silence_minutes: z.number().int().min(5).max(10_080).optional(),
       // De onde a pausa conta (`pausa-de-reentrada.ts`). Ausente = `ultima_mensagem`.
       reentry_pause_basis: z.enum(BASES_DA_PAUSA).optional(),
+      // Só alcança quem a EQUIPE já respondeu: na conversa que guarda o inbound
+      // mais recente, tem de haver outbound DEPOIS dele. Ausente ou `false` = o
+      // comportamento de sempre, byte a byte — ver a seção "Dívida da equipe não
+      // é silêncio do cliente" no cabeçalho de `silence-sweep.ts`.
+      exige_resposta_da_equipe: z.boolean().optional(),
+      /**
+       * Quantas vezes NO TOTAL este fluxo pode recomeçar para o mesmo contato.
+       * Ausente = sem teto (o comportamento de sempre).
+       *
+       * A pausa de reentrada só ESPAÇA as repetições; quem nunca responde
+       * continua elegível para sempre, porque nada atualiza a última mensagem
+       * dele. Sem teto, o fluxo recomeça a cada pausa — 24 h, 48 h, 72 h —
+       * indefinidamente.
+       */
+      max_enrollments_por_contato: z.number().int().min(1).max(50).optional(),
     }),
     ...CANCEL_ON_REPLY,
   }),

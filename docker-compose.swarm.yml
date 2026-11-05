@@ -70,13 +70,17 @@ services:
     environment:
       # Como no compose: a conexão do dono do banco fica só para o kit no host.
       SUPABASE_DB_ADMIN_URL: ""
+      # Como no compose: o `worker` drena o event_log em poucos segundos; o
+      # webhook de mensagem não drena a fila dentro da requisição.
+      EVENT_LOG_WORKER_DRAINS: ${EVENT_LOG_WORKER_DRAINS:-true}
     healthcheck:
       # Probe TCP puro, como no compose (o /api/v1/health dá 503 se WAHA/Redis
       # caem, e o Swarm reciclaria o app por uma dependência secundária).
       test: ["CMD", "node", "-e", "require('net').connect(3000,'127.0.0.1').on('connect',()=>process.exit(0)).on('error',()=>process.exit(1))"]
-      interval: 30s
+      # Como no compose (PR #3393): o app fica pronto em ~5 s; 10 s libera o tráfego cedo.
+      interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 15
       start_period: 40s
     logging: *default-logging
     networks:
@@ -172,11 +176,11 @@ services:
     image: ${WAHA_IMAGE:-devlikeapro/waha:latest-2026.7.2}
     environment:
       WAHA_API_KEY: "sha512:${WAHA_API_KEY_SHA512}"
-      WHATSAPP_HOOK_URL: ${WAHA_WEBHOOK_BASE_URL}/api/v1/webhooks/waha
+      WHATSAPP_HOOK_URL: http://app:3000/api/v1/webhooks/waha
       # Os mesmos eventos do docker-compose.prod.yml (sem `message`: o
       # `message.any` já cobre tudo, e o duplicado enchia o banco).
       WHATSAPP_HOOK_EVENTS: "message.any,message.ack,message.edited,message.revoked,message.reaction,session.status,state.change"
-      WHATSAPP_HOOK_HMAC: ${WAHA_HMAC_SECRET}
+      WHATSAPP_HOOK_HMAC_KEY: ${WAHA_HMAC_SECRET}
       WHATSAPP_DEFAULT_ENGINE: ${WHATSAPP_DEFAULT_ENGINE:-NOWEB}
       WAHA_DASHBOARD_ENABLED: "false"
       WHATSAPP_RESTART_ALL_SESSIONS: "${WHATSAPP_RESTART_ALL_SESSIONS:-True}"

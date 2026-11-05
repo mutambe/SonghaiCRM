@@ -87,13 +87,15 @@ interface TenantOverviewProps {
   organization: TenantOrganization;
   counts: TenantCounts;
   integrations: TenantIntegrations;
+  /** Chave `cobranca` ligada: o card Cobrança mostra plano e "Rótulo antigo"; o badge daqui some (spec §9). */
+  cobrancaLigada?: boolean;
 }
 
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
-export function TenantOverview({ organization, counts, integrations }: TenantOverviewProps) {
+export function TenantOverview({ organization, counts, integrations, cobrancaLigada = false }: TenantOverviewProps) {
   const tagDoIdioma = useTagDeIdioma();
   const t = useT();
   // SonghaiCRM: o pacote vigente mora em `organization_subscriptions` e aparece no

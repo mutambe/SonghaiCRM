@@ -195,7 +195,7 @@ construiu a sua versão enxuta, com PaySuite, e **os nomes divergem de propósit
 |---|---|---|
 | Planos | `cobranca_planos` | `plans` |
 | Assinaturas | `cobranca_assinaturas` | `organization_subscriptions` |
-| Facturas | (sem tabela; o provedor guarda) | `billing_invoices`, `billing_invoice_lines` |
+| Faturas | (sem tabela; o provedor guarda) | `billing_invoices`, `billing_invoice_lines` |
 | Suspensão por dívida | `fn_suspender_organizacao(…, 'cobranca', …)` | **a mesma função** — é o ponto de encontro |
 | Chave de ligar | `MODULO_COBRANCA` em `platform_config` | `BILLING_ORGANIZATION_ID` em `platform_config` |
 
@@ -203,6 +203,45 @@ Quando o upstream entregar a cobrança, **não há colisão de nomes**, mas há 
 decidir a mesma coisa (quem está em dívida). Antes de qualquer `git merge` que traga
 `cobranca_*`: decidir qual vence, e migrar as assinaturas (não os nomes). A suspensão
 (`suspended_kind = 'cobranca'`) e a reactivação são partilhadas e não precisam de migração.
+
+## 7.2 Opções do Brasil — fora da oferta, código no lugar
+
+**Regra.** Módulo ou integração feitos para o Brasil não são oferecidos: nem na lista de
+Recursos opcionais (admin e empresa), nem na de Módulos, nem no ⌘K; o interruptor do módulo
+recusa-se a ligar. O **código fica**, para o `git merge upstream/main` não colidir. Instalação que
+já os tem ligados continua a vê-los (para os desligar).
+
+**Fonte única.** `MODULOS_DO_BRASIL` (`crm_b2b`, `honorarios`, `cobranca`) e `RECURSOS_DO_BRASIL`
+(`nuvemshop`) em `lib/instalacao/modulos.ts`; o predicado é `ehOpcaoDoBrasil` em
+`lib/recursos-opcionais/catalogo.ts`; o ⌘K filtra por `HREFS_DO_BRASIL` em `lib/navigation/registry.ts`.
+
+**Vigiado por** `tests/unit/opcoes-do-brasil-fora-da-oferta.test.ts`. As specs e2e que dirigem essas
+telas (`cobranca-*`, `honorarios-instalar-e-pagar`) estão em `FORA_DO_CI` com o motivo escrito.
+
+A jornada do interruptor de módulos (`tests/e2e/recursos-opcionais.spec.ts`) dirigia o «Empresas» do upstream
+(CRM B2B); aqui dirige o **Fluxos de atendimento**, que está na oferta e tem porta no hub do Agente de IA.
+Outro módulo novo do upstream com interruptor pode servir de substituto se este sair da oferta.
+
+**Depois de um merge:** módulo novo do upstream feito para o Brasil entra nesta lista; confira com
+`grep -n "MODULOS_DO_BRASIL" lib/instalacao/modulos.ts`.
+
+## 7.3 Testes do upstream que provam o que desligámos — a lista «fora da oferta»
+
+Alguns testes do upstream provam espanhol, turco, pt-BR, CPF, LGPD por país, o dólar em convenção en-US e a cobrança Stripe/Asaas. Esses comportamentos estão desligados **por decisão do dono**, e o teste correspondente não pode passar. Eles **continuam no repositório** (o merge com o `upstream/main` não quer um delete), mas `vitest.config.ts` e `vitest.db.config.ts` não os correm.
+
+- **Fonte única:** [`vitest.fora-da-oferta.ts`](../vitest.fora-da-oferta.ts), com o **motivo escrito** para cada ficheiro.
+- **Cerca:** `tests/unit/fora-da-oferta-so-o-que-esta-escrito.test.ts` reprova ficheiro que já não existe, motivo vazio, repetido, spec e2e, e invariante de banco que não seja do módulo `cobranca`.
+- **Regra de entrada:** só entra o teste cujo **comportamento** está desligado. Teste cuja expectativa é só o **texto** brasileiro (Salvar, contato, excluir…) **não entra**: corrige-se a expectativa para pt-MZ. Teste com hora de São Paulo: refaz-se o instante em Maputo.
+
+### O que o primeiro merge (v1.99) ensinou, e o próximo vai repetir
+
+1. **`pt-BR` como idioma de reserva.** O upstream escreve `idioma: Idioma = "pt-BR"` em parâmetros por omissão. Aqui a reserva é `IDIOMA_PADRAO` (`lib/i18n/idiomas.ts`). Depois de cada merge: `grep -rnE '= "pt-BR"|\?\? "pt-BR"' app components lib hooks workers`.
+2. **Texto de cliente nunca passa por `traduzir`.** A camada pt-MZ troca palavras («oi» → «olá»); aplicada ao texto que o cliente escreveu, falsifica a mensagem. `entregarAviso` tem `corpoLiteral` para isso.
+3. **Texto escrito no servidor e lido na Central** (avisos, corpos de `agent_inbox_items`) passa por `paraPortuguesDeMocambique` à saída, como o `fail()` e o roteador de e-mail.
+4. **O valor por omissão da moeda não pode violar um check.** A troca BRL→MZN do `songhai.sql` salta as tabelas `cobranca_*` (o check do upstream aceita só BRL) — migration 9102.
+5. **O CRM, a agenda e o resto são funcionalidades do pacote** (`lib/plans/funcionalidades.ts`). Testes do upstream que supõem «CRM sempre ligado» passam a lista completa. Ferramenta MCP nova do upstream sem `capacidade` quebra `plano-funcionalidades.test.ts`.
+6. **`isValidNuit` tem de recusar um dígito repetido** (regex com referência de retorno `\1`). Perde-se essa referência com facilidade ao reescrever a regex.
+7. **No Windows, a suíte inteira só se mede em Linux.** Ver §10: WSL Ubuntu, Node 22.20 ou superior (o `undici` não arranca no 22.12). Os testes que correm `git ls-files` precisam da pasta `.git` na cópia.
 
 ## 8. CI, versões e publicação
 

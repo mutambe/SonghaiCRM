@@ -36,6 +36,7 @@ export const FUSOS_OFERECIDOS: { codigo: string; rotulo: string }[] = [
   // fora; os fusos do Brasil e da América Latina do upstream saíram.
   { codigo: "Africa/Maputo", rotulo: "Maputo (Moçambique)" },
   { codigo: "Africa/Johannesburg", rotulo: "Joanesburgo (África do Sul)" },
+  { codigo: "Africa/Luanda", rotulo: "Luanda (Angola)" },
   { codigo: "Europe/Lisbon", rotulo: "Lisboa (Portugal)" },
   // Do upstream (#2187): Madrid e Roma, para quem atende de lá; os fusos do
   // Brasil que vieram no mesmo PR (Cuiabá, Rio Branco) NÃO entram.

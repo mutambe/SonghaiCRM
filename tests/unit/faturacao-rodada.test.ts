@@ -196,7 +196,7 @@ const faturas = (m: Mundo) => m.t.billing_invoices as Linha[];
 
 beforeEach(() => vi.clearAllMocks());
 
-describe("a primeira factura", () => {
+describe("a primeira fatura", () => {
   it("cliente novo: emite mensalidade + setup, com link de pagamento e e-mail ao dono", async () => {
     const m = mundo();
     m.gateway = gatewayFalso(m);
@@ -210,7 +210,7 @@ describe("a primeira factura", () => {
     expect(m.pagamentosCriados).toEqual([{ amountCents: 1_100_000, reference: `fat-22222222-2026-10-10` }]);
     expect(m.emails).toHaveLength(1);
     expect(m.emails[0]!.para).toEqual(["dono@clinicasol.co.mz"]);
-    expect(m.emails[0]!.assunto).toContain("Nova factura");
+    expect(m.emails[0]!.assunto).toContain("Nova fatura");
     expect(m.auditoria).toContain("billing.invoice_issued");
   });
 
@@ -222,7 +222,7 @@ describe("a primeira factura", () => {
     expect(faturas(m)[0]!.amount_cents).toBe(400_000);
   });
 
-  it("repetir a rodada não duplica nada: nem factura, nem link, nem e-mail", async () => {
+  it("repetir a rodada não duplica nada: nem fatura, nem link, nem e-mail", async () => {
     const m = mundo();
     m.gateway = gatewayFalso(m);
     await rodar(m, 0);
@@ -233,7 +233,7 @@ describe("a primeira factura", () => {
     expect(m.emails).toHaveLength(1);
   });
 
-  it("a organização que recebe nunca é facturada, mesmo que tenha assinatura", async () => {
+  it("a organização que recebe nunca é faturada, mesmo que tenha assinatura", async () => {
     const m = mundo();
     (m.t.organization_subscriptions as Linha[]).push({
       id: "sub-s", organization_id: ORG_SONGHAI, started_at: "2026-10-10T06:00:00Z", billing_anchor: "2026-10-10",
@@ -243,7 +243,7 @@ describe("a primeira factura", () => {
     expect(faturas(m).map((f) => f.organization_id)).toEqual([CLIENTE]);
   });
 
-  it("organização encerrada ou anonimizada não é facturada", async () => {
+  it("organização encerrada ou anonimizada não é faturada", async () => {
     const m = mundo();
     (m.t.organizations as Linha[])[1]!.status = "redacted";
     await rodar(m, 0);
@@ -259,19 +259,19 @@ describe("a primeira factura", () => {
 });
 
 describe("preço por cliente e extras", () => {
-  it("o preço acordado vence o do pacote — e mudar o do pacote não mexe em factura já emitida", async () => {
+  it("o preço acordado vence o do pacote — e mudar o do pacote não mexe em fatura já emitida", async () => {
     const m = mundo();
     (m.t.organization_subscriptions as Linha[])[0]!.agreed_price_cents = 650_000;
     await rodar(m, 0);
     expect(faturas(m)[0]!.amount_cents).toBe(650_000 + 300_000);
 
-    // o preço GLOBAL do pacote sobe; a factura já emitida fica como estava
+    // o preço GLOBAL do pacote sobe; a fatura já emitida fica como estava
     ((m.t.organization_subscriptions as Linha[])[0]!.plan as Linha).price_cents = 999_000;
     await rodar(m, 1);
     expect(faturas(m)[0]!.amount_cents).toBe(950_000);
   });
 
-  it("o preço global novo vale na PRÓXIMA factura de quem não tem preço acordado", async () => {
+  it("o preço global novo vale na PRÓXIMA fatura de quem não tem preço acordado", async () => {
     const m = mundo();
     await rodar(m, 0);
     ((m.t.organization_subscriptions as Linha[])[0]!.plan as Linha).price_cents = 900_000;
@@ -280,7 +280,7 @@ describe("preço por cliente e extras", () => {
     expect(segunda.amount_cents).toBe(900_000);
   });
 
-  it("um número de WhatsApp a mais entra na factura seguinte, todos os meses", async () => {
+  it("um número de WhatsApp a mais entra na fatura seguinte, todos os meses", async () => {
     const m = mundo();
     await rodar(m, 0);
     (m.t.subscription_items as Linha[]).push({
@@ -306,7 +306,7 @@ describe("preço por cliente e extras", () => {
     expect(faturas(m).find((f) => f.period_start === "2026-12-10")!.amount_cents).toBe(800_000);
   });
 
-  it("factura a zero (cliente isento) fecha-se sozinha, sem link nem e-mail", async () => {
+  it("fatura a zero (cliente isento) fecha-se sozinha, sem link nem e-mail", async () => {
     const m = mundo();
     (m.t.organization_subscriptions as Linha[])[0]!.agreed_price_cents = 0;
     (m.t.organization_subscriptions as Linha[])[0]!.agreed_setup_cents = 0;
@@ -319,7 +319,7 @@ describe("preço por cliente e extras", () => {
 });
 
 describe("quando o PaySuite está fora", () => {
-  it("a factura sai sem link; quando o PaySuite volta, o link nasce e o cliente é avisado", async () => {
+  it("a fatura sai sem link; quando o PaySuite volta, o link nasce e o cliente é avisado", async () => {
     const m = mundo();
     await rodar(m, 0);
     expect(faturas(m)[0]!.checkout_url).toBeNull();
@@ -328,10 +328,10 @@ describe("quando o PaySuite está fora", () => {
     const r = await rodar(m, 0);
     expect(r.links).toBe(1);
     expect(faturas(m)[0]!.checkout_url).toBeTruthy();
-    expect(m.emails.filter((e) => e.assunto.includes("Nova factura"))).toHaveLength(2); // uma sem link, uma com
+    expect(m.emails.filter((e) => e.assunto.includes("Nova fatura"))).toHaveLength(2); // uma sem link, uma com
   });
 
-  it("criar o link falhar não derruba a rodada nem a factura", async () => {
+  it("criar o link falhar não derruba a rodada nem a fatura", async () => {
     const m = mundo();
     m.gateway = { criar: async () => { throw new Error("502"); }, consultar: async () => "pending" };
     const r = await rodar(m, 0);
@@ -427,7 +427,7 @@ describe("a régua, do vencimento à suspensão e à volta — sem ninguém lemb
     expect((m.t.organizations as Linha[])[1]!.status).toBe("suspended");
   });
 
-  it("dívida de outra factura mantém a suspensão: pagar uma não reactiva se outra continua vencida", async () => {
+  it("dívida de outra fatura mantém a suspensão: pagar uma não reactiva se outra continua vencida", async () => {
     const m = mundo();
     m.gateway = gatewayFalso(m);
     await ate(m, 12);
@@ -509,6 +509,6 @@ describe("pagamento que falhou no PaySuite", () => {
     expect((f.reference as string).length).toBeLessThanOrEqual(50);
     expect(m.pagamentosCriados).toHaveLength(2);
     // o cliente recebe o link novo
-    expect(m.emails.filter((e) => e.assunto.includes("Nova factura")).length).toBeGreaterThanOrEqual(2);
+    expect(m.emails.filter((e) => e.assunto.includes("Nova fatura")).length).toBeGreaterThanOrEqual(2);
   });
 });

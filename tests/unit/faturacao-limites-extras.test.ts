@@ -2,7 +2,7 @@
  * SonghaiCRM — o extra contratado sobe o limite do cliente, sozinho.
  *
  * "Acrescentar um número de WhatsApp" tem de ter efeito no limite no mesmo
- * instante em que entra na factura — senão o operador contrata e tem de lembrar
+ * instante em que entra na fatura — senão o operador contrata e tem de lembrar
  * de subir o teto à mão, que é exactamente o que se quis evitar.
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";

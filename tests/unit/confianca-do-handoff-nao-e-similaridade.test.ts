@@ -130,7 +130,7 @@ describe("a classe inteira: ausência de medição não vira zero nos caminhos d
   it("a varredura enxerga os arquivos (controle positivo)", () => {
     // Sem este caso, um `readdir` que devolvesse vazio faria a cerca passar
     // para sempre — e o zero seria indistinguível de "nada a reprovar".
-    expect(arquivos.length, "a varredura não encontrou arquivo nenhum — sonda morta").toBeGreaterThan(50);
+    expect(arquivos.length, "a varredura não encontrou ficheiro nenhum — sonda morta").toBeGreaterThan(50);
     expect(
       arquivos.some((f) => f.endsWith("workers/ai-response-worker.ts")),
       "o arquivo que originou esta cerca precisa estar no conjunto varrido",

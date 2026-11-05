@@ -168,6 +168,12 @@ EXTENSIONS_LOCAL_CATALOG_ORIGIN=http://127.0.0.1:56331
 # escuta aqui, e não precisa: o Jev nasce desligado em toda organização.
 JEV_API_BASE_URL=http://127.0.0.1:3996
 
+# O provedor de cobranca (Stripe) fala com o duble tests/e2e/fixtures/provedor-de-cobranca.ts,
+# que a spec cobranca-revendedor sobe nesta porta, vizinha da do Jev. O servidor
+# sob teste precisa NASCER com ela: a URL e lida a cada chamada, mas o ambiente
+# e do next start.
+COBRANCA_API_BASE_URL_TESTE=http://127.0.0.1:3995
+
 # Placeholders: 'next start' roda em NODE_ENV=production, e lib/env.ts exige
 # estas vars em produção. As specs não exercitam os serviços por trás delas.
 # Local e CI falham pelos mesmos motivos porque leem ESTE arquivo: o workflow
@@ -177,6 +183,9 @@ JEV_API_BASE_URL=http://127.0.0.1:3996
 # coincidência durou até a primeira divergência, que custou 8 specs em 401.
 INTERNAL_SECRET=e2e-placeholder-nao-e-segredo
 IMPERSONATE_COOKIE_SECRET=e2e-support-cookie-local-placeholder-32-chars
+# Recetor de subscrições por webhook (SonghaiCRM): a rota fica DESLIGADA (404) sem este segredo.
+# A spec subscricoes-webhook assina os eventos com o mesmo valor.
+SUBSCRICOES_WEBHOOK_SECRET=e2e-subscricoes-webhook-segredo-de-teste-local
 # As três abaixo são chaves de CIFRA de verdade: o app exige 32 bytes e recusa
 # um rótulo. Medido — com o placeholder, criar credencial de IA devolvia 500
 # ("AI_CRED_AES_KEY deve ter exatamente 32 bytes (lido: 21)") e todo run do

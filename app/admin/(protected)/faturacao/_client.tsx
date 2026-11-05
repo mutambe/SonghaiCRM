@@ -100,7 +100,7 @@ export function FaturacaoClient() {
     onSuccess: () => {
       setDadosDoBanco(null);
       void atualizar();
-      toast.success(t("Guardado. Aparece nas facturas, nos e-mails e na página de facturação do cliente."));
+      toast.success(t("Guardado. Aparece nas faturas, nos e-mails e na página de faturação do cliente."));
     },
     onError: falhou(t("Não foi possível guardar os dados da transferência.")),
   });
@@ -125,7 +125,7 @@ export function FaturacaoClient() {
       void atualizar();
       toast.success(
         r.data.clientes_afetados > 0
-          ? `${t("Guardado. Vale para")} ${r.data.clientes_afetados} ${t("cliente(s) sem preço acordado, a partir da próxima factura.")}`
+          ? `${t("Guardado. Vale para")} ${r.data.clientes_afetados} ${t("cliente(s) sem preço acordado, a partir da próxima fatura.")}`
           : t("Guardado. Nenhum cliente segue este preço ainda."),
       );
     },
@@ -183,7 +183,7 @@ export function FaturacaoClient() {
         )}
         {r.config && !r.paysuite && (
           <p className="mt-2 text-sm text-error-fg">
-            {t("Sem o PaySuite dessa organização as facturas saem sem link de pagamento. Configure-o em Integrações › PaySuite dentro dela.")}
+            {t("Sem o PaySuite dessa organização as faturas saem sem link de pagamento. Configure-o em Integrações › PaySuite dentro dela.")}
           </p>
         )}
         <div className="mt-4 flex flex-wrap items-center gap-2">
@@ -209,7 +209,7 @@ export function FaturacaoClient() {
       <section className="rounded-lg border bg-card p-5" data-testid="faturacao-transferencia">
         <h2 className="mb-1 text-sm font-semibold uppercase tracking-wider text-muted-foreground">{t("Dados para pagamento directo")}</h2>
         <p className="mb-3 text-sm text-text-muted">
-          {t("M-Pesa, e-Mola e cartão pelo link são confirmados sozinhos. O pagamento directo não: escreva aqui os dados do banco (banco, titular, NIB/IBAN) e os números de recepção de M-Pesa e e-Mola, para o cliente os ver, e dê a factura como paga na página do cliente quando o dinheiro entrar. Altere sempre que for preciso.")}
+          {t("M-Pesa, e-Mola e cartão pelo link são confirmados sozinhos. O pagamento directo não: escreva aqui os dados do banco (banco, titular, NIB/IBAN) e os números de recepção de M-Pesa e e-Mola, para o cliente os ver, e dê a fatura como paga na página do cliente quando o dinheiro entrar. Altere sempre que for preciso.")}
         </p>
         <textarea
           className="min-h-24 w-full rounded-md border bg-background p-3 text-sm"
@@ -277,7 +277,7 @@ export function FaturacaoClient() {
       <section className="rounded-lg border bg-card p-5" data-testid="faturacao-pacotes">
         <h2 className="mb-1 text-sm font-semibold uppercase tracking-wider text-muted-foreground">{t("Preço dos pacotes")}</h2>
         <p className="mb-4 text-sm text-text-muted">
-          {t("Vale para todos os clientes sem preço acordado, a partir da próxima factura. Facturas já emitidas não mudam.")}
+          {t("Vale para todos os clientes sem preço acordado, a partir da próxima fatura. Faturas já emitidas não mudam.")}
         </p>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -387,11 +387,11 @@ export function FaturacaoClient() {
         </ul>
       </section>
 
-      {/* 5. Facturas */}
-      <section className="rounded-lg border bg-card p-5" data-testid="faturacao-facturas">
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">{t("Facturas recentes")}</h2>
+      {/* 5. Faturas */}
+      <section className="rounded-lg border bg-card p-5" data-testid="faturacao-faturas">
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">{t("Faturas recentes")}</h2>
         {r.faturas.length === 0 ? (
-          <p className="text-sm text-text-muted">{t("Ainda não há facturas.")}</p>
+          <p className="text-sm text-text-muted">{t("Ainda não há faturas.")}</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">

@@ -9,8 +9,8 @@ import { GOV_ADMIN, GOV_AGENT_A, GOV_MANAGER, GOV_ORG, GOV_VIEWER, countAs, last
  * As cinco tabelas por organização desta distribuição:
  *
  *   subscription_items          os extras que um cliente contratou
- *   billing_invoices            as facturas do cliente
- *   billing_invoice_lines       o que compõe cada factura
+ *   billing_invoices            as faturas do cliente
+ *   billing_invoice_lines       o que compõe cada fatura
  *   ai_token_alerts             os avisos de tokens de IA do cliente
  *   config_aviso_de_caso_email  quem recebe o aviso de caso por e-mail
  *

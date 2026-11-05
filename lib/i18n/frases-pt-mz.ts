@@ -54,8 +54,6 @@ export const FRASES_PT_MZ: Readonly<Record<string, string>> = {
     "Não foi possível carregar os administradores da plataforma. Tente recarregar a página.",
   "Status": "Estado",
   // Exemplo de telefone: o de Moçambique (+258), nunca o do Brasil.
-  "Use um telefone com DDI por linha, por exemplo +5511999998888.":
-    "Use um telefone com indicativo do país por linha, por exemplo +258841234567.",
 
   // ---- Telas: frases que nenhuma regra da camada acerta ----
   // "a gente" pede o verbo na 1.ª do plural; não é troca de palavra.
@@ -71,7 +69,6 @@ export const FRASES_PT_MZ: Readonly<Record<string, string>> = {
   "Ex.: Pagamento em até 3x sem juros no cartão ou 5% de desconto à vista via Pix.":
     "Ex.: Pagamento em até 3 prestações sem juros no cartão ou 5% de desconto a pronto via M-Pesa.",
   // O gasto de IA é em DÓLAR (llm_calls.cost_cents) — o "(R$)" do upstream estava errado também lá.
-  "Quanto gastou por dia (R$)": "Quanto gastou por dia (US$)",
   "Custo AI / dia (R$)": "Custo de IA por dia (US$)",
   // "excluir" aqui é deixar de fora, não apagar (a camada troca "excluir" por "eliminar").
   'Para não guardar a origem na aba, adicione data-storage="none" ao script. Para excluir um link, adicione data-rastreio-ignorar nele. Botões controlados apenas por JavaScript e links abreviados precisam de adaptação no site.':
@@ -104,6 +101,13 @@ export const FRASES_PT_MZ: Readonly<Record<string, string>> = {
     "Consigo arranjar-lhe outro horário. Diga-me o dia da semana e o período que lhe dão mais jeito.",
   "Se ainda quiser remarcar, é só me responder. Depois desta eu paro de lembrar, para não encher a sua caixa de mensagem 🙂":
     "Se ainda quiser remarcar, basta responder-me. Depois desta mensagem deixo de lembrar, para não encher a sua caixa de mensagens 🙂",
+  // ---- Exemplos de telefone: o upstream escreve o número do Brasil ----
+  "Esse número não é válido. Use o código do país, por exemplo +55 31 99999-8888.":
+    "Esse número não é válido. Use o código do país, por exemplo +258 84 123 4567.",
+  "Um dos números de WhatsApp da equipe não é válido. Use o código do país, por exemplo +55 31 99999-8888.":
+    "Um dos números de WhatsApp da equipa não é válido. Use o código do país, por exemplo +258 84 123 4567.",
+  "O telefone precisa estar gravado só com números, com ou sem o código do país ou o sinal + (5511999998888, 11999998888 ou +5511999998888).":
+    "O telefone precisa de estar gravado só com números, com ou sem o código do país ou o sinal + (258841234567, 841234567 ou +258841234567).",
 };
 
 /** A frase em português de Moçambique, ou `undefined` quando o registro não a tem. */

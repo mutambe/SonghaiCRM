@@ -67,8 +67,8 @@ const paraCampo = (cents: number | null) => (cents === null ? "" : (cents / 100)
  *
  * O preço do pacote é global (Faturação); aqui mora o que é só deste cliente: um
  * preço combinado, o piloto e os extras (um número de WhatsApp a mais, etc.). O
- * extra sobe o limite do cliente na hora e entra na factura seguinte — sem
- * segundo passo. Nada disto altera facturas já emitidas.
+ * extra sobe o limite do cliente na hora e entra na fatura seguinte — sem
+ * segundo passo. Nada disto altera faturas já emitidas.
  */
 export function FaturacaoDaOrganizacao({ organizationId }: { organizationId: string }) {
   const t = useT();
@@ -94,7 +94,7 @@ export function FaturacaoDaOrganizacao({ organizationId }: { organizationId: str
       setPreco(null);
       setQuotaAcordada(null);
       void atualizar();
-      toast.success(t("Guardado. Vale a partir da próxima factura."));
+      toast.success(t("Guardado. Vale a partir da próxima fatura."));
     },
     onError: falhou(t("Não foi possível guardar.")),
   });
@@ -106,7 +106,7 @@ export function FaturacaoDaOrganizacao({ organizationId }: { organizationId: str
       setPrecoDoExtra("");
       setQuantidade("1");
       void atualizar();
-      toast.success(t("Extra contratado. O limite do cliente já subiu e o preço entra na próxima factura."));
+      toast.success(t("Extra contratado. O limite do cliente já subiu e o preço entra na próxima fatura."));
     },
     onError: falhou(t("Não foi possível contratar o extra.")),
   });
@@ -122,7 +122,7 @@ export function FaturacaoDaOrganizacao({ organizationId }: { organizationId: str
       void atualizar();
       toast.success(r.data.reativada ? t("Feito. A conta foi reactivada na hora.") : t("Feito."));
     },
-    onError: falhou(t("Não foi possível alterar a factura.")),
+    onError: falhou(t("Não foi possível alterar a fatura.")),
   });
 
   const terminar = useMutation({
@@ -144,7 +144,7 @@ export function FaturacaoDaOrganizacao({ organizationId }: { organizationId: str
     return (
       <div className="rounded-lg border bg-card p-5" data-testid="faturacao-da-organizacao">
         <h2 className="mb-2 text-sm font-semibold uppercase tracking-wider text-muted-foreground">{t("Preço e extras")}</h2>
-        <p className="text-sm text-text-muted">{t("Atribua um pacote primeiro: sem pacote não há o que facturar.")}</p>
+        <p className="text-sm text-text-muted">{t("Atribua um pacote primeiro: sem pacote não há o que faturar.")}</p>
       </div>
     );
   }
@@ -207,7 +207,7 @@ export function FaturacaoDaOrganizacao({ organizationId }: { organizationId: str
           <p className="font-medium">{t("Piloto")}</p>
           <p className="text-xs text-text-muted">
             {faturas.length > 0
-              ? t("Já não se pode mudar: a primeira factura já foi emitida.")
+              ? t("Já não se pode mudar: a primeira fatura já foi emitida.")
               : t("Setup grátis e 50% na primeira mensalidade, aplicados pelo sistema.")}
           </p>
         </div>
@@ -355,11 +355,11 @@ export function FaturacaoDaOrganizacao({ organizationId }: { organizationId: str
         )}
       </div>
 
-      {/* facturas */}
+      {/* faturas */}
       <div className="space-y-2">
-        <p className="text-sm font-medium">{t("Facturas")}</p>
+        <p className="text-sm font-medium">{t("Faturas")}</p>
         {faturas.length === 0 ? (
-          <p className="text-sm text-text-muted">{t("Ainda sem facturas.")}</p>
+          <p className="text-sm text-text-muted">{t("Ainda sem faturas.")}</p>
         ) : (
           <ul className="divide-y rounded-md border text-sm">
             {faturas.map((f) => {

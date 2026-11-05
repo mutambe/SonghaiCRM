@@ -220,7 +220,7 @@ Em **Documento da organização** escreva e **Publique a versão**:
 
 > A Songhai atende em Moçambique; a equipa trabalha de segunda a sexta, 9h–17h, e ao sábado, 9h–14h. Os preços do site
 > são «a partir de»; o valor final é confirmado pela equipa. Propostas à medida, Enterprise, voz e integrações com
-> ERP/POS/facturação passam sempre pela equipa.
+> ERP/POS/faturação passam sempre pela equipa.
 
 ### Passo 13 — Confirmar com uma mensagem real
 

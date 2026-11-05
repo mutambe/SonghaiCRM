@@ -58,9 +58,9 @@ const CORPO_DO_ESTADO = {
   conexao_atende_clientes:
     "Os avisos vão contar no mesmo limite diário desse número. Funciona — mas um número só para avisos é mais seguro.",
   casos_desligados:
-    "Enquanto ninguém puder abrir um caso, nenhum aviso vai sair. Ligue a opção de abrir casos na configuração do assistente.",
+    "Os avisos de casos dependem dessa permissão. As transferências para atendimento humano continuam podendo avisar a equipe, sem habilitar a abertura de casos.",
   agente_assistido:
-    "Um assistente em modo assistido não abre caso sozinho: ele escreve a sugestão e espera alguém. Nenhum aviso vai sair por ele.",
+    "Um assistente em modo assistido não abre casos sozinho. Os avisos de transferência dependem de a conversa ser efetivamente passada para atendimento humano.",
   atendimento_externo:
     "Quem conduz as conversas desta conta é um sistema de fora, e ele não abre casos aqui.",
   aquecimento:
@@ -68,6 +68,13 @@ const CORPO_DO_ESTADO = {
   descarte_acontecendo:
     "Quem responder a esse número não vira atendimento, não vira contato e não chega ao CRM. É assim que o recurso funciona.",
 } as const satisfies Record<CodigoDoEstadoDoAviso, string>;
+
+/** O descarte com a opção "Responder casos por este WhatsApp" ligada. */
+const DESCARTE_COM_COMANDOS = {
+  titulo: "Mensagens comuns deste número são ignoradas",
+  corpo:
+    "Para orientar a IA sem falar diretamente com o cliente, responda ao aviso com RESPONDER, o ID do caso e sua orientação. Use PERGUNTAR, o ID do caso e a pergunta para pedir que a IA esclareça algo com o cliente. Outras mensagens deste número são ignoradas.",
+} as const;
 
 /** Para onde o leigo vai resolver cada estado. Ausente = resolve nesta tela. */
 const LINK_DO_ESTADO: Partial<Record<CodigoDoEstadoDoAviso, string>> = {
@@ -101,6 +108,7 @@ export function AlertasDoAviso({ avisos }: { avisos: AvisoDaTela[] }) {
       {avisos.map((aviso) => {
         const href = LINK_DO_ESTADO[aviso.codigo];
         const rotulo = ROTULO_DO_LINK[aviso.codigo];
+        const comandos = aviso.codigo === "descarte_acontecendo" && aviso.dados?.comandos === 1;
         const Icone = aviso.bloqueia
           ? WarningOctagon
           : aviso.codigo === "aquecimento" || aviso.codigo === "descarte_acontecendo"
@@ -119,8 +127,12 @@ export function AlertasDoAviso({ avisos }: { avisos: AvisoDaTela[] }) {
           >
             <Icone className="mt-0.5 h-5 w-5 shrink-0 text-muted-foreground" weight="duotone" />
             <div className="space-y-1">
-              <p className="text-sm font-medium">{t(TITULO_DO_ESTADO[aviso.codigo])}</p>
-              <p className="text-xs text-muted-foreground">{t(CORPO_DO_ESTADO[aviso.codigo])}</p>
+              <p className="text-sm font-medium">
+                {t(comandos ? DESCARTE_COM_COMANDOS.titulo : TITULO_DO_ESTADO[aviso.codigo])}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {t(comandos ? DESCARTE_COM_COMANDOS.corpo : CORPO_DO_ESTADO[aviso.codigo])}
+              </p>
 
               {aviso.codigo === "aquecimento" ? (
                 <p className="text-xs font-medium" data-testid="aquecimento-de-hoje">

@@ -96,14 +96,14 @@ describe("a mensalidade que vale", () => {
   });
 });
 
-describe("as linhas da factura", () => {
+describe("as linhas da fatura", () => {
   it("mês normal: só a mensalidade", () => {
     const l = montarLinhas(entrada())!;
     expect(l).toHaveLength(1);
     expect(totalDasLinhas(l)).toBe(800_000);
   });
 
-  it("primeira factura: mensalidade + setup", () => {
+  it("primeira fatura: mensalidade + setup", () => {
     const l = montarLinhas(entrada({ indice: 0 }))!;
     expect(l.map((x) => x.kind)).toEqual(["plano", "setup"]);
     expect(totalDasLinhas(l)).toBe(1_100_000); // 8.000 + 3.000 MZN
@@ -115,7 +115,7 @@ describe("as linhas da factura", () => {
     expect(l.filter((x) => x.kind === "desconto").map((x) => x.amountCents)).toEqual([-300_000, -400_000]);
   });
 
-  it("o desconto do piloto NÃO se repete na segunda factura", () => {
+  it("o desconto do piloto NÃO se repete na segunda fatura", () => {
     const l = montarLinhas(entrada({ indice: 1, isPilot: true }))!;
     expect(totalDasLinhas(l)).toBe(800_000);
     expect(l.some((x) => x.kind === "desconto")).toBe(false);
@@ -161,13 +161,13 @@ describe("extras por cliente", () => {
     expect(totalDasLinhas(montarLinhas(entrada({ itens: [extra({ startedOn: "2026-12-10" })] }))!)).toBe(800_000);
   });
 
-  it("extra pontual cobra-se UMA vez: depois de facturado, não volta", () => {
+  it("extra pontual cobra-se UMA vez: depois de faturado, não volta", () => {
     const pontual = extra({ recurrence: "once", description: "Formação extra", unitPriceCents: 20_000 });
     expect(totalDasLinhas(montarLinhas(entrada({ itens: [pontual] }))!)).toBe(820_000);
     expect(totalDasLinhas(montarLinhas(entrada({ itens: [{ ...pontual, billedInvoiceId: "fat-1" }] }))!)).toBe(800_000);
   });
 
-  it("extra pontual cancelado antes de facturado não entra", () => {
+  it("extra pontual cancelado antes de faturado não entra", () => {
     const pontual = extra({ recurrence: "once", unitPriceCents: 20_000, endedOn: "2026-10-20" });
     expect(totalDasLinhas(montarLinhas(entrada({ itens: [pontual] }))!)).toBe(800_000);
   });
@@ -205,8 +205,8 @@ describe("quando emitir", () => {
     expect(indicesAEmitir({ ...base, jaEmitidos: emitidos, hoje: "2026-11-08" })).toEqual([]);
   });
 
-  it("ligar a facturação não cobra o passado: só períodos que começam depois da activação", () => {
-    // cliente desde 10 de Setembro; facturação ligada a 8 de Outubro.
+  it("ligar a faturação não cobra o passado: só períodos que começam depois da activação", () => {
+    // cliente desde 10 de Setembro; faturação ligada a 8 de Outubro.
     // O período de Setembro (10/09 a 09/10) já corria: não se cobra.
     // O de 10 de Outubro começa depois da activação: cobra-se, e emite-se já.
     const r = indicesAEmitir({ inicio: "2026-09-10", ativaDesde: "2026-10-08", jaEmitidos: new Set(), hoje: "2026-10-08" });

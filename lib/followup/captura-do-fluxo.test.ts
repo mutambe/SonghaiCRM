@@ -176,7 +176,7 @@ describe("tipo cpf = NUIT (achado 7 da prova do #1130)", () => {
       resultado: "respondeu",
       captura: { key: "cpf", valor: "400123456", bruto: "400 123 456" },
     });
-    expect(classificarInbound(cpf, "meu nuit 400123456").resultado).toBe("respondeu");
+    expect(classificarInbound(cpf, "o meu nuit 400123456").resultado).toBe("respondeu");
   });
 
   it("forma errada NÃO é resposta (a pergunta segue)", () => {
@@ -206,8 +206,8 @@ describe("respostaTemLastro", () => {
   it("número: precisa estar no texto; ano só entre 1950 e 2100", () => {
     expect(respostaTemLastro(ano, "125", "tenho uma Honda CG 125", { perguntaAtual: true })).toBe(false);
     expect(respostaTemLastro(ano, "2015", "é 2015", { perguntaAtual: true })).toBe(true);
-    expect(respostaTemLastro(km, "120000", "rodou uns 120 mil", { perguntaAtual: true })).toBe(true);
-    expect(respostaTemLastro(km, "90000", "rodou uns 120 mil", { perguntaAtual: true })).toBe(false);
+    expect(respostaTemLastro(km, "120000", "correu uns 120 mil", { perguntaAtual: true })).toBe(true);
+    expect(respostaTemLastro(km, "90000", "correu uns 120 mil", { perguntaAtual: true })).toBe(false);
   });
 
   it("texto livre: vale na pergunta feita; em outra, o valor precisa estar no texto", () => {

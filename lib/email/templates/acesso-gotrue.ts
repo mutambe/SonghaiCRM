@@ -1,5 +1,6 @@
 import { NEUTROS_DE_SAIDA, type MarcaDeSaida } from "@/lib/branding/saida";
 import { htmlEmPortuguesDeMocambique, paraPortuguesDeMocambique } from "@/lib/i18n/pt-mz";
+import { estruturaDeEmail } from "./estrutura";
 
 /**
  * Os dois e-mails de ACESSO — confirmar conta e redefinir senha — no formato
@@ -74,21 +75,11 @@ export function assuntoDoModelo(modelo: ModeloDeAcesso, marca: MarcaDeSaida): st
  */
 export function montarTemplateDeAcesso(modelo: ModeloDeAcesso, marca: MarcaDeSaida): string {
   const t = COPIA[modelo];
-  const nome = escapeHtml(marca.nome);
-
-  const logo = marca.logoUrl
-    ? `<p style="margin:0 0 24px"><img src="${escapeHtml(marca.logoUrl)}" alt="${nome}" height="40" style="height:40px;width:auto;max-width:200px;border:0;display:block"></p>`
-    : "";
 
   // As chaves duplas ficam CRUAS de propósito: o GoTrue as substitui.
   const destino = "{{ .RedirectTo }}&token_hash={{ .TokenHash }}";
 
-  return htmlEmPortuguesDeMocambique(`<!doctype html>
-<html lang="pt-MZ">
-<body style="margin:0;padding:0;background:${NEUTROS_DE_SAIDA.fundo};font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:${NEUTROS_DE_SAIDA.texto}">
-  <div style="max-width:560px;margin:0 auto;padding:32px 24px">
-    ${logo}
-    <h1 style="font-size:22px;line-height:1.3;margin:0 0 16px;color:${NEUTROS_DE_SAIDA.texto}">
+  return htmlEmPortuguesDeMocambique(estruturaDeEmail(marca, `    <h1 style="font-size:22px;line-height:1.3;margin:0 0 16px;color:${NEUTROS_DE_SAIDA.texto}">
       ${escapeHtml(t.titulo)}
     </h1>
     <p style="margin:0 0 16px;font-size:15px;line-height:1.5">
@@ -105,10 +96,7 @@ export function montarTemplateDeAcesso(modelo: ModeloDeAcesso, marca: MarcaDeSai
     </p>
     <p style="margin:24px 0 0;font-size:13px;color:${NEUTROS_DE_SAIDA.suave}">
       ${escapeHtml(t.rodape)}
-    </p>
-  </div>
-</body>
-</html>`);
+    </p>`));
 }
 
 function escapeHtml(s: string): string {

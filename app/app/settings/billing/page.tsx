@@ -13,6 +13,10 @@ import { traduzir } from "@/lib/i18n/dicionario";
 import { formatCents } from "@/lib/money";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { AcoesDaAssinatura } from "@/components/cobranca/AcoesDaAssinatura";
+import { PainelDaAssinatura } from "@/components/cobranca/PainelDaAssinatura";
+import { lerPainelDaAssinatura } from "@/lib/cobranca/painel";
+import { moduloLigado } from "@/lib/instalacao/modulos";
 
 export const dynamic = "force-dynamic";
 
@@ -28,14 +32,14 @@ interface Fatura {
 }
 
 /**
- * A FACTURAÇÃO DO CLIENTE — o pacote, os extras e as facturas dele (SonghaiCRM, 9010).
+ * A FATURAÇÃO DO CLIENTE — o pacote, os extras e as faturas dele (SonghaiCRM, 9010).
  *
  * Só admin da empresa (a RLS das três tabelas também o exige): dinheiro não é
  * assunto de quem atende. Lê pela sessão — a RLS faz o recorte —, nunca por
- * service role. O link de pagamento da factura aberta está aqui e no aviso que o
+ * service role. O link de pagamento da fatura aberta está aqui e no aviso que o
  * topo da aplicação mostra enquanto houver o que pagar.
  */
-export default async function BillingPage() {
+export default async function BillingPage({ searchParams }: { searchParams: Promise<{ voltou?: string }> }) {
   const user = await requireAuth();
   const activeOrg = await resolveActiveOrg(user);
   if (!activeOrg || ROLE_RANK[activeOrg.role] < ROLE_RANK.admin) {
@@ -43,6 +47,12 @@ export default async function BillingPage() {
   }
   const idioma = user.idioma;
   const t = (texto: string) => traduzir(texto, idioma);
+  // A cobrança do REVENDEDOR (upstream, spec §9) só existe com o módulo `cobranca`
+  // instalado; desligado — o normal nesta distribuição — a página é só a faturação
+  // dos pacotes (SonghaiCRM, 9010).
+  const painel = (await moduloLigado(createAdminClient(), "cobranca"))
+    ? await lerPainelDaAssinatura(createAdminClient(), activeOrg.orgId)
+    : null;
   const suporte = await emailDeSuporte();
   // Dados do banco que o operador escreveu (config da instalação, só o servidor lê).
   const dadosDoBanco = await instrucoesDeTransferencia(createAdminClient());
@@ -88,11 +98,38 @@ export default async function BillingPage() {
   };
 
   return (
-    <div className="flex h-full flex-col gap-6 p-6" data-testid="facturacao-do-cliente">
+    <div className="flex h-full flex-col gap-6 p-6" data-testid="faturacao-do-cliente">
       <header>
-        <h1 className="text-2xl font-semibold tracking-tight">{t("Facturação")}</h1>
-        <p className="text-sm text-muted-foreground">{t("O seu pacote, os extras e as facturas.")}</p>
+        <h1 className="text-2xl font-semibold tracking-tight">{t("Faturação")}</h1>
+        <p className="text-sm text-muted-foreground">{t("O seu pacote, os extras e as faturas.")}</p>
       </header>
+
+      {painel && (
+        <>
+          <PainelDaAssinatura dados={painel} idioma={idioma} />
+          {painel.assinatura && (
+            <AcoesDaAssinatura
+              estado={painel.assinatura.estado}
+              temProvedor={painel.assinatura.provedor !== null}
+              assinaturasVivas={painel.assinatura.assinaturas_vivas}
+              linkDePagamento={painel.assinatura.link_de_pagamento}
+              cancelaNoFim={painel.assinatura.cancela_no_fim}
+              planosParaTroca={painel.planosParaTroca}
+              planoAtual={painel.plano ? { id: painel.plano.id, nome: painel.plano.nome, preco_cents: painel.plano.preco_cents, intervalo: painel.plano.intervalo, max_assentos: painel.plano.max_assentos, max_canais: painel.plano.max_canais, teto_ia_usd_cents: painel.plano.teto_ia_usd_cents } : null}
+              periodoPagoDesde={painel.assinatura.periodo_pago_desde}
+              proximoVencimento={painel.assinatura.proximo_vencimento}
+              trocaPagamentoUrl={painel.assinatura.troca_pagamento_url}
+              trocaStatus={painel.assinatura.troca_status}
+              instanteCalculo={new Date().toISOString()}
+              provedor={painel.checkout.provedor}
+              documentoDoCadastro={painel.checkout.documentoDoCadastro}
+              voltouDoCheckout={(await searchParams).voltou === "1"}
+              noHub={false}
+              fuso={painel.fuso}
+            />
+          )}
+        </>
+      )}
 
       <Card className="max-w-2xl space-y-3 p-6">
         <h2 className="text-sm font-semibold">{t("Pacote")}</h2>
@@ -146,9 +183,9 @@ export default async function BillingPage() {
       )}
 
       <Card className="max-w-2xl space-y-3 p-6">
-        <h2 className="text-sm font-semibold">{t("Facturas")}</h2>
+        <h2 className="text-sm font-semibold">{t("Faturas")}</h2>
         {lista.length === 0 ? (
-          <p className="text-sm text-muted-foreground">{t("Ainda não há facturas.")}</p>
+          <p className="text-sm text-muted-foreground">{t("Ainda não há faturas.")}</p>
         ) : (
           <ul className="space-y-3">
             {lista.map((f) => {
@@ -190,7 +227,7 @@ export default async function BillingPage() {
                         <div className="rounded-md bg-muted p-3 text-muted-foreground" data-testid="dados-da-transferencia">
                           <p className="font-medium text-foreground">{t("Ou pague directamente (transferência bancária ou números de recepção)")}</p>
                           <p className="whitespace-pre-line">{dadosDoBanco}</p>
-                          <p>{t("Depois de transferir, envie o comprovativo: a conta é actualizada assim que a equipa confirmar.")}</p>
+                          <p>{t("Depois de transferir, envie o comprovativo: a conta é atualizada assim que a equipa confirmar.")}</p>
                         </div>
                       )}
                     </>
@@ -202,7 +239,7 @@ export default async function BillingPage() {
         )}
         {suporte && (
           <p className="text-sm text-muted-foreground">
-            {t("Dúvidas sobre uma factura:")}{" "}
+            {t("Dúvidas sobre uma fatura:")}{" "}
             <a className="underline" href={`mailto:${suporte}`}>
               {suporte}
             </a>

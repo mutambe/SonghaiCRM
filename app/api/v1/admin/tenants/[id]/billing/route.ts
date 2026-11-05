@@ -1,9 +1,9 @@
 /**
  * /api/v1/admin/tenants/[id]/billing — os termos comerciais de UM cliente (SonghaiCRM, 9010).
  *
- * GET: o pacote, o preço acordado, o piloto, os extras e as facturas dele.
+ * GET: o pacote, o preço acordado, o piloto, os extras e as faturas dele.
  * PATCH: preço e setup acordados só com este cliente, e o piloto (que só se muda
- * antes da primeira factura). Não mexe em nenhuma factura emitida; vale para as
+ * antes da primeira fatura). Não mexe em nenhuma fatura emitida; vale para as
  * que ainda vão ser emitidas.
  *
  * `organization_id` vem sempre do path, e toda leitura o filtra explicitamente.
@@ -37,7 +37,7 @@ const MENSAGENS: Record<string, { status: number; code: string; message: string 
   piloto_ja_nao_se_aplica: {
     status: 409,
     code: "pilot_locked",
-    message: "O piloto já não se pode mudar: a primeira factura deste cliente já foi emitida.",
+    message: "O piloto já não se pode mudar: a primeira fatura deste cliente já foi emitida.",
   },
   nada_a_alterar: { status: 400, code: "validation_failed", message: "Nada a alterar." },
 };
@@ -46,8 +46,8 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   const requestId = randomUUID();
   try {
     await requirePlatformAdmin();
-  } catch {
-    return fail("forbidden", "Platform admin required", 403, { requestId });
+  } catch (err) {
+    return falhaDaEscritaDePlatformAdmin(err, requestId);
   }
   const { id } = await params;
   if (!z.string().uuid().safeParse(id).success) return fail("validation_failed", "Organização inválida.", 400, { requestId });

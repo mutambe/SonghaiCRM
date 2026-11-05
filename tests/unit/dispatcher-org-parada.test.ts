@@ -27,11 +27,16 @@ import { ensureHandlersRegistered } from "@/lib/event-log/register-handlers";
 import { pinoReintentoHandler } from "@/lib/channels/zernio/pino-reintento.handler";
 import { automationRulesHandler } from "@/lib/automation/engine.handler";
 import { campanhaRespostaHandler } from "@/lib/campanhas/resposta.handler";
+import { cobrancaSinalHandler } from "@/lib/cobranca/sinal.handler";
 import { conversaoDeVendaHandler } from "@/lib/conversoes/envio.handler";
 import { conversaoDeQualificacaoHandler } from "@/lib/conversoes/qualificacao.handler";
 import { conversaoDeEtapaMetaHandler } from "@/lib/conversoes/etapa-meta.handler";
+import { conversaoDeNascimentoMetaHandler } from "@/lib/conversoes/nascimento-meta.handler";
+import { conversaoDeCliqueMetaHandler } from "@/lib/conversoes/clique-meta.handler";
+import { avisoDeAgendamentoNoWhatsAppHandler } from "@/lib/agenda/aviso-de-agendamento.handler";
 import { avisoDeCasoAoSuporteHandler } from "@/lib/escalacao/aviso-ao-suporte.handler";
 import { avisoDeCasoPorEmailHandler } from "@/lib/escalacao/aviso-por-email.handler";
+import { avisoDeHandoffHandler } from "@/lib/escalacao/aviso-de-handoff.handler";
 import { casoNaCentralHandler } from "@/lib/escalacao/caso-na-central.handler";
 import { followupGatilhoCasoHandler } from "@/lib/followup/gatilho-caso.handler";
 import { followupGatilhoEtapaHandler } from "@/lib/followup/gatilho-etapa.handler";
@@ -39,7 +44,10 @@ import { followupGatilhoLeadHandler } from "@/lib/followup/gatilho-lead.handler"
 import { followupGatilhoPresencaHandler } from "@/lib/followup/gatilho-presenca.handler";
 import { followupGatilhoRetornoHandler } from "@/lib/followup/gatilho-retorno.handler";
 import { followupReactivityHandler } from "@/lib/followup/reactivity.handler";
+import { followupSaidaDaEtapaHandler } from "@/lib/followup/saida-da-etapa.handler";
 import { avisoDeEtapaHandler } from "@/lib/leads/aviso-de-etapa.handler";
+import { avisoAoDonoDaCarteira } from "@/lib/carteira/aviso-ao-dono";
+import { comandaDoGanhoHandler } from "@/lib/financeiro/comanda-do-ganho.handler";
 import { webPushInboundHandler } from "@/lib/notifications/push.handler";
 import { avisoDePropostaNoWhatsAppHandler } from "@/lib/propostas/aviso-no-whatsapp.handler";
 import { aiHandoffFromSentimentHandler } from "@/workers/ai-handoff-from-sentiment.handler";
@@ -56,9 +64,18 @@ const RODA: EventHandler[] = [
   campanhaRespostaHandler,
   avisoDeEtapaHandler,
   casoNaCentralHandler,
+  comandaDoGanhoHandler,
   mediaPersistHandler,
   lgpdExportHandler,
   lgpdRedactHandler,
+  cobrancaSinalHandler,
+  // #2591 — tarefa interna para o dono da carteira: escrita no próprio banco,
+  // sem rede, roda com a organização parada (mesma régua do aviso de etapa).
+  avisoAoDonoDaCarteira,
+  // Saiu da etapa: desagenda o toque que ela armou. Escrita interna, sem rede —
+  // e o lado SEGURO de uma organização parada (toque armado voltaria em rajada
+  // na reativação, fora de contexto).
+  followupSaidaDaEtapaHandler,
 ];
 
 const PULA: EventHandler[] = [
@@ -76,10 +93,14 @@ const PULA: EventHandler[] = [
   webPushInboundHandler,
   avisoDeCasoAoSuporteHandler,
   avisoDeCasoPorEmailHandler, // SonghaiCRM (9012)
+  avisoDeHandoffHandler,
   avisoDePropostaNoWhatsAppHandler,
+  avisoDeAgendamentoNoWhatsAppHandler,
   conversaoDeVendaHandler,
   conversaoDeQualificacaoHandler,
   conversaoDeEtapaMetaHandler,
+  conversaoDeNascimentoMetaHandler,
+  conversaoDeCliqueMetaHandler,
   pinoReintentoHandler,
 ];
 

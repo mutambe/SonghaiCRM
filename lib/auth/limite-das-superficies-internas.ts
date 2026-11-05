@@ -16,6 +16,7 @@
  * crons, sem `x-forwarded-for` — um balde global trancaria a automação da
  * instalação inteira, não um atacante.
  */
+import { ipDoCliente } from "@/lib/http/ip-do-cliente";
 import { createHash } from "node:crypto";
 
 import { checkRateLimit } from "@/lib/ai/dispatcher/rate-limit";
@@ -30,6 +31,11 @@ const SUPERFICIES: ReadonlyArray<{ prefixo: string; escopo: string; limite: numb
   // servidor. 30/min por IP sobra para monitor de disponibilidade; as sondas
   // internas do kit (127.0.0.1, sem x-forwarded-for) não têm IP e não contam.
   { prefixo: "/api/v1/health", escopo: "health", limite: 30 },
+  // Webhook de subscrição dos tenants: a única porta que cria organizações sem
+  // sessão de administrador, autenticada só por HMAC. Um evento legítimo é raro
+  // (uma contratação); 20/min por IP sobra para reenvios e tira o ataque de força
+  // bruta ao segredo. Sem IP (sondas internas) não conta.
+  { prefixo: "/api/v1/webhooks/subscricoes", escopo: "subscricoes", limite: 20 },
 ];
 const JANELA_SEG = 60;
 
@@ -42,10 +48,9 @@ export function superficieInterna(pathname: string): { escopo: string; limite: n
   return s ? { escopo: s.escopo, limite: s.limite } : null;
 }
 
+// Uma régua só para o IP de quem acessa (a topologia declarada em IP_DO_CLIENTE_HEADER vale).
 function ipDaRequisicao(headers: Headers): string | null {
-  const encaminhado = headers.get("x-forwarded-for")?.split(",")[0]?.trim();
-  if (encaminhado) return encaminhado;
-  return headers.get("x-real-ip")?.trim() || null;
+  return ipDoCliente(headers);
 }
 
 /** `true` = barre a requisição (429). Sem IP identificável, nunca barra. */

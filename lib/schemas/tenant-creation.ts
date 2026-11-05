@@ -14,13 +14,15 @@ export const tenantCreationFields = {
   cnpj: z.string().max(18).optional(),
   // SonghaiCRM: o pacote do catálogo real (public.plans, migration 9004), não um rótulo.
   plan: z.enum(SLUGS_DE_PLANO),
+  /** Spec da cobrança §9: com a chave `cobranca` ligada, o plano de cobrança (ausente = isenta). */
+  plano_id: z.string().uuid().optional(),
   owner_interface_settings: interfaceSettingsSchema.optional(),
   owner_email: z.string().trim().email(),
 };
 /** Termos comerciais, só na CRIAÇÃO: a edição da organização não os conhece (9010). */
 const centimos = z.number().int().min(0).max(1_000_000_000);
 export const termosComerciaisFields = {
-  /** Piloto: setup grátis e 50% no primeiro mês, aplicados pelo sistema na 1.ª factura. */
+  /** Piloto: setup grátis e 50% no primeiro mês, aplicados pelo sistema na 1.ª fatura. */
   is_pilot: z.boolean().optional(),
   /** Mensalidade acordada só com este cliente; ausente = vale o preço do pacote. */
   agreed_price_cents: centimos.optional(),
