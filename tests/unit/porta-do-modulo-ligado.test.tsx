@@ -308,7 +308,7 @@ describe("a spec de e2e cita o caminho que a fonte produz", () => {
       join(__dirname, "..", "..", "tests", "e2e", "recursos-opcionais.spec.ts"),
       "utf8",
     );
-    const primeira = ondeOModuloAparece("crm_b2b")[0]!;
+    const primeira = ondeOModuloAparece("fluxos_atendimento")[0]!;
     const esperado = primeira.hub
       ? `${primeira.grupo} › ${primeira.hub} › ${primeira.label}`
       : `${primeira.grupo} › ${primeira.label}`;
